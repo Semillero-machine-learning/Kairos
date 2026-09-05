@@ -1,0 +1,1461 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>KAIROS — Especificación de Requisitos y Diseño Técnico</title>
+<style>
+@page { size: A4; margin: 20mm 18mm; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+* { box-sizing: border-box; }
+body {
+  font-family: Cambria, Georgia, "Times New Roman", serif;
+  font-size: 10.5pt; line-height: 1.45; color: #1a1a1a; margin: 0;
+}
+h1, h2, h3, h4 { font-weight: 700; line-height: 1.25; }
+h1 {
+  font-size: 15.5pt; margin: 0 0 12pt; padding-bottom: 5pt;
+  border-bottom: 1.4pt solid #1a1a1a; page-break-before: always; page-break-after: avoid;
+}
+h1.nobreak { page-break-before: avoid; }
+h2 { font-size: 12pt; margin: 16pt 0 6pt; page-break-after: avoid; }
+h3 { font-size: 10.5pt; margin: 12pt 0 4pt; page-break-after: avoid; }
+p { margin: 0 0 7pt; text-align: justify; }
+ul, ol { margin: 0 0 8pt; padding-left: 16pt; }
+li { margin-bottom: 2.5pt; }
+table { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin: 7pt 0 12pt; }
+th, td { border: 0.5pt solid #9a9a9a; padding: 3pt 5pt; vertical-align: top; text-align: left; }
+th { background: #e8e8e8; font-weight: 700; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
+code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; }
+pre {
+  font-family: Consolas, "Courier New", monospace; font-size: 8.2pt; line-height: 1.35;
+  background: #f4f4f4; border: 0.5pt solid #c4c4c4; padding: 6pt 8pt;
+  white-space: pre; overflow: hidden; page-break-inside: avoid; margin: 7pt 0 11pt;
+}
+figure { margin: 10pt 0 14pt; text-align: center; page-break-inside: avoid; }
+figure svg { width: 100%; height: auto; }
+figcaption { font-size: 8.5pt; color: #3d3d3d; margin-top: 5pt; font-style: italic; }
+.note {
+  border-left: 2.5pt solid #6a6a6a; background: #f4f4f4; padding: 6pt 9pt;
+  margin: 8pt 0 11pt; font-size: 9.5pt; page-break-inside: avoid;
+}
+.small { font-size: 9pt; }
+.mono { font-family: Consolas, "Courier New", monospace; font-size: 8.6pt; }
+.center { text-align: center; }
+.cover { height: 245mm; display: flex; flex-direction: column; page-break-after: always; }
+.cover-top { flex: 1.1; }
+.cover-mid { border-top: 1.4pt solid #1a1a1a; border-bottom: 0.5pt solid #1a1a1a; padding: 14pt 0 18pt; }
+.cover-title { font-size: 27pt; font-weight: 700; letter-spacing: -0.4pt; margin: 0 0 6pt; }
+.cover-sub { font-size: 13pt; color: #3d3d3d; margin: 0; }
+.cover-kicker { font-size: 9.5pt; letter-spacing: 2.4pt; text-transform: uppercase; color: #555; margin: 0 0 10pt; }
+.cover-bot { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+.cover-meta { width: 100%; font-size: 9.5pt; border-collapse: collapse; }
+.cover-meta td { border: none; border-bottom: 0.5pt solid #c4c4c4; padding: 4.5pt 0; }
+.cover-meta td:first-child { width: 34%; color: #555; }
+.toc { font-size: 10pt; }
+.toc ol { list-style: none; padding-left: 0; margin: 0; counter-reset: sec; }
+.toc > ol > li { margin: 0 0 3pt; padding-top: 3pt; border-top: 0.4pt dotted #b5b5b5; }
+.toc > ol > li:first-child { border-top: none; }
+.toc ol ol { padding-left: 15pt; font-size: 9pt; color: #3d3d3d; margin-top: 1.5pt; }
+.toc ol ol li { margin: 0; }
+.tag {
+  display: inline-block; border: 0.5pt solid #6a6a6a; background: #eee;
+  padding: 0.5pt 3.5pt; font-size: 8pt; font-family: Consolas, monospace;
+}
+td.id, th.id { width: 62px; white-space: nowrap; font-family: Consolas, monospace; font-size: 8.2pt; }
+td.pri, th.pri { width: 58px; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-top"></div>
+  <div class="cover-mid">
+    <p class="cover-kicker">Documento técnico · Versión 1.0</p>
+    <p class="cover-title">KAIROS</p>
+    <p class="cover-sub">Especificación de requisitos y diseño técnico<br>Plataforma de gestión del Semillero de Machine Learning</p>
+  </div>
+  <div class="cover-bot">
+    <table class="cover-meta">
+      <tr><td>Estado</td><td>Aprobado para implementación</td></tr>
+      <tr><td>Versión</td><td>1.0</td></tr>
+      <tr><td>Fecha</td><td>5 de septiembre de 2026</td></tr>
+      <tr><td>Repositorio</td><td>KAIROS</td></tr>
+      <tr><td>Dominio de despliegue</td><td>kairospartners.uk</td></tr>
+      <tr><td>Alcance</td><td>50 usuarios · 10 proyectos activos · ~1.000 tareas por semestre</td></tr>
+      <tr><td>Presupuesto de infraestructura</td><td>0 USD/mes (solo el dominio)</td></tr>
+      <tr><td>Documentos consolidados</td><td>PRD · business-rules · data-model · architecture · api-contract · user-stories · roadmap</td></tr>
+    </table>
+  </div>
+</section>
+
+<h1 class="nobreak">Contenido</h1>
+<div class="toc">
+<ol>
+  <li><strong>1. Introducción</strong>
+    <ol><li>1.1 Propósito · 1.2 Alcance · 1.3 Definiciones y acrónimos · 1.4 Documentos de referencia y precedencia</li></ol></li>
+  <li><strong>2. Descripción general</strong>
+    <ol><li>2.1 Contexto y problema · 2.2 Objetivos y métricas · 2.3 Actores · 2.4 Los dos planos de roles · 2.5 Restricciones · 2.6 Supuestos y dependencias</li></ol></li>
+  <li><strong>3. Requisitos funcionales</strong>
+    <ol><li>3.1 Autenticación y acceso · 3.2 Usuarios y roles globales · 3.3 Proyectos · 3.4 Roles y permisos de proyecto · 3.5 Tareas · 3.6 Notificaciones · 3.7 Lecciones</li></ol></li>
+  <li><strong>4. Requisitos no funcionales</strong></li>
+  <li><strong>5. Reglas de negocio</strong>
+    <ol><li>5.1 Catálogo de permisos · 5.2 Roles predeterminados · 5.3 Ciclo de vida de la tarea · 5.4 Propiedad implícita · 5.5 Proyectos y roles · 5.6 Notificaciones e idempotencia · 5.7 Autenticación · 5.8 Matriz de autorización</li></ol></li>
+  <li><strong>6. Arquitectura del sistema</strong>
+    <ol><li>6.1 Vista general · 6.2 C4 nivel 1: contexto · 6.3 C4 nivel 2: contenedores · 6.4 C4 nivel 3: componentes · 6.5 Estructura del proyecto · 6.6 Fronteras entre módulos · 6.7 Autenticación y autorización · 6.8 Proceso programado · 6.9 Frontend · 6.10 Manejo de errores</li></ol></li>
+  <li><strong>7. Modelo de datos</strong>
+    <ol><li>7.1 Convenciones · 7.2 Tipos enumerados · 7.3 Tablas · 7.4 Mapa entidad-relación · 7.5 Normalización · 7.6 Datos iniciales</li></ol></li>
+  <li><strong>8. Contrato de la API</strong></li>
+  <li><strong>9. Stack tecnológico y despliegue</strong></li>
+  <li><strong>10. Estrategia de pruebas</strong></li>
+  <li><strong>11. Plan de implementación</strong></li>
+  <li><strong>12. Fuera de alcance</strong></li>
+  <li><strong>13. Riesgos y mitigaciones</strong></li>
+  <li><strong>14. Decisiones de arquitectura registradas</strong></li>
+  <li><strong>15. Matriz de trazabilidad</strong></li>
+  <li><strong>Anexo A. Discrepancias detectadas en la documentación de origen</strong></li>
+</ol>
+</div>
+
+<h1>1. Introducción</h1>
+
+<h2>1.1 Propósito</h2>
+<p>Este documento consolida en una sola pieza los requisitos, las reglas de negocio, el diseño de datos, la arquitectura y el contrato de servicio de <strong>KAIROS</strong>, la plataforma interna de gestión del Semillero de Machine Learning. Está dirigido al equipo de desarrollo (cuatro personas) y a quien deba evaluar o auditar el trabajo. Sustituye la lectura dispersa de los siete documentos de <code>docs/</code> sin reemplazarlos: aquellos siguen siendo la fuente viva y este es su corte en la versión 1.0.</p>
+
+<h2>1.2 Alcance del producto</h2>
+<p>Un gestor de proyectos reducido, de uso interno, que resuelve exactamente tres problemas: nadie sabe con certeza qué tareas tiene asignadas, los vencimientos se pasan sin aviso, y el material de estudio está disperso. Para ello ofrece proyectos con tablero Kanban, tareas con responsables y fecha límite, recordatorios automáticos por correo, y un catálogo de lecciones que enlaza material alojado en GitHub.</p>
+<p>Todo lo que no sirva directamente a esos tres problemas queda fuera (sección 12). <strong>No es un clon de Jira</strong>: ante la duda entre una solución simple y una general, se elige la simple.</p>
+
+<h2>1.3 Definiciones y acrónimos</h2>
+<table>
+<tr><th style="width:22%">Término</th><th>Significado</th></tr>
+<tr><td>RF-xx</td><td>Requisito funcional numerado (sección 3).</td></tr>
+<tr><td>RNF-xx</td><td>Requisito no funcional numerado (sección 4).</td></tr>
+<tr><td>RN-xx</td><td>Regla de negocio numerada (sección 5). Es la capa normativa del sistema.</td></tr>
+<tr><td>HU-xx</td><td>Historia de usuario con criterios de aceptación en Gherkin.</td></tr>
+<tr><td>EB-xx</td><td>Escenario de error o caso borde.</td></tr>
+<tr><td>Rol global</td><td>Rol fijo definido por el sistema: <code>ADMIN</code>, <code>LESSON_EDITOR</code>, <code>MEMBER</code>. Un usuario tiene exactamente uno.</td></tr>
+<tr><td>Rol de proyecto</td><td>Rol dinámico con permisos configurables, propio de un único proyecto.</td></tr>
+<tr><td>Permiso</td><td>Código de un catálogo cerrado de 14 elementos (ej. <code>task.review</code>) que habilita una operación dentro de un proyecto.</td></tr>
+<tr><td>Entrega</td><td><em>Submission</em>. Registro obligatorio del trabajo realizado para pasar una tarea a revisión.</td></tr>
+<tr><td>Despacho</td><td><em>Dispatch</em>. Fila en <code>notification_dispatches</code> que garantiza que un recordatorio se envía una sola vez.</td></tr>
+<tr><td>Arranque en frío</td><td>Demora de la primera petición cuando el servicio gratuito de Render estaba suspendido.</td></tr>
+<tr><td>C4</td><td>Modelo de documentación arquitectónica en cuatro niveles: contexto, contenedores, componentes y código.</td></tr>
+</table>
+
+<h2>1.4 Documentos de referencia y regla de precedencia</h2>
+<table>
+<tr><th style="width:32%">Documento</th><th>Contiene</th></tr>
+<tr><td><code>docs/PRD.md</code></td><td>Requisitos numerados, escenarios de uso y de error, alcance.</td></tr>
+<tr><td><code>docs/business-rules.md</code></td><td>Permisos, transiciones de estado y reglas. <strong>Fuente de verdad.</strong></td></tr>
+<tr><td><code>docs/data-model.md</code></td><td>Tablas, restricciones, índices, normalización.</td></tr>
+<tr><td><code>docs/architecture.md</code></td><td>Módulos, autorización, proceso programado, despliegue.</td></tr>
+<tr><td><code>docs/api-contract.md</code></td><td>Endpoints, esquemas, códigos de error.</td></tr>
+<tr><td><code>docs/user-stories.md</code></td><td>Criterios de aceptación en Gherkin; base de las pruebas de integración.</td></tr>
+<tr><td><code>docs/roadmap.md</code></td><td>Orden de implementación en ocho fases.</td></tr>
+<tr><td><code>CLAUDE.md</code></td><td>Convenciones obligatorias para quien escriba código en el repositorio.</td></tr>
+</table>
+<div class="note"><strong>Precedencia.</strong> Ante contradicción entre documentos manda <code>business-rules.md</code>. Las discrepancias detectadas al redactar este documento están registradas en el Anexo A en lugar de resolverse en silencio.</div>
+
+<h1>2. Descripción general</h1>
+
+<h2>2.1 Contexto y problema</h2>
+<p>El semillero coordina hoy sus proyectos, tareas y material de estudio por canales informales: chats, carpetas sueltas y repositorios dispersos. De ahí nacen los tres problemas del alcance. La plataforma los ataca sin pretender gobernar el proceso completo de ingeniería del equipo.</p>
+
+<h2>2.2 Objetivos y métricas de éxito</h2>
+<table>
+<tr><th style="width:34%">Métrica</th><th>Objetivo</th></tr>
+<tr><td>Adopción</td><td>100 % de los miembros activos con cuenta creada en las primeras dos semanas.</td></tr>
+<tr><td>Tareas vencidas sin entrega</td><td>Reducción respecto al semestre anterior.</td></tr>
+<tr><td>Costo de operación</td><td>0 USD/mes en infraestructura; solo el dominio (~10 USD/año).</td></tr>
+<tr><td>Tiempo de carga inicial</td><td>Según RNF-02: nunca una pantalla en blanco, aviso explícito a los 3 s, espera máxima de 90 s.</td></tr>
+</table>
+
+<h2>2.3 Actores del sistema</h2>
+<table>
+<tr><th style="width:26%">Actor</th><th>Descripción</th></tr>
+<tr><td><strong>Administrador</strong></td><td>Coordinador del semillero. Invita usuarios, crea proyectos, asigna roles globales, configura las notificaciones y publica lecciones. Tiene lectura universal sobre los proyectos, no escritura.</td></tr>
+<tr><td><strong>Editor de Lecciones</strong></td><td>Rol global. Mantiene el catálogo de lecciones. Ningún privilegio sobre proyectos.</td></tr>
+<tr><td><strong>Miembro</strong></td><td>Rol global base. Todo lo que puede hacer depende de su rol dentro de cada proyecto.</td></tr>
+<tr><td><strong>Líder de proyecto</strong></td><td>No es un rol global sino un rol dentro de un proyecto. Gestiona ese proyecto y solo ese.</td></tr>
+<tr><td><strong>Sistema (scheduler)</strong></td><td>Proceso programado externo que dispara el envío de recordatorios mediante un endpoint interno.</td></tr>
+</table>
+
+<h2>2.4 Los dos planos de roles</h2>
+<p>Es el concepto estructural del que dependen casi todas las decisiones de autorización. Existen dos sistemas de roles <strong>independientes que no se mezclan nunca</strong>:</p>
+<ul>
+<li><strong>Plano global (fijo).</strong> Definido por el sistema y no editable. Un usuario tiene exactamente uno de <code>ADMIN</code>, <code>LESSON_EDITOR</code> o <code>MEMBER</code>.</li>
+<li><strong>Plano de proyecto (dinámico).</strong> Cada proyecto tiene su propio conjunto de roles con permisos configurables. Un usuario tiene exactamente un rol por cada proyecto del que sea miembro.</li>
+</ul>
+<p>De ahí se derivan dos consecuencias que el código debe respetar sin excepción: el rol global <code>ADMIN</code> <strong>no</strong> otorga permisos de escritura dentro de un proyecto (RN-01), y ser líder del proyecto A no otorga absolutamente nada en el proyecto B (RN-04).</p>
+
+<h2>2.5 Restricciones del proyecto</h2>
+<table>
+<tr><th style="width:26%">Restricción</th><th>Implicación de diseño</th></tr>
+<tr><td>Costo cero</td><td>Todo opera en planes gratuitos: Supabase, Render, Cloudflare Pages, GitHub Actions y Resend. Ninguna pieza de pago entra al diseño.</td></tr>
+<tr><td>Servicio suspendible</td><td>Render suspende el backend tras ~15 min de inactividad y Supabase pausa el proyecto tras una semana. Ambos se mitigan con un ping programado y con manejo explícito del arranque en frío.</td></tr>
+<tr><td>Sin trabajos programados</td><td>Render no ofrece cron en el plan gratuito: el disparador es externo (GitHub Actions) contra un endpoint interno.</td></tr>
+<tr><td>Escala pequeña</td><td>50 usuarios y ~1.000 tareas por semestre. No se justifica ninguna optimización más allá de índices correctos ni ninguna desnormalización.</td></tr>
+<tr><td>Idioma</td><td>Interfaz, documentación y mensajes de error visibles en español. Código, nombres de tablas, campos, endpoints y códigos de error en inglés.</td></tr>
+<tr><td>Equipo</td><td>Cuatro personas, un semestre. El plan de implementación está ordenado para que las fases 0 a 4 ya constituyan un producto útil.</td></tr>
+</table>
+
+<h2>2.6 Supuestos y dependencias</h2>
+<ul>
+<li>El material de estudio ya vive en GitHub y seguirá viviendo ahí: la plataforma <strong>no aloja archivos</strong>, solo enlaza.</li>
+<li>El dominio <code>kairospartners.uk</code> está disponible y puede verificarse en Resend con registros SPF, DKIM y DMARC.</li>
+<li>El cron de GitHub Actions puede retrasarse varios minutos e incluso saltarse una ejecución. Para avisos diarios es tolerable y RN-29 lo contempla explícitamente.</li>
+<li>El acceso a la plataforma es cerrado: no hay registro público y el primer administrador se crea por línea de órdenes, nunca por un endpoint expuesto.</li>
+</ul>
+
+<h1>3. Requisitos funcionales</h1>
+<p class="small">Prioridad según MoSCoW reducido: <strong>Debe</strong> (obligatorio para la versión 1) y <strong>Debería</strong> (deseable, postergable).</p>
+
+<h2>3.1 Autenticación y acceso</h2>
+<table>
+<tr><th class="id">ID</th><th>Requisito</th><th class="pri">Prioridad</th></tr>
+<tr><td class="id">RF-01</td><td>El registro es <strong>cerrado</strong>. Nadie puede crear una cuenta por su cuenta; el acceso se otorga solo por invitación de un Administrador.</td><td>Debe</td></tr>
+<tr><td class="id">RF-02</td><td>El Administrador genera una invitación indicando correo y rol global. El sistema crea un enlace con token de un solo uso y vigencia de 7 días, y lo envía por correo. El enlace también puede copiarse para compartirlo por otro canal.</td><td>Debe</td></tr>
+<tr><td class="id">RF-03</td><td>El invitado abre el enlace, define su nombre y contraseña, y con eso queda creada su cuenta. El token se invalida en el momento de usarse.</td><td>Debe</td></tr>
+<tr><td class="id">RF-04</td><td>El Administrador puede reenviar una invitación —lo cual invalida el token anterior y genera uno nuevo— y revocar una invitación pendiente.</td><td>Debe</td></tr>
+<tr><td class="id">RF-05</td><td>Inicio de sesión con correo y contraseña. Devuelve un token de acceso y un token de refresco.</td><td>Debe</td></tr>
+<tr><td class="id">RF-06</td><td>Cierre de sesión: revoca el token de refresco vigente.</td><td>Debe</td></tr>
+<tr><td class="id">RF-07</td><td>Recuperación de contraseña con token de un solo uso y vigencia de 1 hora. La respuesta del endpoint de solicitud es idéntica exista o no el correo, para no filtrar qué direcciones están registradas.</td><td>Debe</td></tr>
+<tr><td class="id">RF-08</td><td>Un usuario autenticado puede cambiar su contraseña indicando la actual, y puede editar su nombre.</td><td>Debe</td></tr>
+<tr><td class="id">RF-09</td><td>El Administrador puede <strong>desactivar</strong> un usuario: no podrá iniciar sesión, dejará de recibir notificaciones y no aparecerá en los selectores de asignación, pero su historial permanece intacto y visible. No existe eliminación física de usuarios.</td><td>Debe</td></tr>
+</table>
+
+<h2>3.2 Usuarios y roles globales</h2>
+<table>
+<tr><th class="id">ID</th><th>Requisito</th><th class="pri">Prioridad</th></tr>
+<tr><td class="id">RF-10</td><td>El Administrador ve el listado de usuarios con nombre, correo, rol global, estado y fecha de ingreso, con búsqueda por nombre o correo.</td><td>Debe</td></tr>
+<tr><td class="id">RF-11</td><td>El Administrador puede cambiar el rol global de cualquier usuario.</td><td>Debe</td></tr>
+<tr><td class="id">RF-12</td><td>El sistema garantiza que siempre exista al menos un Administrador activo: el último Administrador no puede degradarse ni desactivarse a sí mismo.</td><td>Debe</td></tr>
+</table>
+
+<h2>3.3 Proyectos</h2>
+<table>
+<tr><th class="id">ID</th><th>Requisito</th><th class="pri">Prioridad</th></tr>
+<tr><td class="id">RF-13</td><td>Solo el Administrador crea proyectos, indicando nombre, descripción y fecha de inicio.</td><td>Debe</td></tr>
+<tr><td class="id">RF-14</td><td>Al crear un proyecto, el Administrador designa a su primer líder. El sistema crea automáticamente los tres roles de proyecto predeterminados (Líder, Colaborador, Observador) y agrega al designado con el rol Líder.</td><td>Debe</td></tr>
+<tr><td class="id">RF-15</td><td>Quien tenga <code>member.add</code> puede agregar al proyecto usuarios <strong>ya existentes</strong> en la plataforma, con un rol del proyecto. Desde un proyecto no se invita gente nueva a la plataforma.</td><td>Debe</td></tr>
+<tr><td class="id">RF-16</td><td>Quien tenga <code>member.remove</code> puede retirar miembros. Retirar a un miembro no borra sus tareas ni entregas: la tarea queda sin ese responsable y el historial se conserva.</td><td>Debe</td></tr>
+<tr><td class="id">RF-17</td><td>Quien tenga <code>role.assign</code> puede cambiar el rol que un miembro tiene dentro del proyecto.</td><td>Debe</td></tr>
+<tr><td class="id">RF-18</td><td>Un proyecto puede archivarse (<code>project.archive</code>). Un proyecto archivado es de <strong>solo lectura</strong>: se consulta completo pero no admite modificación alguna ni genera notificaciones. Puede desarchivarse.</td><td>Debe</td></tr>
+<tr><td class="id">RF-19</td><td>Los proyectos nunca se eliminan.</td><td>Debe</td></tr>
+</table>
+
+<h2>3.4 Roles y permisos de proyecto</h2>
+<table>
+<tr><th class="id">ID</th><th>Requisito</th><th class="pri">Prioridad</th></tr>
+<tr><td class="id">RF-20</td><td>Cada proyecto nace con tres roles del sistema: <strong>Líder</strong> (todos los permisos), <strong>Colaborador</strong> (ver, comentar, mover y entregar sus propias tareas) y <strong>Observador</strong> (ver y comentar). No se pueden eliminar ni renombrar.</td><td>Debe</td></tr>
+<tr><td class="id">RF-21</td><td>Quien tenga <code>role.manage</code> puede crear roles personalizados dentro de su proyecto, con nombre, color y una selección libre de permisos del catálogo.</td><td>Debe</td></tr>
+<tr><td class="id">RF-22</td><td>El sistema registra qué usuario creó cada rol personalizado y cuándo, y lo muestra en la interfaz de administración de roles.</td><td>Debe</td></tr>
+<tr><td class="id">RF-23</td><td>Un rol personalizado solo existe dentro del proyecto donde fue creado. No se comparte entre proyectos.</td><td>Debe</td></tr>
+<tr><td class="id">RF-24</td><td>Un rol personalizado no puede eliminarse mientras tenga miembros asignados; primero hay que reasignarlos.</td><td>Debe</td></tr>
+</table>
+
+<h2>3.5 Tareas</h2>
+<table>
+<tr><th class="id">ID</th><th>Requisito</th><th class="pri">Prioridad</th></tr>
+<tr><td class="id">RF-25</td><td>Quien tenga <code>task.create</code> crea tareas dentro de un proyecto con título, descripción, periodicidad, fecha límite y responsables.</td><td>Debe</td></tr>
+<tr><td class="id">RF-26</td><td>La <strong>periodicidad</strong> (Puntual, Semanal, Mensual, Semestral) es una etiqueta descriptiva. <strong>No genera tareas automáticamente.</strong> Sirve para filtrar y para comunicar el ritmo esperado.</td><td>Debe</td></tr>
+<tr><td class="id">RF-27</td><td>Una tarea puede tener uno o varios responsables.</td><td>Debe</td></tr>
+<tr><td class="id">RF-28</td><td>La tarea recorre cinco estados fijos: <code>BACKLOG</code> → <code>TODO</code> → <code>IN_PROGRESS</code> → <code>IN_REVIEW</code> → <code>DONE</code>, con las transiciones de la sección 5.3.</td><td>Debe</td></tr>
+<tr><td class="id">RF-29</td><td>El proyecto se visualiza como tablero Kanban con una columna por estado, con arrastrar y soltar en escritorio y selector de estado en móvil.</td><td>Debe</td></tr>
+<tr><td class="id">RF-30</td><td>Un responsable mueve sus propias tareas entre <code>TODO</code> e <code>IN_PROGRESS</code> sin permisos adicionales. Mover tareas ajenas requiere <code>task.change_status_any</code>.</td><td>Debe</td></tr>
+<tr><td class="id">RF-31</td><td>Para pasar una tarea a <code>IN_REVIEW</code>, el responsable debe registrar una <strong>entrega</strong>: descripción obligatoria y, opcionalmente, la URL del commit o pull request en GitHub.</td><td>Debe</td></tr>
+<tr><td class="id">RF-32</td><td>La URL de la entrega se valida contra el formato de enlaces de GitHub (commit, pull request o árbol de repositorio). No se suben archivos a la plataforma.</td><td>Debe</td></tr>
+<tr><td class="id">RF-33</td><td>Quien tenga <code>task.review</code> aprueba la entrega (la tarea pasa a <code>DONE</code>) o la devuelve con un comentario obligatorio (la tarea vuelve a <code>IN_PROGRESS</code>).</td><td>Debe</td></tr>
+<tr><td class="id">RF-34</td><td>Una tarea guarda todo su historial de entregas, no solo la última.</td><td>Debe</td></tr>
+<tr><td class="id">RF-35</td><td>Las tareas admiten comentarios de cualquier miembro con <code>task.comment</code>. El autor puede editar o borrar los suyos.</td><td>Debe</td></tr>
+<tr><td class="id">RF-36</td><td>El tablero se filtra por responsable, periodicidad, estado y «vencidas». Existe además una vista personal «Mis tareas» que cruza todos los proyectos del usuario.</td><td>Debe</td></tr>
+<tr><td class="id">RF-37</td><td>Las tareas se pueden eliminar solo con <code>task.delete</code>, y el borrado es lógico.</td><td>Debería</td></tr>
+</table>
+
+<h2>3.6 Notificaciones</h2>
+<table>
+<tr><th class="id">ID</th><th>Requisito</th><th class="pri">Prioridad</th></tr>
+<tr><td class="id">RF-38</td><td>Toda notificación se entrega por dos canales: dentro de la aplicación (campana con historial y contador de no leídas) y por correo electrónico.</td><td>Debe</td></tr>
+<tr><td class="id">RF-39</td><td><strong>Asignación de tarea:</strong> cuando un usuario es agregado como responsable recibe una notificación inmediata con el título de la tarea, el proyecto y la fecha límite.</td><td>Debe</td></tr>
+<tr><td class="id">RF-40</td><td><strong>Recordatorio de vencimiento:</strong> los responsables de una tarea sin terminar reciben un aviso los días previos configurados por el Administrador.</td><td>Debe</td></tr>
+<tr><td class="id">RF-41</td><td><strong>Tarea vencida:</strong> pasada la fecha límite sin que la tarea esté en <code>DONE</code>, se notifica a los responsables y, adicionalmente, a los miembros con <code>task.review</code> del proyecto (véase Anexo A.2).</td><td>Debe</td></tr>
+<tr><td class="id">RF-42</td><td><strong>Entrega revisada:</strong> cuando una entrega es aprobada o devuelta, se notifica a quien la envió.</td><td>Debe</td></tr>
+<tr><td class="id">RF-43</td><td>La configuración de recordatorios es <strong>global</strong>, no por proyecto, y solo el Administrador la modifica: días de aviso previo (por defecto 3, 1 y 0), hora de envío (por defecto 07:00 hora de Colombia) e interruptor de avisos de tareas vencidas.</td><td>Debe</td></tr>
+<tr><td class="id">RF-44</td><td>El sistema nunca envía el mismo recordatorio dos veces al mismo usuario para la misma tarea en el mismo día, aunque el proceso programado se ejecute varias veces.</td><td>Debe</td></tr>
+<tr><td class="id">RF-45</td><td>Los proyectos archivados y los usuarios desactivados no generan ni reciben notificaciones.</td><td>Debe</td></tr>
+</table>
+
+<h2>3.7 Lecciones</h2>
+<table>
+<tr><th class="id">ID</th><th>Requisito</th><th class="pri">Prioridad</th></tr>
+<tr><td class="id">RF-46</td><td>El catálogo se organiza en <strong>módulos</strong>; cada módulo agrupa <strong>lecciones</strong> ordenadas; cada lección contiene una lista de <strong>recursos</strong>.</td><td>Debe</td></tr>
+<tr><td class="id">RF-47</td><td>Solo el Administrador y el Editor de Lecciones pueden crear, editar, publicar o despublicar módulos y lecciones. Los líderes de proyecto no tienen esta facultad.</td><td>Debe</td></tr>
+<tr><td class="id">RF-48</td><td>Un recurso tiene tipo (Notebook, PDF, Video, Repositorio, Artículo), título y URL. La plataforma <strong>no aloja archivos</strong>.</td><td>Debe</td></tr>
+<tr><td class="id">RF-49</td><td>Los módulos y lecciones tienen estado borrador o publicado. Los borradores solo son visibles para el Administrador y el Editor de Lecciones.</td><td>Debe</td></tr>
+<tr><td class="id">RF-50</td><td>El orden de módulos, lecciones y recursos lo define manualmente el editor.</td><td>Debe</td></tr>
+<tr><td class="id">RF-51</td><td>Todos los usuarios autenticados pueden consultar el catálogo publicado y buscar por título o descripción.</td><td>Debe</td></tr>
+<tr><td class="id">RF-52</td><td>No se registra progreso ni avance por usuario en las lecciones.</td><td>Debe</td></tr>
+</table>
+
+<h1>4. Requisitos no funcionales</h1>
+<table>
+<tr><th class="id">ID</th><th style="width:20%">Atributo</th><th>Requisito</th></tr>
+<tr><td class="id">RNF-01</td><td>Diseño adaptable</td><td>La interfaz funciona desde 360 px de ancho. El tablero Kanban cambia a vista de lista con selector de estado por debajo de 768 px. Las áreas táctiles miden al menos 44 × 44 px.</td></tr>
+<tr><td class="id">RNF-02</td><td>Arranque en frío</td><td>El backend se suspende tras ~15 min de inactividad y la primera petición puede tardar cerca de un minuto. El frontend muestra un estado de carga explícito («Despertando el servidor…») tras 3 s de espera, con reintento automático y tiempo de espera de 90 s. Un ping programado cada 10 min en horario hábil reduce la frecuencia del problema.</td></tr>
+<tr><td class="id">RNF-03</td><td>Costo</td><td>Todo el sistema opera dentro de los planes gratuitos de Supabase, Render, Cloudflare/Vercel, GitHub Actions y Resend. El único gasto autorizado es el dominio.</td></tr>
+<tr><td class="id">RNF-04</td><td>Escala</td><td>50 usuarios, 10 proyectos activos y ~1.000 tareas por semestre. No se requieren optimizaciones más allá de índices correctos.</td></tr>
+<tr><td class="id">RNF-05</td><td>Seguridad</td><td>Contraseñas con Argon2id. Tokens de acceso JWT de 15 minutos; tokens de refresco de 7 días, rotativos y almacenados solo como hash. Los tokens de invitación y de restablecimiento se guardan hasheados. Toda comprobación de permisos ocurre en el backend; el frontend solo oculta lo que el usuario no puede hacer, nunca es la barrera.</td></tr>
+<tr><td class="id">RNF-06</td><td>Base de datos</td><td>Modelo en tercera forma normal. Claves primarias UUID. Marcas de tiempo en <code>timestamptz</code> (UTC), presentadas al usuario en <code>America/Bogota</code>.</td></tr>
+<tr><td class="id">RNF-07</td><td>Suspensión de Supabase</td><td>El plan gratuito pausa proyectos tras una semana sin actividad. El ping programado del RNF-02 golpea también la base de datos para evitarlo.</td></tr>
+<tr><td class="id">RNF-08</td><td>Disponibilidad</td><td>No hay compromiso de disponibilidad. Es una herramienta interna; una caída temporal es aceptable.</td></tr>
+<tr><td class="id">RNF-09</td><td>Accesibilidad</td><td>Contraste mínimo AA, navegación por teclado en formularios y tablero, etiquetas ARIA en los controles del Kanban.</td></tr>
+<tr><td class="id">RNF-10</td><td>Idioma</td><td>Interfaz y documentación en español. Código, nombres de tablas, campos y endpoints en inglés.</td></tr>
+<tr><td class="id">RNF-11</td><td>Trazabilidad</td><td>Cada entidad guarda <code>created_at</code>, <code>updated_at</code> y el usuario creador. No se implementa una bitácora de auditoría completa.</td></tr>
+</table>
+
+<h1>5. Reglas de negocio</h1>
+<p>Esta sección es la capa normativa del sistema y prevalece sobre cualquier otra. Las reglas se verifican <strong>siempre en el backend</strong>; ocultar un botón en el frontend no es una medida de seguridad, es una mejora de la experiencia.</p>
+
+<h2>5.1 Catálogo de permisos de proyecto</h2>
+<p>Lista <strong>cerrada</strong> de catorce códigos. Los roles personalizados se arman escogiendo de aquí; no se pueden inventar permisos nuevos sin cambiar el código y esta especificación.</p>
+<table>
+<tr><th style="width:26%">Código</th><th style="width:12%">Categoría</th><th>Qué habilita</th></tr>
+<tr><td><code>task.view</code></td><td>task</td><td>Ver el proyecto, su tablero y sus tareas. Sin este permiso el usuario no ve nada del proyecto.</td></tr>
+<tr><td><code>task.comment</code></td><td>task</td><td>Comentar en las tareas.</td></tr>
+<tr><td><code>task.create</code></td><td>task</td><td>Crear tareas.</td></tr>
+<tr><td><code>task.edit_any</code></td><td>task</td><td>Editar título, descripción, periodicidad y fecha límite de cualquier tarea.</td></tr>
+<tr><td><code>task.delete</code></td><td>task</td><td>Eliminar tareas (borrado lógico) y moderar comentarios ajenos.</td></tr>
+<tr><td><code>task.assign</code></td><td>task</td><td>Agregar o quitar responsables de una tarea.</td></tr>
+<tr><td><code>task.change_status_any</code></td><td>task</td><td>Mover cualquier tarea entre estados, incluidas las ajenas.</td></tr>
+<tr><td><code>task.review</code></td><td>task</td><td>Aprobar o devolver entregas.</td></tr>
+<tr><td><code>member.add</code></td><td>member</td><td>Agregar al proyecto usuarios que ya existen en la plataforma.</td></tr>
+<tr><td><code>member.remove</code></td><td>member</td><td>Retirar miembros del proyecto.</td></tr>
+<tr><td><code>role.assign</code></td><td>role</td><td>Cambiar el rol de proyecto de un miembro.</td></tr>
+<tr><td><code>role.manage</code></td><td>role</td><td>Crear, editar y eliminar roles personalizados del proyecto.</td></tr>
+<tr><td><code>project.edit</code></td><td>project</td><td>Editar nombre, descripción y fechas del proyecto.</td></tr>
+<tr><td><code>project.archive</code></td><td>project</td><td>Archivar y desarchivar el proyecto.</td></tr>
+</table>
+<p><strong>RN-05.</strong> <code>task.view</code> es obligatorio en todo rol: un rol sin él se rechaza al crearlo. <strong>RN-06.</strong> Los permisos no se implican entre sí en el código; fuera de RN-05, cada permiso se verifica de forma independiente.</p>
+
+<h2>5.2 Roles predeterminados de proyecto</h2>
+<p>Se crean automáticamente en la misma transacción que crea el proyecto, con <code>is_system = true</code>: no se pueden eliminar, renombrar ni alterar su conjunto de permisos (RN-23).</p>
+<table>
+<tr><th style="width:18%">Rol</th><th style="width:16%">Color</th><th>Permisos</th></tr>
+<tr><td><strong>Líder</strong></td><td><code>#1F6F5C</code></td><td>Los catorce del catálogo.</td></tr>
+<tr><td><strong>Colaborador</strong></td><td><code>#2E5C8A</code></td><td><code>task.view</code>, <code>task.comment</code></td></tr>
+<tr><td><strong>Observador</strong></td><td><code>#6B6B6B</code></td><td><code>task.view</code>, <code>task.comment</code></td></tr>
+</table>
+<div class="note">Colaborador y Observador comparten el mismo conjunto de permisos <em>a propósito</em>. La diferencia no está en el catálogo sino en las reglas implícitas de propiedad (5.4): a un Colaborador se le asignan tareas y por eso puede mover y entregar las suyas; un Observador normalmente no tiene tareas asignadas. Si a un Observador se le asigna una, adquiere sobre ella las mismas facultades implícitas. Se distinguen para que el tablero y los filtros comuniquen la intención del líder.</div>
+
+<h2>5.3 Ciclo de vida de la tarea</h2>
+<figure>
+<svg viewBox="0 0 800 124" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Máquina de estados de la tarea">
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#3a3a3a"/>
+    </marker>
+  </defs>
+  <g font-family="Segoe UI, Calibri, sans-serif" font-size="12" fill="#1a1a1a">
+    <rect x="8"  y="34" width="132" height="38" fill="#f0f0f0" stroke="#555" stroke-width="1"/>
+    <text x="74"  y="58" text-anchor="middle">BACKLOG</text>
+    <rect x="172" y="34" width="132" height="38" fill="#f0f0f0" stroke="#555" stroke-width="1"/>
+    <text x="238" y="58" text-anchor="middle">TODO</text>
+    <rect x="336" y="34" width="132" height="38" fill="#f0f0f0" stroke="#555" stroke-width="1"/>
+    <text x="402" y="58" text-anchor="middle">IN_PROGRESS</text>
+    <rect x="500" y="34" width="132" height="38" fill="#f0f0f0" stroke="#555" stroke-width="1"/>
+    <text x="566" y="58" text-anchor="middle">IN_REVIEW</text>
+    <rect x="664" y="34" width="128" height="38" fill="#4a4a4a" stroke="#4a4a4a" stroke-width="1"/>
+    <text x="728" y="58" text-anchor="middle" fill="#ffffff">DONE</text>
+    <g stroke="#3a3a3a" stroke-width="1.2" fill="none" marker-end="url(#ah)">
+      <path d="M140 47 H170"/>
+      <path d="M304 47 H334"/>
+      <path d="M468 47 H498"/>
+      <path d="M632 47 H662"/>
+      <path d="M170 60 H142"/>
+      <path d="M334 60 H306"/>
+      <path d="M566 72 V96 H402 V76"/>
+      <path d="M728 72 V112 H402 V78" stroke-dasharray="4 3"/>
+    </g>
+    <g font-size="9.5" fill="#3d3d3d" text-anchor="middle">
+      <text x="155" y="26">iniciar</text>
+      <text x="319" y="26">tomar</text>
+      <text x="483" y="26">entregar</text>
+      <text x="647" y="26">aprobar</text>
+      <text x="484" y="90">devolver (comentario obligatorio)</text>
+      <text x="620" y="108">reapertura</text>
+    </g>
+  </g>
+</svg>
+<figcaption>Figura 1. Máquina de estados de la tarea. Las flechas hacia la izquierda en la fila superior son los retrocesos permitidos; la línea discontinua es la reapertura desde <code>DONE</code>.</figcaption>
+</figure>
+
+<h3>Transiciones permitidas</h3>
+<table>
+<tr><th style="width:15%">Desde</th><th style="width:15%">Hacia</th><th style="width:30%">Quién</th><th>Condición</th></tr>
+<tr><td><code>BACKLOG</code></td><td><code>TODO</code></td><td><code>task.change_status_any</code></td><td>—</td></tr>
+<tr><td><code>TODO</code></td><td><code>IN_PROGRESS</code></td><td>Responsable, o <code>task.change_status_any</code></td><td>—</td></tr>
+<tr><td><code>TODO</code></td><td><code>BACKLOG</code></td><td><code>task.change_status_any</code></td><td>—</td></tr>
+<tr><td><code>IN_PROGRESS</code></td><td><code>TODO</code></td><td>Responsable, o <code>task.change_status_any</code></td><td>—</td></tr>
+<tr><td><code>IN_PROGRESS</code></td><td><code>IN_REVIEW</code></td><td>Responsable, o <code>task.change_status_any</code></td><td><strong>Exige registrar una entrega</strong> con descripción no vacía.</td></tr>
+<tr><td><code>IN_REVIEW</code></td><td><code>DONE</code></td><td><code>task.review</code></td><td>Marca la entrega como aprobada y fija <code>completed_at</code>.</td></tr>
+<tr><td><code>IN_REVIEW</code></td><td><code>IN_PROGRESS</code></td><td><code>task.review</code></td><td>Devolución: <strong>exige comentario de revisión no vacío</strong>.</td></tr>
+<tr><td><code>DONE</code></td><td><code>IN_PROGRESS</code></td><td><code>task.change_status_any</code></td><td>Reapertura. <code>completed_at</code> vuelve a nulo.</td></tr>
+</table>
+<p><strong>Cualquier transición que no aparezca en esta tabla se rechaza con <code>409 INVALID_TRANSITION</code></strong>, y el mensaje enumera las transiciones válidas desde el estado actual. En particular no se salta de <code>TODO</code> a <code>DONE</code>, ni de <code>IN_REVIEW</code> a <code>TODO</code>, ni de <code>BACKLOG</code> a <code>IN_PROGRESS</code>.</p>
+<p><strong>RN-07.</strong> Solo un usuario con <code>task.review</code> puede sacar una tarea de <code>IN_REVIEW</code>, y quien entregó no puede aprobarse a sí mismo ni aunque tenga el permiso: si el revisor es también responsable de la tarea, la aprobación se rechaza con <code>403 CANNOT_REVIEW_OWN_SUBMISSION</code>. Esto obliga a que exista un segundo par de ojos.<br>
+<strong>RN-08.</strong> Al aprobar se registra <code>completed_at</code>; al reabrir vuelve a nulo.<br>
+<strong>RN-09.</strong> Todas las entregas se conservan. Una devolución no borra la anterior: queda en estado <code>REJECTED</code> y la nueva se apila encima.</p>
+
+<h2>5.4 Reglas implícitas de propiedad</h2>
+<p>Independientes del catálogo de permisos. Aplican a todo miembro del proyecto con <code>task.view</code>.</p>
+<table>
+<tr><th class="id">ID</th><th>Regla</th></tr>
+<tr><td class="id">RN-10</td><td>Un responsable puede mover <strong>sus propias</strong> tareas entre <code>TODO</code> e <code>IN_PROGRESS</code>, y llevarlas a <code>IN_REVIEW</code> registrando la entrega, sin necesitar <code>task.change_status_any</code>.</td></tr>
+<tr><td class="id">RN-11</td><td>El autor de un comentario puede editarlo o borrarlo. Nadie más puede editar comentarios ajenos; quien tenga <code>task.delete</code> puede borrarlos por moderación.</td></tr>
+<tr><td class="id">RN-12</td><td>Un usuario puede editar su propia entrega mientras la tarea siga en <code>IN_REVIEW</code> y nadie la haya revisado.</td></tr>
+</table>
+
+<h2>5.5 Reglas de proyectos y de roles</h2>
+<table>
+<tr><th class="id">ID</th><th>Regla</th></tr>
+<tr><td class="id">RN-01</td><td>El rol global <code>ADMIN</code> no otorga permisos de escritura dentro de un proyecto; sí lectura universal para poder supervisar.</td></tr>
+<tr><td class="id">RN-02</td><td>Siempre debe existir al menos un usuario <code>ADMIN</code> activo. Toda operación que dejaría el sistema sin administradores se rechaza (<code>409 LAST_ADMIN</code>).</td></tr>
+<tr><td class="id">RN-03</td><td>Un rol de proyecto pertenece a un único proyecto. No hay roles compartidos ni plantillas globales, y un usuario tiene un solo rol por proyecto.</td></tr>
+<tr><td class="id">RN-04</td><td>Ser Líder del proyecto A no otorga absolutamente nada en el proyecto B.</td></tr>
+<tr><td class="id">RN-13</td><td>Solo <code>ADMIN</code> crea proyectos, y al crearlos designa un líder inicial que queda como miembro con el rol Líder.</td></tr>
+<tr><td class="id">RN-14</td><td>Un proyecto no puede quedarse sin ningún miembro con <code>project.archive</code>. Retirar al último líder o cambiarle el rol se rechaza (<code>409 LAST_PROJECT_ADMIN</code>). El <code>ADMIN</code> siempre puede reasignar el liderazgo.</td></tr>
+<tr><td class="id">RN-15</td><td>Un proyecto archivado es de solo lectura absoluta: no admite crear ni editar tareas, comentar, entregar, revisar, agregar miembros ni modificar roles. Solo se permite desarchivarlo.</td></tr>
+<tr><td class="id">RN-16</td><td>Archivar un proyecto detiene toda notificación relacionada, incluidos los recordatorios de tareas vencidas.</td></tr>
+<tr><td class="id">RN-17</td><td>Los proyectos y sus tareas nunca se eliminan físicamente.</td></tr>
+<tr><td class="id">RN-18</td><td>Crear, editar o eliminar roles personalizados requiere <code>role.manage</code>, que por defecto solo tiene el Líder.</td></tr>
+<tr><td class="id">RN-19</td><td>El sistema guarda <code>created_by</code> y <code>created_at</code> de cada rol personalizado, y la interfaz muestra quién lo creó.</td></tr>
+<tr><td class="id">RN-20</td><td>El nombre de un rol es único dentro del proyecto, sin distinguir mayúsculas.</td></tr>
+<tr><td class="id">RN-21</td><td>Un rol con miembros asignados no puede eliminarse; hay que reasignarlos primero.</td></tr>
+<tr><td class="id">RN-22</td><td>Editar los permisos de un rol surte efecto inmediato para todos sus miembros, sin volver a iniciar sesión. <strong>Por eso los permisos no se guardan dentro del JWT: se consultan en cada petición.</strong></td></tr>
+<tr><td class="id">RN-23</td><td>Los roles del sistema (<code>is_system = true</code>) no admiten edición ni eliminación.</td></tr>
+</table>
+
+<h2>5.6 Reglas de notificación e idempotencia</h2>
+<table>
+<tr><th class="id">ID</th><th>Regla</th></tr>
+<tr><td class="id">RN-24</td><td>Toda notificación se entrega por dos canales: registro dentro de la aplicación y correo electrónico. El registro se crea siempre; el correo puede fallar sin afectar nada más.</td></tr>
+<tr><td class="id">RN-26</td><td>La configuración de recordatorios es única para toda la plataforma y solo la modifica un <code>ADMIN</code>: <code>reminder_days_before</code> (por defecto <code>[3,1,0]</code>), <code>send_hour</code> (0–23, por defecto 7), <code>timezone</code> fijo en <code>America/Bogota</code> y <code>overdue_enabled</code> (por defecto verdadero).</td></tr>
+<tr><td class="id">RN-27</td><td><strong>Idempotencia.</strong> Un mismo usuario no recibe dos veces el mismo tipo de recordatorio para la misma tarea el mismo día. Se garantiza con la restricción de unicidad <code>(user_id, task_id, kind, target_date)</code> de la tabla de despachos, no con una comprobación en Python.</td></tr>
+<tr><td class="id">RN-28</td><td>No se notifica sobre tareas en <code>DONE</code>, ni de proyectos archivados, ni a usuarios desactivados.</td></tr>
+<tr><td class="id">RN-29</td><td>Si el proceso programado se salta un día, al reanudarse solo envía lo que corresponde al día en curso. No reconstruye avisos atrasados, para no inundar de correos.</td></tr>
+<tr><td class="id">RN-30</td><td>Un fallo de envío de correo se registra y se reintenta hasta 3 veces con espera creciente. <strong>Nunca revierte ni bloquea la operación de negocio que lo originó.</strong></td></tr>
+</table>
+<p><strong>RN-25 — Eventos que generan notificación:</strong></p>
+<table>
+<tr><th style="width:42%">Evento</th><th>Destinatarios</th></tr>
+<tr><td>Usuario agregado como responsable de una tarea</td><td>El responsable agregado</td></tr>
+<tr><td>Recordatorio previo al vencimiento</td><td>Todos los responsables activos de la tarea</td></tr>
+<tr><td>Tarea vencida</td><td>Todos los responsables activos <strong>más</strong> los miembros con <code>task.review</code> del proyecto</td></tr>
+<tr><td>Entrega aprobada o devuelta</td><td>Quien registró la entrega</td></tr>
+<tr><td>Invitación a la plataforma</td><td>El invitado (solo correo; todavía no existe la cuenta)</td></tr>
+<tr><td>Restablecimiento de contraseña</td><td>El solicitante (solo correo)</td></tr>
+</table>
+
+<h2>5.7 Reglas de autenticación</h2>
+<table>
+<tr><th class="id">ID</th><th>Regla</th></tr>
+<tr><td class="id">RN-37</td><td>No existe el registro abierto. La única vía de entrada es una invitación creada por un <code>ADMIN</code>.</td></tr>
+<tr><td class="id">RN-38</td><td>El token de invitación vive 7 días, es de un solo uso y se almacena hasheado. Reenviar una invitación invalida el token anterior.</td></tr>
+<tr><td class="id">RN-39</td><td>Aceptar una invitación exige nombre completo y contraseña de mínimo 10 caracteres. La cuenta se crea en ese momento; antes de aceptar, el usuario no existe.</td></tr>
+<tr><td class="id">RN-40</td><td>No hay verificación de correo aparte: recibir y usar el enlace de invitación ya prueba control de la dirección.</td></tr>
+<tr><td class="id">RN-41</td><td>El token de restablecimiento vive 1 hora, es de un solo uso y se guarda hasheado. Solicitar el restablecimiento devuelve siempre la misma respuesta, exista o no la cuenta.</td></tr>
+<tr><td class="id">RN-42</td><td>Restablecer o cambiar la contraseña revoca todos los tokens de refresco vigentes del usuario.</td></tr>
+<tr><td class="id">RN-43</td><td>El token de refresco es rotativo: cada uso emite uno nuevo y revoca el anterior. Si se detecta el uso de un token ya revocado, se revocan todas las sesiones de ese usuario.</td></tr>
+<tr><td class="id">RN-44</td><td>Un usuario desactivado no puede iniciar sesión y sus tokens de refresco se revocan en el acto.</td></tr>
+</table>
+
+<h2>5.8 Matriz de autorización resumida</h2>
+<table>
+<tr><th style="width:52%">Operación</th><th>Requisito</th></tr>
+<tr><td>Invitar usuario a la plataforma</td><td>Rol global <code>ADMIN</code></td></tr>
+<tr><td>Desactivar usuario · cambiar rol global</td><td>Rol global <code>ADMIN</code></td></tr>
+<tr><td>Crear proyecto</td><td>Rol global <code>ADMIN</code></td></tr>
+<tr><td>Ver un proyecto</td><td>Miembro con <code>task.view</code>, o rol global <code>ADMIN</code> (solo lectura)</td></tr>
+<tr><td>Editar proyecto</td><td><code>project.edit</code></td></tr>
+<tr><td>Archivar · desarchivar</td><td><code>project.archive</code></td></tr>
+<tr><td>Agregar miembro al proyecto</td><td><code>member.add</code></td></tr>
+<tr><td>Retirar miembro</td><td><code>member.remove</code></td></tr>
+<tr><td>Cambiar rol de un miembro</td><td><code>role.assign</code></td></tr>
+<tr><td>Crear · editar · borrar rol personalizado</td><td><code>role.manage</code></td></tr>
+<tr><td>Crear tarea</td><td><code>task.create</code></td></tr>
+<tr><td>Editar cualquier tarea</td><td><code>task.edit_any</code></td></tr>
+<tr><td>Eliminar tarea</td><td><code>task.delete</code></td></tr>
+<tr><td>Asignar responsables</td><td><code>task.assign</code></td></tr>
+<tr><td>Mover tarea propia (<code>TODO</code> ↔ <code>IN_PROGRESS</code> → <code>IN_REVIEW</code>)</td><td>Ser responsable</td></tr>
+<tr><td>Mover cualquier tarea</td><td><code>task.change_status_any</code></td></tr>
+<tr><td>Aprobar o devolver entrega</td><td><code>task.review</code> y <strong>no</strong> ser responsable de esa tarea</td></tr>
+<tr><td>Comentar</td><td><code>task.comment</code></td></tr>
+<tr><td>Configurar recordatorios</td><td>Rol global <code>ADMIN</code></td></tr>
+<tr><td>Crear · editar · publicar lecciones</td><td>Rol global <code>ADMIN</code> o <code>LESSON_EDITOR</code></td></tr>
+<tr><td>Ver lecciones publicadas</td><td>Cualquier usuario autenticado</td></tr>
+</table>
+
+<h1>6. Arquitectura del sistema</h1>
+
+<h2>6.1 Vista general</h2>
+<p>Monolito modular en el backend, aplicación de página única en el frontend, base de datos gestionada. Tres piezas desplegadas por separado más un proceso programado externo. La arquitectura se documenta con el modelo <strong>C4</strong>: contexto (6.2), contenedores (6.3), componentes (6.4) y estructura de código (6.5).</p>
+
+<h2>6.2 C4 nivel 1 — Contexto</h2>
+<figure>
+<svg viewBox="0 0 800 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama C4 de contexto">
+  <defs>
+    <marker id="a1" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#3a3a3a"/>
+    </marker>
+  </defs>
+  <g font-family="Segoe UI, Calibri, sans-serif" fill="#1a1a1a">
+    <!-- personas -->
+    <rect x="70" y="14" width="210" height="62" fill="#ffffff" stroke="#555" stroke-width="1.2"/>
+    <circle cx="96" cy="34" r="7" fill="none" stroke="#555" stroke-width="1.2"/>
+    <path d="M86 54 a10 10 0 0 1 20 0" fill="none" stroke="#555" stroke-width="1.2"/>
+    <text x="118" y="36" font-size="12" font-weight="600">Integrante del semillero</text>
+    <text x="118" y="52" font-size="9" fill="#4a4a4a">Consulta tareas, entrega</text>
+    <text x="118" y="65" font-size="9" fill="#4a4a4a">trabajo, lee lecciones</text>
+
+    <rect x="520" y="14" width="210" height="62" fill="#ffffff" stroke="#555" stroke-width="1.2"/>
+    <circle cx="546" cy="34" r="7" fill="none" stroke="#555" stroke-width="1.2"/>
+    <path d="M536 54 a10 10 0 0 1 20 0" fill="none" stroke="#555" stroke-width="1.2"/>
+    <text x="568" y="36" font-size="12" font-weight="600">Administrador</text>
+    <text x="568" y="52" font-size="9" fill="#4a4a4a">Gestiona usuarios, proyectos</text>
+    <text x="568" y="65" font-size="9" fill="#4a4a4a">y configuración</text>
+
+    <!-- sistema -->
+    <rect x="250" y="176" width="300" height="92" fill="#4a4a4a" stroke="#4a4a4a"/>
+    <text x="400" y="210" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">KAIROS · Plataforma del Semillero</text>
+    <text x="400" y="230" font-size="9.5" fill="#e2e2e2" text-anchor="middle">[Sistema de software]</text>
+    <text x="400" y="250" font-size="9.5" fill="#e2e2e2" text-anchor="middle">Proyectos, tareas y catálogo de lecciones</text>
+
+    <!-- externos -->
+    <rect x="30" y="356" width="180" height="62" fill="#dcdcdc" stroke="#777"/>
+    <text x="120" y="382" font-size="12" font-weight="600" text-anchor="middle">GitHub</text>
+    <text x="120" y="399" font-size="9" fill="#3d3d3d" text-anchor="middle">Notebooks, PDF, commits</text>
+
+    <rect x="310" y="366" width="180" height="62" fill="#dcdcdc" stroke="#777"/>
+    <text x="400" y="392" font-size="12" font-weight="600" text-anchor="middle">GitHub Actions</text>
+    <text x="400" y="409" font-size="9" fill="#3d3d3d" text-anchor="middle">Disparador programado</text>
+
+    <rect x="595" y="356" width="180" height="62" fill="#dcdcdc" stroke="#777"/>
+    <text x="685" y="382" font-size="12" font-weight="600" text-anchor="middle">Resend</text>
+    <text x="685" y="399" font-size="9" fill="#3d3d3d" text-anchor="middle">Correo transaccional</text>
+
+    <!-- relaciones -->
+    <g stroke="#3a3a3a" stroke-width="1.2" fill="none" marker-end="url(#a1)">
+      <path d="M175 76 L318 174"/>
+      <path d="M625 76 L482 174"/>
+      <path d="M400 364 L400 272"/>
+      <path d="M520 268 L648 354"/>
+      <path d="M110 78 L110 352"/>
+    </g>
+    <g font-size="9.5" fill="#3d3d3d">
+      <text x="240" y="132" text-anchor="end">Usa · HTTPS</text>
+      <text x="562" y="132">Administra · HTTPS</text>
+      <text x="410" y="316">Dispara los recordatorios</text>
+      <text x="410" y="330">HTTPS con token compartido</text>
+      <text x="606" y="300">Envía correo</text>
+      <text x="606" y="313">API REST</text>
+      <text x="120" y="216">Abre el material</text>
+      <text x="120" y="230">enlazado · HTTPS</text>
+    </g>
+  </g>
+</svg>
+<figcaption>Figura 2. C4 nivel 1 — Contexto. La plataforma no aloja archivos: el material vive en GitHub y el usuario lo abre directamente.</figcaption>
+</figure>
+
+<h2>6.3 C4 nivel 2 — Contenedores</h2>
+<figure>
+<svg viewBox="0 0 800 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama C4 de contenedores">
+  <defs>
+    <marker id="a2" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#3a3a3a"/>
+    </marker>
+  </defs>
+  <g font-family="Segoe UI, Calibri, sans-serif" fill="#1a1a1a">
+    <rect x="300" y="10" width="200" height="54" fill="#ffffff" stroke="#555" stroke-width="1.2"/>
+    <circle cx="326" cy="30" r="7" fill="none" stroke="#555" stroke-width="1.2"/>
+    <path d="M316 50 a10 10 0 0 1 20 0" fill="none" stroke="#555" stroke-width="1.2"/>
+    <text x="348" y="34" font-size="12" font-weight="600">Usuario</text>
+    <text x="348" y="50" font-size="9" fill="#4a4a4a">Integrante o administrador</text>
+
+    <rect x="30" y="92" width="540" height="420" fill="none" stroke="#8a8a8a" stroke-width="1.2" stroke-dasharray="6 4"/>
+    <text x="42" y="112" font-size="10.5" font-weight="600" fill="#4a4a4a">Sistema: KAIROS · Plataforma del Semillero</text>
+
+    <rect x="90" y="130" width="420" height="76" fill="#f0f0f0" stroke="#555"/>
+    <text x="300" y="156" font-size="12.5" font-weight="700" text-anchor="middle">Frontend</text>
+    <text x="300" y="173" font-size="9.5" fill="#3d3d3d" text-anchor="middle">[Angular standalone + signals · Tailwind · Impeccable]</text>
+    <text x="300" y="192" font-size="9.5" fill="#3d3d3d" text-anchor="middle">SPA adaptable, compilación estática. Interceptores de token y arranque en frío</text>
+
+    <rect x="90" y="258" width="420" height="76" fill="#4a4a4a" stroke="#4a4a4a"/>
+    <text x="300" y="284" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Backend</text>
+    <text x="300" y="301" font-size="9.5" fill="#e2e2e2" text-anchor="middle">[FastAPI · Python 3.12 · SQLAlchemy 2.x asíncrono]</text>
+    <text x="300" y="320" font-size="9.5" fill="#e2e2e2" text-anchor="middle">Monolito modular. Reglas de negocio y toda la autorización</text>
+
+    <rect x="90" y="396" width="420" height="76" fill="#f0f0f0" stroke="#555"/>
+    <text x="300" y="422" font-size="12.5" font-weight="700" text-anchor="middle">Base de datos</text>
+    <text x="300" y="439" font-size="9.5" fill="#3d3d3d" text-anchor="middle">[PostgreSQL 15+ gestionado en Supabase]</text>
+    <text x="300" y="458" font-size="9.5" fill="#3d3d3d" text-anchor="middle">Estado completo del sistema. Sin Auth, sin Storage, sin RLS</text>
+
+    <rect x="610" y="140" width="170" height="64" fill="#dcdcdc" stroke="#777"/>
+    <text x="695" y="166" font-size="11.5" font-weight="600" text-anchor="middle">GitHub Actions</text>
+    <text x="695" y="183" font-size="9" fill="#3d3d3d" text-anchor="middle">cron diario y ping</text>
+
+    <rect x="610" y="270" width="170" height="64" fill="#dcdcdc" stroke="#777"/>
+    <text x="695" y="296" font-size="11.5" font-weight="600" text-anchor="middle">Resend</text>
+    <text x="695" y="313" font-size="9" fill="#3d3d3d" text-anchor="middle">correo saliente</text>
+
+    <g stroke="#3a3a3a" stroke-width="1.2" fill="none" marker-end="url(#a2)">
+      <path d="M400 64 L400 126"/>
+      <path d="M300 206 L300 254"/>
+      <path d="M300 334 L300 392"/>
+      <path d="M510 296 L606 300"/>
+      <path d="M676 204 L516 262"/>
+    </g>
+    <g font-size="9.5" fill="#3d3d3d">
+      <text x="408" y="100">Usa · HTTPS</text>
+      <text x="308" y="228">Consume · JSON sobre HTTPS con JWT</text>
+      <text x="308" y="366">Lee y escribe · SQL sobre asyncpg (agrupador 6543)</text>
+      <text x="556" y="286" text-anchor="middle">HTTPS</text>
+      <text x="700" y="224" text-anchor="middle">POST /internal/jobs/reminders</text>
+      <text x="700" y="237" text-anchor="middle">cabecera X-Job-Token</text>
+    </g>
+  </g>
+</svg>
+<figcaption>Figura 3. C4 nivel 2 — Contenedores. El frontend nunca habla con la base de datos: toda regla y toda autorización viven en el backend.</figcaption>
+</figure>
+
+<h2>6.4 C4 nivel 3 — Componentes del backend</h2>
+<p>Este nivel es el que define <strong>la estructura del proyecto</strong> del lado del servidor. Cada módulo de <code>modules/</code> es una unidad con las mismas seis piezas y fronteras estrictas entre ellas (6.6).</p>
+<figure>
+<svg viewBox="0 0 800 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama C4 de componentes del backend">
+  <defs>
+    <marker id="a3" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#3a3a3a"/>
+    </marker>
+  </defs>
+  <g font-family="Segoe UI, Calibri, sans-serif" fill="#1a1a1a">
+    <path d="M400 4 L400 24" stroke="#3a3a3a" stroke-width="1.2" fill="none" marker-end="url(#a3)"/>
+    <text x="410" y="18" font-size="9.5" fill="#3d3d3d">Peticiones HTTP · /api/v1</text>
+
+    <rect x="20" y="28" width="760" height="450" fill="none" stroke="#8a8a8a" stroke-width="1.2" stroke-dasharray="6 4"/>
+    <text x="32" y="48" font-size="10.5" font-weight="600" fill="#4a4a4a">Contenedor: Backend — FastAPI · backend/app/</text>
+
+    <rect x="48" y="60" width="704" height="38" fill="#4a4a4a" stroke="#4a4a4a"/>
+    <text x="400" y="84" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">main.py — creación de la aplicación, middlewares, manejadores de excepción y montaje de routers</text>
+
+    <rect x="48" y="112" width="704" height="86" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="58" y="128" font-size="10" font-weight="700" fill="#3d3d3d">core/ — infraestructura transversal</text>
+    <g font-size="9">
+      <rect x="52" y="136" width="110" height="52" fill="#ffffff" stroke="#777"/>
+      <text x="107" y="156" text-anchor="middle" font-weight="600">config.py</text>
+      <text x="107" y="172" text-anchor="middle" fill="#3d3d3d">ajustes</text>
+      <rect x="170" y="136" width="110" height="52" fill="#ffffff" stroke="#777"/>
+      <text x="225" y="156" text-anchor="middle" font-weight="600">database.py</text>
+      <text x="225" y="172" text-anchor="middle" fill="#3d3d3d">motor · sesión</text>
+      <rect x="288" y="136" width="110" height="52" fill="#ffffff" stroke="#777"/>
+      <text x="343" y="156" text-anchor="middle" font-weight="600">security.py</text>
+      <text x="343" y="172" text-anchor="middle" fill="#3d3d3d">Argon2 · JWT</text>
+      <rect x="406" y="136" width="110" height="52" fill="#ffffff" stroke="#777"/>
+      <text x="461" y="156" text-anchor="middle" font-weight="600">dependencies.py</text>
+      <text x="461" y="172" text-anchor="middle" fill="#3d3d3d">autorización</text>
+      <rect x="524" y="136" width="110" height="52" fill="#ffffff" stroke="#777"/>
+      <text x="579" y="156" text-anchor="middle" font-weight="600">exceptions.py</text>
+      <text x="579" y="172" text-anchor="middle" fill="#3d3d3d">dominio → HTTP</text>
+      <rect x="642" y="136" width="110" height="52" fill="#ffffff" stroke="#777"/>
+      <text x="697" y="156" text-anchor="middle" font-weight="600">pagination.py</text>
+      <text x="697" y="172" text-anchor="middle" fill="#3d3d3d">listados</text>
+    </g>
+
+    <rect x="48" y="210" width="704" height="112" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="58" y="226" font-size="10" font-weight="700" fill="#3d3d3d">modules/ — módulos de negocio</text>
+    <g font-size="9">
+      <rect x="52" y="234" width="110" height="56" fill="#e2e2e2" stroke="#777"/>
+      <text x="107" y="254" text-anchor="middle" font-weight="600">auth</text>
+      <text x="107" y="270" text-anchor="middle" fill="#3d3d3d">sesiones,</text>
+      <text x="107" y="282" text-anchor="middle" fill="#3d3d3d">invitaciones</text>
+      <rect x="170" y="234" width="110" height="56" fill="#e2e2e2" stroke="#777"/>
+      <text x="225" y="254" text-anchor="middle" font-weight="600">users</text>
+      <text x="225" y="270" text-anchor="middle" fill="#3d3d3d">cuentas,</text>
+      <text x="225" y="282" text-anchor="middle" fill="#3d3d3d">roles globales</text>
+      <rect x="288" y="234" width="110" height="56" fill="#e2e2e2" stroke="#777"/>
+      <text x="343" y="254" text-anchor="middle" font-weight="600">projects</text>
+      <text x="343" y="270" text-anchor="middle" fill="#3d3d3d">roles, permisos,</text>
+      <text x="343" y="282" text-anchor="middle" fill="#3d3d3d">miembros</text>
+      <rect x="406" y="234" width="110" height="56" fill="#e2e2e2" stroke="#777"/>
+      <text x="461" y="254" text-anchor="middle" font-weight="600">tasks</text>
+      <text x="461" y="270" text-anchor="middle" fill="#3d3d3d">entregas,</text>
+      <text x="461" y="282" text-anchor="middle" fill="#3d3d3d">comentarios</text>
+      <rect x="524" y="234" width="110" height="56" fill="#e2e2e2" stroke="#777"/>
+      <text x="579" y="254" text-anchor="middle" font-weight="600">lessons</text>
+      <text x="579" y="270" text-anchor="middle" fill="#3d3d3d">módulos,</text>
+      <text x="579" y="282" text-anchor="middle" fill="#3d3d3d">recursos</text>
+      <rect x="642" y="234" width="110" height="56" fill="#e2e2e2" stroke="#777"/>
+      <text x="697" y="254" text-anchor="middle" font-weight="600">notifications</text>
+      <text x="697" y="270" text-anchor="middle" fill="#3d3d3d">campana,</text>
+      <text x="697" y="282" text-anchor="middle" fill="#3d3d3d">despachos</text>
+    </g>
+    <text x="400" y="310" font-size="9" fill="#3d3d3d" text-anchor="middle">Cada módulo contiene: router.py · service.py · repository.py · models.py · schemas.py · exceptions.py</text>
+
+    <rect x="48" y="334" width="346" height="60" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="58" y="350" font-size="10" font-weight="700" fill="#3d3d3d">jobs/</text>
+    <text x="58" y="368" font-size="9.5">reminders.py — algoritmo del proceso programado,</text>
+    <text x="58" y="382" font-size="9.5">idempotente por restricción de unicidad</text>
+
+    <rect x="406" y="334" width="346" height="60" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="416" y="350" font-size="10" font-weight="700" fill="#3d3d3d">integrations/email/</text>
+    <text x="416" y="368" font-size="9.5">client.py — cliente de Resend con reintentos</text>
+    <text x="416" y="382" font-size="9.5">templates/ — plantillas HTML de correo</text>
+
+    <rect x="48" y="406" width="704" height="38" fill="#ffffff" stroke="#777"/>
+    <text x="400" y="430" font-size="10.5" text-anchor="middle">cli.py — <tspan font-family="Consolas, monospace">create_admin</tspan> y utilidades de mantenimiento (nunca expuestas como endpoint)</text>
+
+    <rect x="230" y="506" width="340" height="48" fill="#f0f0f0" stroke="#555"/>
+    <text x="400" y="526" font-size="11.5" font-weight="700" text-anchor="middle">Base de datos · PostgreSQL</text>
+    <text x="400" y="543" font-size="9" fill="#3d3d3d" text-anchor="middle">Supabase · agrupador en el puerto 6543</text>
+
+    <path d="M400 478 L400 502" stroke="#3a3a3a" stroke-width="1.2" fill="none" marker-end="url(#a3)"/>
+    <text x="410" y="496" font-size="9.5" fill="#3d3d3d">SQL · asyncpg</text>
+  </g>
+</svg>
+<figcaption>Figura 4. C4 nivel 3 — Componentes del backend. Solo los <code>repository.py</code> tocan la base de datos; los <code>router.py</code> no consultan y los <code>service.py</code> no conocen HTTP.</figcaption>
+</figure>
+
+<h2>6.5 Estructura del proyecto (C4 nivel 4 — código)</h2>
+<pre>KAIROS/
+├── CLAUDE.md                        Convenciones obligatorias para quien escriba código
+├── README.md
+├── docs/                            PRD, reglas, modelo de datos, arquitectura, API, historias
+├── .github/workflows/
+│   ├── reminders.yml                cron diario 12:00 UTC = 07:00 America/Bogota
+│   └── keepalive.yml                ping cada 10 min en horario hábil
+├── backend/
+│   ├── app/
+│   │   ├── main.py                  aplicación, middlewares, routers, manejadores de excepción
+│   │   ├── core/
+│   │   │   ├── config.py            ajustes con pydantic-settings
+│   │   │   ├── database.py          motor asíncrono, sesión, get_db
+│   │   │   ├── security.py          hash Argon2, emisión y validación de JWT
+│   │   │   ├── dependencies.py      get_current_user, require_global_role,
+│   │   │   │                        require_project_permission
+│   │   │   ├── exceptions.py        excepciones de dominio y sus manejadores HTTP
+│   │   │   └── pagination.py
+│   │   ├── modules/
+│   │   │   ├── auth/                router · service · repository · models · schemas · exceptions
+│   │   │   ├── users/
+│   │   │   ├── projects/            incluye roles, permisos y membresías
+│   │   │   ├── tasks/               incluye entregas y comentarios
+│   │   │   ├── lessons/
+│   │   │   └── notifications/
+│   │   ├── jobs/
+│   │   │   └── reminders.py         lógica del trabajo programado
+│   │   ├── integrations/
+│   │   │   └── email/
+│   │   │       ├── client.py        cliente de Resend
+│   │   │       └── templates/       plantillas HTML de correo
+│   │   └── cli.py                   create_admin y utilidades de mantenimiento
+│   ├── alembic/                     una migración por cambio, con mensaje descriptivo
+│   ├── tests/
+│   │   ├── unit/                    servicios con repositorios simulados
+│   │   └── integration/             endpoints contra PostgreSQL real
+│   ├── pyproject.toml
+│   └── .env.example
+└── frontend/
+    ├── src/app/
+    │   ├── core/
+    │   │   ├── auth/                servicio de sesión, guardas, interceptor
+    │   │   ├── api/                 clientes HTTP tipados (ningún componente usa HttpClient)
+    │   │   └── layout/              estructura general, barra lateral, campana
+    │   ├── features/
+    │   │   ├── auth/                ingreso, aceptar invitación, recuperar contraseña
+    │   │   ├── dashboard/           «Mis tareas» entre todos los proyectos
+    │   │   ├── projects/            lista, detalle, tablero, miembros, roles
+    │   │   ├── lessons/             catálogo y edición
+    │   │   └── admin/               usuarios, invitaciones, configuración
+    │   └── shared/
+    │       ├── ui/                  componentes reutilizables
+    │       └── pipes/
+    ├── PRODUCT.md                   generado por Impeccable
+    ├── DESIGN.md                    tokens de diseño (no se inventan a mano)
+    └── package.json</pre>
+<figcaption class="center" style="margin-bottom:12pt">Figura 5. Estructura del repositorio. Los nombres de archivo van en <code>kebab-case</code> en el frontend y en <code>snake_case</code> en el backend.</figcaption>
+
+<h2>6.6 Fronteras entre módulos</h2>
+<p>Estas seis reglas son lo que hace que el monolito sea <em>modular</em> en lugar de un montón de archivos. El objetivo no es prepararse para microservicios, sino poder razonar sobre cada módulo por separado.</p>
+<ol>
+<li><strong>Un router nunca consulta la base de datos.</strong> Llama al servicio y traduce el resultado a HTTP.</li>
+<li><strong>Un servicio nunca conoce HTTP.</strong> No recibe <code>Request</code> ni devuelve <code>JSONResponse</code>: levanta excepciones de dominio que el manejador global convierte en códigos de estado.</li>
+<li><strong>Un repositorio nunca decide.</strong> Recibe parámetros, ejecuta la consulta, devuelve datos. Ninguna condición de negocio vive ahí.</li>
+<li><strong>Un módulo no importa el repositorio ni los modelos de otro módulo.</strong> Si <code>tasks</code> necesita algo de <code>projects</code>, llama a <code>projects.service</code>. La única excepción son las llaves foráneas por identificador.</li>
+<li><strong>No hay relaciones de SQLAlchemy que crucen módulos.</strong> <code>Task</code> no declara <code>relationship("Project")</code>: guarda <code>project_id</code> y punto. Así una consulta no arrastra media base de datos sin que nadie se dé cuenta.</li>
+<li><strong>Las transacciones se abren y se confirman en el servicio</strong>, nunca en el repositorio ni en el router.</li>
+</ol>
+<p>Dependencias permitidas entre módulos:</p>
+<pre>auth          →  users
+users         →  (ninguno)
+projects      →  users
+tasks         →  projects, notifications
+lessons       →  (ninguno)
+notifications →  (ninguno; recibe los datos, no los busca)</pre>
+<p><code>notifications</code> no importa nada de nadie: los demás módulos le pasan la información que debe enviar. Así se puede probar en aislamiento y no se convierte en el nudo donde todo se enreda.</p>
+
+<h2>6.7 Autenticación y autorización</h2>
+<h3>Flujo de tokens</h3>
+<ul>
+<li><strong>Token de acceso:</strong> JWT firmado con HS256, vigencia 15 minutos. Contenido: <code>sub</code> (id de usuario), <code>global_role</code>, <code>exp</code>, <code>iat</code>, <code>jti</code>.</li>
+<li><strong>Token de refresco:</strong> cadena aleatoria de 32 bytes, vigencia 7 días, guardada hasheada con SHA-256. Rotativa: cada uso emite una nueva y revoca la anterior (RN-43).</li>
+<li><strong>Almacenamiento en el cliente:</strong> ambos en memoria dentro de un servicio de Angular; el de refresco se persiste en <code>localStorage</code> para sobrevivir a la recarga. Es una herramienta interna sin datos sensibles y la complejidad de cookies <code>HttpOnly</code> con CSRF no se justifica. Queda registrado como decisión consciente, no como descuido.</li>
+</ul>
+<h3>Por qué los permisos no van dentro del token</h3>
+<p>El JWT lleva <strong>solo</strong> el rol global. Los permisos de proyecto se consultan en cada petición porque un líder puede cambiarlos en cualquier momento y el cambio debe surtir efecto de inmediato (RN-22). Meterlos en el token obligaría a esperar quince minutos o a implementar una lista de revocación, lo cual es más complejo que una consulta indexada.</p>
+<h3>Dependencia única de autorización</h3>
+<p>Toda verificación de permisos de proyecto pasa por aquí. <strong>Nunca</strong> se comprueban permisos con condicionales sueltos dentro de un servicio.</p>
+<pre>def require_project_permission(permission: str):
+    async def dependency(
+        project_id: UUID,
+        user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -&gt; ProjectContext:
+        ctx = await projects_service.get_context(db, project_id, user.id)
+        if ctx is None:
+            raise NotFoundError("Proyecto no encontrado")   # 404, no 403
+        if permission not in ctx.permissions:
+            raise ForbiddenError(f"Se requiere el permiso {permission}")
+        if ctx.project.status == ProjectStatus.ARCHIVED and permission != "project.archive":
+            raise ConflictError("El proyecto está archivado")
+        return ctx
+    return dependency</pre>
+<p>Tres detalles que importan: se devuelve <strong>404 en lugar de 403</strong> cuando el usuario no es miembro, porque un 403 confirmaría que el proyecto existe; la <strong>comprobación de archivado está centralizada</strong> aquí y no repartida por cada endpoint, lo que cumple RN-15 sin depender de que nadie se acuerde; y <code>ProjectContext</code> trae el proyecto, la membresía y el conjunto de permisos ya resueltos, para que el servicio no vuelva a consultarlos.</p>
+
+<h2>6.8 Proceso programado de recordatorios</h2>
+<p>La restricción de fondo es que <strong>Render no ofrece trabajos programados en el plan gratuito</strong>. La solución es un disparador externo contra un endpoint interno autenticado con un secreto comparado en tiempo constante y excluido del esquema público de OpenAPI.</p>
+<pre>POST /internal/jobs/reminders
+Header: X-Job-Token: &lt;secreto compartido&gt;</pre>
+<p>El flujo de GitHub Actions despierta primero la API con un <code>curl</code> a <code>/health</code> y solo después dispara el trabajo; si el disparo llegara directo, la primera petición se agotaría antes de que el servicio arrancara. Un segundo flujo golpea <code>/health</code> cada diez minutos entre las 6:00 y las 23:00 hora de Colombia, lo que evita a la vez la suspensión de Render (RNF-02) y la pausa por inactividad de Supabase (RNF-07).</p>
+<h3>Algoritmo</h3>
+<pre>config ← notification_settings
+hoy    ← fecha actual en America/Bogota
+
+para cada d en config.reminder_days_before:
+    tareas ← SELECT de tasks
+              WHERE due_date = hoy + d
+                AND status &lt;&gt; 'DONE'
+                AND deleted_at IS NULL
+                AND project.status = 'ACTIVE'
+    para cada tarea, para cada responsable activo:
+        despachar(usuario, tarea, 'TASK_DUE_SOON', hoy)
+
+si config.overdue_enabled:
+    tareas       ← ... WHERE due_date &lt; hoy AND (mismas condiciones)
+    destinatarios ← responsables activos ∪ miembros con task.review
+    para cada destinatario:
+        despachar(destinatario, tarea, 'TASK_OVERDUE', hoy)
+
+función despachar(usuario, tarea, tipo, fecha):
+    INSERT INTO notification_dispatches (...) ON CONFLICT DO NOTHING RETURNING id
+    si no devolvió fila: return          # ya se envió hoy, se omite
+    crear la notificación dentro de la aplicación
+    enviar el correo; actualizar status y provider_message_id</pre>
+<div class="note"><strong>La inserción va antes del envío.</strong> El <code>ON CONFLICT DO NOTHING</code> sobre la restricción <code>UNIQUE (user_id, task_id, kind, target_date)</code> es lo que hace el trabajo idempotente (RN-27). Si el proceso se ejecuta dos veces, la segunda no inserta y por lo tanto no envía. Delegar esto a la base de datos es más confiable que cualquier comprobación previa en Python, que siempre deja una ventana de carrera.</div>
+<p class="small"><strong>Advertencia sobre el cron de GitHub Actions:</strong> las ejecuciones programadas suelen retrasarse varios minutos y, con mucha carga, pueden saltarse. Para recordatorios diarios es tolerable; es exactamente la razón por la que existe RN-29.</p>
+
+<h2>6.9 Frontend</h2>
+<ul>
+<li><strong>Componentes standalone y signals.</strong> Sin NgModules y sin NgRx: <code>signal</code>, <code>computed</code> y <code>resource</code> bastan para esta escala.</li>
+<li><strong>Rutas con carga diferida</strong> por funcionalidad, para que el paquete inicial sea pequeño.</li>
+<li><strong>Interceptor HTTP</strong> que adjunta el token de acceso, renueva de forma transparente ante un 401 y encola las peticiones concurrentes durante la renovación para no disparar varios refrescos a la vez.</li>
+<li><strong>Interceptor de arranque en frío:</strong> si una petición pasa de 3 segundos emite un evento global que muestra «Despertando el servidor…»; el tiempo de espera es de 90 segundos y nunca se muestra un error genérico ni una pantalla en blanco.</li>
+<li><strong>Impeccable manda en todo lo visual.</strong> Los tokens de diseño los define <code>DESIGN.md</code>; no se inventan a mano. Anti-patrones prohibidos: tipografías por defecto del sistema, degradados de morado a azul, tarjetas anidadas, texto gris sobre fondos de color, negros y grises puros, y suavizados con rebote.</li>
+</ul>
+<h3>Estrategia adaptable (RNF-01)</h3>
+<table>
+<tr><th style="width:20%">Ancho</th><th style="width:44%">Tablero</th><th>Navegación</th></tr>
+<tr><td>&lt; 768 px</td><td>Lista agrupada por estado, con selector desplegable para cambiar de estado. Sin arrastrar y soltar.</td><td>Barra inferior</td></tr>
+<tr><td>768 – 1024 px</td><td>Columnas con desplazamiento horizontal, arrastrar y soltar activo.</td><td>Barra lateral colapsable</td></tr>
+<tr><td>&gt; 1024 px</td><td>Las cinco columnas visibles, arrastrar y soltar.</td><td>Barra lateral fija</td></tr>
+</table>
+<p class="small">El arrastrar y soltar se desactiva por debajo de 768 px: en móvil es incómodo y propenso a errores, y el selector de estado resulta más rápido y más accesible. Las áreas táctiles miden al menos 44 × 44 px.</p>
+
+<h2>6.10 Manejo de errores</h2>
+<p>Formato uniforme para toda respuesta de error. Los mensajes van en español porque se muestran al usuario; los códigos van en inglés porque los consume el frontend.</p>
+<pre>{
+  "error": {
+    "code": "PROJECT_ARCHIVED",
+    "message": "El proyecto está archivado y no admite modificaciones",
+    "details": null
+  }
+}</pre>
+<table>
+<tr><th style="width:34%">Excepción de dominio</th><th style="width:14%">HTTP</th><th>Código</th></tr>
+<tr><td><code>NotFoundError</code></td><td>404</td><td><code>NOT_FOUND</code></td></tr>
+<tr><td><code>ForbiddenError</code></td><td>403</td><td><code>FORBIDDEN</code></td></tr>
+<tr><td><code>ConflictError</code></td><td>409</td><td><code>CONFLICT</code> y sus especializaciones</td></tr>
+<tr><td><code>ValidationError</code></td><td>422</td><td><code>VALIDATION_ERROR</code></td></tr>
+<tr><td><code>AuthenticationError</code></td><td>401</td><td><code>UNAUTHENTICATED</code></td></tr>
+</table>
+
+<h1>7. Modelo de datos</h1>
+<p>PostgreSQL 15+ en Supabase, en tercera forma normal, con claves primarias <code>uuid</code> generadas con <code>gen_random_uuid()</code> y todas las marcas de tiempo en <code>timestamptz</code> UTC.</p>
+
+<h2>7.1 Convenciones</h2>
+<ul>
+<li>Tablas en plural y <code>snake_case</code>, en inglés.</li>
+<li>Toda tabla de negocio lleva <code>created_at timestamptz NOT NULL DEFAULT now()</code>; las mutables llevan además <code>updated_at</code>, mantenido por un trigger <code>set_updated_at()</code>.</li>
+<li>El borrado lógico usa <code>deleted_at timestamptz NULL</code> y <strong>solo lo tienen <code>tasks</code> y <code>task_comments</code></strong>.</li>
+<li>Los enumerados se implementan como tipos <code>ENUM</code> cuando el conjunto es cerrado y estable, y como tabla catálogo cuando debe consultarse o referenciarse (caso de <code>permissions</code>).</li>
+<li>Las llaves foráneas usan <code>ON DELETE RESTRICT</code> por defecto; <code>CASCADE</code> solo donde el hijo carece de sentido sin el padre, y siempre señalado explícitamente.</li>
+</ul>
+
+<h2>7.2 Tipos enumerados</h2>
+<pre>CREATE TYPE global_role              AS ENUM ('ADMIN', 'LESSON_EDITOR', 'MEMBER');
+CREATE TYPE user_status              AS ENUM ('ACTIVE', 'DISABLED');
+CREATE TYPE invitation_status        AS ENUM ('PENDING', 'ACCEPTED', 'REVOKED', 'EXPIRED');
+CREATE TYPE project_status           AS ENUM ('ACTIVE', 'ARCHIVED');
+CREATE TYPE task_status              AS ENUM ('BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE');
+CREATE TYPE task_periodicity         AS ENUM ('ONE_TIME', 'WEEKLY', 'MONTHLY', 'SEMESTER');
+CREATE TYPE submission_review_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+CREATE TYPE resource_type            AS ENUM ('NOTEBOOK', 'PDF', 'VIDEO', 'REPOSITORY', 'ARTICLE');
+CREATE TYPE notification_kind        AS ENUM ('TASK_ASSIGNED', 'TASK_DUE_SOON', 'TASK_OVERDUE',
+                                              'SUBMISSION_APPROVED', 'SUBMISSION_REJECTED');
+CREATE TYPE dispatch_status          AS ENUM ('SENT', 'FAILED');</pre>
+
+<h2>7.3 Tablas</h2>
+<h3>Identidad y acceso</h3>
+<table>
+<tr><th style="width:20%">Tabla</th><th>Columnas y restricciones</th></tr>
+<tr><td><code>users</code></td><td><code>id</code> uuid PK · <code>full_name</code> text (2–120) · <code>email</code> citext UNIQUE · <code>password_hash</code> text · <code>global_role</code> (def. <code>MEMBER</code>) · <code>status</code> (def. <code>ACTIVE</code>) · <code>last_login_at</code> · <code>created_at</code>/<code>updated_at</code>.<br><em>Índices:</em> <code>UNIQUE (email)</code>, <code>INDEX (status) WHERE status = 'ACTIVE'</code>. Se usa <code>citext</code> para que el correo sea único sin distinguir mayúsculas; alternativa si no está disponible: índice único sobre <code>lower(email)</code>.</td></tr>
+<tr><td><code>invitations</code></td><td><code>id</code> · <code>email</code> citext · <code>global_role</code> · <code>token_hash</code> text UNIQUE · <code>expires_at</code> · <code>status</code> (def. <code>PENDING</code>) · <code>invited_by</code> FK→users · <code>accepted_at</code> · <code>accepted_user_id</code> FK→users · <code>created_at</code>.<br><em>Restricción:</em> <code>UNIQUE (email) WHERE status = 'PENDING'</code> (índice único parcial): una sola invitación viva por correo.<br><em>Decisión:</em> el usuario <strong>no</strong> se crea al invitar sino al aceptar, para no contaminar los selectores de asignación con filas a medias.</td></tr>
+<tr><td><code>refresh_tokens</code></td><td><code>id</code> · <code>user_id</code> FK→users <code>ON DELETE CASCADE</code> · <code>token_hash</code> UNIQUE · <code>expires_at</code> · <code>revoked_at</code> · <code>user_agent</code> · <code>created_at</code>.<br><em>Índice:</em> <code>(user_id) WHERE revoked_at IS NULL</code>.</td></tr>
+<tr><td><code>password_reset_tokens</code></td><td>Misma forma que <code>refresh_tokens</code>, con <code>used_at</code> en lugar de <code>revoked_at</code> y vigencia de 1 hora.</td></tr>
+</table>
+
+<h3>Proyectos y roles</h3>
+<table>
+<tr><th style="width:20%">Tabla</th><th>Columnas y restricciones</th></tr>
+<tr><td><code>projects</code></td><td><code>id</code> · <code>name</code> (3–120) · <code>description</code> · <code>status</code> (def. <code>ACTIVE</code>) · <code>start_date</code> date · <code>created_by</code> FK→users · <code>archived_at</code> · <code>created_at</code>/<code>updated_at</code>.<br><em>Restricción:</em> <code>CHECK ((status = 'ARCHIVED') = (archived_at IS NOT NULL))</code>, que impide que el estado y la fecha se desincronicen. <em>Índice:</em> <code>(status)</code>.</td></tr>
+<tr><td><code>permissions</code></td><td><code>code</code> text PK (ej. <code>task.review</code>) · <code>description</code> · <code>category</code> (<code>task</code>, <code>member</code>, <code>role</code>, <code>project</code>).<br>Tabla catálogo poblada por migración con los 14 códigos de la sección 5.1. No se modifica en tiempo de ejecución.</td></tr>
+<tr><td><code>project_roles</code></td><td><code>id</code> · <code>project_id</code> FK→projects <code>CASCADE</code> · <code>name</code> (2–40) · <code>color</code> <code>CHECK (color ~ '^#[0-9A-Fa-f]{6}$')</code> · <code>is_system</code> bool · <code>created_by</code> FK→users NULL (nulo en los roles del sistema) · <code>created_at</code>/<code>updated_at</code>.<br><em>Restricción:</em> <code>UNIQUE (project_id, lower(name))</code> (RN-20).</td></tr>
+<tr><td><code>project_role_permissions</code></td><td><code>project_role_id</code> FK→project_roles <code>CASCADE</code> · <code>permission_code</code> FK→permissions. PK compuesta. Es la tabla puente que hace configurable el sistema de permisos.</td></tr>
+<tr><td><code>project_members</code></td><td><code>id</code> · <code>project_id</code> FK <code>CASCADE</code> · <code>user_id</code> FK→users · <code>project_role_id</code> FK→project_roles · <code>added_by</code> FK→users · <code>joined_at</code>.<br><em>Restricción:</em> <code>UNIQUE (project_id, user_id)</code> — <strong>un usuario tiene un único rol por proyecto</strong> (RN-03). <em>Índices:</em> <code>(user_id)</code> para «Mis proyectos», <code>(project_id)</code>.<br><em>Integridad que la base no expresa sola:</em> <code>project_role_id</code> debe pertenecer al mismo <code>project_id</code>. Se valida en el servicio y se refuerza opcionalmente con una FK compuesta añadiendo <code>UNIQUE (id, project_id)</code> en <code>project_roles</code>.</td></tr>
+</table>
+
+<h3>Tareas</h3>
+<table>
+<tr><th style="width:20%">Tabla</th><th>Columnas y restricciones</th></tr>
+<tr><td><code>tasks</code></td><td><code>id</code> · <code>project_id</code> FK→projects · <code>title</code> (3–200) · <code>description</code> · <code>status</code> (def. <code>BACKLOG</code>) · <code>periodicity</code> (def. <code>ONE_TIME</code>) · <code>due_date</code> date · <code>created_by</code> FK→users · <code>completed_at</code> · <code>deleted_at</code> · <code>created_at</code>/<code>updated_at</code>.<br><em>Restricción:</em> <code>CHECK ((status = 'DONE') = (completed_at IS NOT NULL))</code> (RN-08).<br><em>Índices:</em> <code>(project_id, status) WHERE deleted_at IS NULL</code> — la consulta del tablero; <code>(due_date) WHERE deleted_at IS NULL AND status &lt;&gt; 'DONE'</code> — la consulta del proceso programado.<br><em>Por qué <code>due_date</code> es <code>date</code> y no <code>timestamptz</code>:</em> el vencimiento es un día calendario en hora de Colombia, no un instante. Evita el error clásico de que una tarea «venza» a las 7 p. m. del día anterior por conversión de zona horaria.</td></tr>
+<tr><td><code>task_assignees</code></td><td><code>task_id</code> FK→tasks <code>CASCADE</code> · <code>user_id</code> FK→users · <code>assigned_by</code> FK→users · <code>assigned_at</code>. PK compuesta <code>(task_id, user_id)</code>; índice adicional en <code>(user_id)</code> para la vista «Mis tareas».</td></tr>
+<tr><td><code>task_submissions</code></td><td><code>id</code> · <code>task_id</code> FK <code>CASCADE</code> · <code>submitted_by</code> FK→users · <code>description</code> (10–4000) · <code>commit_url</code> <code>CHECK (commit_url IS NULL OR commit_url ~ '^https://github\.com/')</code> · <code>review_status</code> (def. <code>PENDING</code>) · <code>reviewed_by</code> · <code>reviewed_at</code> · <code>review_comment</code> · <code>created_at</code>.<br><em>Restricciones:</em> <code>CHECK ((review_status = 'PENDING') = (reviewed_at IS NULL))</code> y <code>CHECK (review_status &lt;&gt; 'REJECTED' OR review_comment IS NOT NULL)</code> — devolver exige explicación.<br><em>Índice:</em> <code>UNIQUE (task_id) WHERE review_status = 'PENDING'</code>: impide dos entregas pendientes sobre la misma tarea.</td></tr>
+<tr><td><code>task_comments</code></td><td><code>id</code> · <code>task_id</code> FK <code>CASCADE</code> · <code>author_id</code> FK→users · <code>body</code> (1–4000) · <code>deleted_at</code> · <code>created_at</code>/<code>updated_at</code>. <em>Índice:</em> <code>(task_id, created_at) WHERE deleted_at IS NULL</code>.</td></tr>
+</table>
+
+<h3>Notificaciones</h3>
+<table>
+<tr><th style="width:20%">Tabla</th><th>Columnas y restricciones</th></tr>
+<tr><td><code>notification_settings</code></td><td><code>id</code> smallint PK <code>CHECK (id = 1)</code> · <code>reminder_days_before</code> int[] (def. <code>{3,1,0}</code>) · <code>send_hour</code> smallint (def. 7, <code>CHECK 0–23</code>) · <code>timezone</code> (def. <code>America/Bogota</code>) · <code>overdue_enabled</code> bool (def. true) · <code>updated_by</code> · <code>updated_at</code>.<br>El truco de <code>CHECK (id = 1)</code> fuerza que exista una sola configuración global, tal como pide RF-43.</td></tr>
+<tr><td><code>notifications</code></td><td><code>id</code> · <code>user_id</code> FK <code>CASCADE</code> · <code>kind</code> · <code>title</code> · <code>body</code> · <code>task_id</code> FK NULL <code>CASCADE</code> · <code>project_id</code> FK NULL <code>CASCADE</code> · <code>read_at</code> · <code>created_at</code>.<br><em>Índices:</em> <code>(user_id, created_at DESC)</code> y <code>(user_id) WHERE read_at IS NULL</code> para el contador de no leídas.</td></tr>
+<tr><td><code>notification_dispatches</code></td><td><code>id</code> · <code>user_id</code> FK · <code>task_id</code> FK NULL · <code>kind</code> · <code>target_date</code> date · <code>status</code> · <code>provider_message_id</code> · <code>error_message</code> · <code>attempts</code> smallint (def. 1) · <code>created_at</code>.<br><strong>Restricción crítica:</strong> <code>UNIQUE (user_id, task_id, kind, target_date)</code>. El proceso programado intenta insertar aquí <strong>antes</strong> de enviar; si la inserción viola la restricción, el aviso ya salió y se omite. Es idempotencia garantizada por la base de datos y no por lógica de aplicación, que es lo que la hace confiable ante reintentos y ejecuciones concurrentes.</td></tr>
+</table>
+
+<h3>Lecciones</h3>
+<table>
+<tr><th style="width:20%">Tabla</th><th>Columnas y restricciones</th></tr>
+<tr><td><code>lesson_modules</code></td><td><code>id</code> · <code>title</code> (3–150) · <code>description</code> · <code>position</code> int · <code>is_published</code> bool (def. false) · <code>created_by</code> FK→users · <code>created_at</code>/<code>updated_at</code>.</td></tr>
+<tr><td><code>lessons</code></td><td><code>id</code> · <code>module_id</code> FK→lesson_modules <code>CASCADE</code> · <code>title</code> · <code>description</code> · <code>position</code> · <code>is_published</code> · <code>created_by</code> · <code>created_at</code>/<code>updated_at</code>. <em>Índice:</em> <code>(module_id, position)</code>.</td></tr>
+<tr><td><code>lesson_resources</code></td><td><code>id</code> · <code>lesson_id</code> FK→lessons <code>CASCADE</code> · <code>type</code> · <code>title</code> · <code>url</code> <code>CHECK (url ~ '^https?://')</code> · <code>position</code> · <code>created_at</code>.</td></tr>
+</table>
+
+<h2>7.4 Mapa entidad-relación</h2>
+<figure>
+<svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de tablas y relaciones">
+  <defs>
+    <marker id="a4" markerWidth="8" markerHeight="6" refX="7.5" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#3a3a3a"/>
+    </marker>
+  </defs>
+  <g font-family="Segoe UI, Calibri, sans-serif" font-size="9.5" fill="#1a1a1a">
+    <!-- bloque 1 -->
+    <rect x="16" y="30" width="246" height="250" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="24" y="48" font-size="10" font-weight="700" fill="#3d3d3d">Identidad y acceso</text>
+    <rect x="36" y="60" width="214" height="32" fill="#4a4a4a" stroke="#4a4a4a"/>
+    <text x="143" y="80" text-anchor="middle" fill="#ffffff" font-weight="700">users</text>
+    <rect x="36" y="110" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="143" y="130" text-anchor="middle">invitations</text>
+    <rect x="36" y="160" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="143" y="180" text-anchor="middle">refresh_tokens</text>
+    <rect x="36" y="210" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="143" y="230" text-anchor="middle">password_reset_tokens</text>
+    <g stroke="#3a3a3a" stroke-width="1" fill="none" marker-end="url(#a4)">
+      <path d="M36 76 H26 V126 H32"/>
+      <path d="M26 126 V176 H32"/>
+      <path d="M26 176 V226 H32"/>
+    </g>
+
+    <!-- bloque 2 -->
+    <rect x="278" y="30" width="246" height="300" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="286" y="48" font-size="10" font-weight="700" fill="#3d3d3d">Proyectos, roles y permisos</text>
+    <rect x="298" y="60" width="214" height="32" fill="#4a4a4a" stroke="#4a4a4a"/>
+    <text x="405" y="80" text-anchor="middle" fill="#ffffff" font-weight="700">projects</text>
+    <rect x="298" y="110" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="405" y="130" text-anchor="middle">project_roles</text>
+    <rect x="298" y="160" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="405" y="180" text-anchor="middle">project_role_permissions</text>
+    <rect x="298" y="210" width="214" height="32" fill="#e2e2e2" stroke="#777"/>
+    <text x="405" y="230" text-anchor="middle">permissions <tspan font-size="8" fill="#3d3d3d">(catálogo)</tspan></text>
+    <rect x="298" y="260" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="405" y="280" text-anchor="middle">project_members</text>
+    <g stroke="#3a3a3a" stroke-width="1" fill="none" marker-end="url(#a4)">
+      <path d="M298 76 H288 V126 H294"/>
+      <path d="M288 126 V276 H294"/>
+      <path d="M512 126 H522 V176 H516"/>
+      <path d="M512 226 H528 V181 H516"/>
+    </g>
+
+    <!-- bloque 3 -->
+    <rect x="540" y="30" width="246" height="250" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="548" y="48" font-size="10" font-weight="700" fill="#3d3d3d">Tareas</text>
+    <rect x="560" y="60" width="214" height="32" fill="#4a4a4a" stroke="#4a4a4a"/>
+    <text x="667" y="80" text-anchor="middle" fill="#ffffff" font-weight="700">tasks</text>
+    <rect x="560" y="110" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="667" y="130" text-anchor="middle">task_assignees</text>
+    <rect x="560" y="160" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="667" y="180" text-anchor="middle">task_submissions</text>
+    <rect x="560" y="210" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="667" y="230" text-anchor="middle">task_comments</text>
+    <g stroke="#3a3a3a" stroke-width="1" fill="none" marker-end="url(#a4)">
+      <path d="M560 76 H550 V126 H556"/>
+      <path d="M550 126 V176 H556"/>
+      <path d="M550 176 V226 H556"/>
+    </g>
+
+    <!-- bloque 4 -->
+    <rect x="278" y="360" width="246" height="180" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="286" y="378" font-size="10" font-weight="700" fill="#3d3d3d">Notificaciones</text>
+    <rect x="298" y="390" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="405" y="410" text-anchor="middle">notifications</text>
+    <rect x="298" y="438" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="405" y="458" text-anchor="middle">notification_dispatches</text>
+    <rect x="298" y="486" width="214" height="32" fill="#e2e2e2" stroke="#777"/>
+    <text x="405" y="506" text-anchor="middle">notification_settings <tspan font-size="8" fill="#3d3d3d">(1 fila)</tspan></text>
+
+    <!-- bloque 5 -->
+    <rect x="540" y="360" width="246" height="180" fill="#f7f7f7" stroke="#9a9a9a"/>
+    <text x="548" y="378" font-size="10" font-weight="700" fill="#3d3d3d">Lecciones</text>
+    <rect x="560" y="390" width="214" height="32" fill="#4a4a4a" stroke="#4a4a4a"/>
+    <text x="667" y="410" text-anchor="middle" fill="#ffffff" font-weight="700">lesson_modules</text>
+    <rect x="560" y="438" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="667" y="458" text-anchor="middle">lessons</text>
+    <rect x="560" y="486" width="214" height="32" fill="#ffffff" stroke="#777"/>
+    <text x="667" y="506" text-anchor="middle">lesson_resources</text>
+    <g stroke="#3a3a3a" stroke-width="1" fill="none" marker-end="url(#a4)">
+      <path d="M560 406 H550 V454 H556"/>
+      <path d="M550 454 V502 H556"/>
+    </g>
+
+    <!-- relaciones entre bloques -->
+    <g stroke="#3a3a3a" stroke-width="1.2" fill="none" marker-end="url(#a4)">
+      <path d="M512 70 H556"/>
+      <path d="M250 84 H270 V276 H294"/>
+      <path d="M667 280 V344 H430 V386"/>
+      <path d="M143 280 V406 H294"/>
+    </g>
+    <g font-size="8.5" fill="#3d3d3d">
+      <text x="534" y="64" text-anchor="middle">1:N</text>
+      <text x="268" y="302" text-anchor="end">1:N</text>
+      <text x="440" y="340">1:N</text>
+      <text x="150" y="400">1:N</text>
+    </g>
+
+    <!-- leyenda -->
+    <rect x="16" y="440" width="246" height="100" fill="#ffffff" stroke="#9a9a9a"/>
+    <text x="26" y="458" font-size="10" font-weight="700" fill="#3d3d3d">Notación</text>
+    <rect x="26" y="468" width="18" height="12" fill="#4a4a4a"/>
+    <text x="52" y="478" font-size="9">entidad raíz del bloque</text>
+    <rect x="26" y="488" width="18" height="12" fill="#ffffff" stroke="#777"/>
+    <text x="52" y="498" font-size="9">entidad dependiente</text>
+    <rect x="26" y="508" width="18" height="12" fill="#e2e2e2" stroke="#777"/>
+    <text x="52" y="518" font-size="9">catálogo o configuración</text>
+    <path d="M26 530 H44" stroke="#3a3a3a" stroke-width="1.2" marker-end="url(#a4)"/>
+    <text x="52" y="534" font-size="9">llave foránea, lado 1 → lado N</text>
+  </g>
+</svg>
+<figcaption>Figura 6. Mapa de tablas por módulo. Las relaciones dibujadas son las estructurales; las referencias de auditoría a <code>users</code> (<code>created_by</code>, <code>added_by</code>, <code>assigned_by</code>, <code>reviewed_by</code>, <code>submitted_by</code>, <code>author_id</code>) existen en casi todas las tablas y se omiten para no saturar el diagrama.</figcaption>
+</figure>
+
+<h3>Relaciones principales</h3>
+<table>
+<tr><th style="width:38%">Relación</th><th style="width:12%">Cardinalidad</th><th>Nota</th></tr>
+<tr><td><code>users</code> → <code>invitations</code> / <code>refresh_tokens</code> / <code>password_reset_tokens</code></td><td>1 : N</td><td>Los tokens caen en cascada al borrar el usuario, pero los usuarios nunca se borran (RF-09).</td></tr>
+<tr><td><code>projects</code> → <code>project_roles</code></td><td>1 : N</td><td>Cascada. Un rol pertenece a un único proyecto (RN-03).</td></tr>
+<tr><td><code>project_roles</code> ↔ <code>permissions</code></td><td>N : M</td><td>Resuelta por <code>project_role_permissions</code>. Es lo que hace configurable el sistema.</td></tr>
+<tr><td><code>projects</code> → <code>project_members</code> ← <code>users</code></td><td>1 : N : 1</td><td><code>UNIQUE (project_id, user_id)</code>: un rol por usuario y proyecto.</td></tr>
+<tr><td><code>projects</code> → <code>tasks</code></td><td>1 : N</td><td>Sin <code>relationship()</code> de SQLAlchemy: solo <code>project_id</code>.</td></tr>
+<tr><td><code>tasks</code> ↔ <code>users</code></td><td>N : M</td><td>Resuelta por <code>task_assignees</code>; una tarea admite varios responsables (RF-27).</td></tr>
+<tr><td><code>tasks</code> → <code>task_submissions</code> / <code>task_comments</code></td><td>1 : N</td><td>Historial completo, nunca solo la última entrega (RF-34, RN-09).</td></tr>
+<tr><td><code>tasks</code> → <code>notifications</code> / <code>notification_dispatches</code></td><td>1 : N</td><td><code>task_id</code> nulo para notificaciones no ligadas a una tarea.</td></tr>
+<tr><td><code>lesson_modules</code> → <code>lessons</code> → <code>lesson_resources</code></td><td>1 : N : N</td><td>Cascada en ambos niveles (RN-36); la interfaz advierte el conteo exacto antes de borrar.</td></tr>
+</table>
+
+<h2>7.5 Notas de normalización</h2>
+<ul>
+<li><strong>1FN.</strong> Ninguna columna guarda listas, con una excepción deliberada: <code>notification_settings.reminder_days_before</code> es un <code>int[]</code>. Se justifica porque es una fila única de configuración, el arreglo nunca se consulta ni se une con otras tablas, y una tabla aparte para tres enteros sería ceremonia sin beneficio. Queda documentado como excepción consciente.</li>
+<li><strong>2FN.</strong> Las tablas puente (<code>task_assignees</code>, <code>project_role_permissions</code>) contienen únicamente atributos que dependen de la clave compuesta completa: <code>assigned_by</code> y <code>assigned_at</code> dependen del par tarea-usuario, no de uno solo.</li>
+<li><strong>3FN.</strong> No se guardan datos derivados. En particular <strong>no</strong> existen <code>tasks.assignee_count</code>, <code>projects.member_count</code> ni <code>tasks.is_overdue</code>. Lo vencido se calcula comparando <code>due_date</code> con la fecha actual en <code>America/Bogota</code>; el conteo de miembros se calcula al consultar.</li>
+<li><strong>Redundancia controlada:</strong> ninguna en esta versión. Con 50 usuarios y 1.000 tareas, ninguna consulta justifica desnormalizar.</li>
+</ul>
+
+<h2>7.6 Datos iniciales</h2>
+<ol>
+<li>Los catorce registros de <code>permissions</code>.</li>
+<li>La fila única de <code>notification_settings</code> con sus valores por defecto.</li>
+<li>El primer usuario <code>ADMIN</code>, creado con <code>python -m app.cli create_admin</code>, <strong>nunca</strong> por un endpoint expuesto.</li>
+</ol>
+<p>Los roles de proyecto predeterminados no son datos iniciales globales: se generan por proyecto, dentro de la misma transacción que lo crea.</p>
+
+<h1>8. Contrato de la API</h1>
+<p>Base: <code>https://api.kairospartners.uk/api/v1</code>. Autenticación con <code>Authorization: Bearer &lt;access_token&gt;</code> salvo donde se indique. Listas paginadas con <code>?page=1&amp;size=20</code>, devolviendo <code>{ "items": [...], "total": n, "page": p, "size": s }</code>. Los identificadores son UUID; las fechas de vencimiento son <code>YYYY-MM-DD</code> y el resto de marcas de tiempo son ISO 8601 en UTC. Rutas en plural y minúscula; esquemas Pydantic con sufijo por uso (<code>TaskCreate</code>, <code>TaskUpdate</code>, <code>TaskRead</code>).</p>
+
+<h2>8.1 Autenticación</h2>
+<table>
+<tr><th style="width:10%">Método</th><th style="width:38%">Ruta</th><th style="width:14%">Acceso</th><th>Descripción</th></tr>
+<tr><td>POST</td><td><code>/auth/login</code></td><td>Pública</td><td>Ingreso con correo y contraseña. Devuelve tokens y el perfil.</td></tr>
+<tr><td>POST</td><td><code>/auth/refresh</code></td><td>Pública</td><td>Renueva tokens con rotación (RN-43).</td></tr>
+<tr><td>POST</td><td><code>/auth/logout</code></td><td>Requerida</td><td>Revoca el token de refresco.</td></tr>
+<tr><td>GET / PATCH</td><td><code>/auth/me</code></td><td>Requerida</td><td>Perfil del usuario en sesión; PATCH edita el nombre propio.</td></tr>
+<tr><td>POST</td><td><code>/auth/change-password</code></td><td>Requerida</td><td>Cambia la contraseña indicando la actual.</td></tr>
+<tr><td>GET</td><td><code>/auth/invitations/{token}</code></td><td>Pública</td><td>Valida el token y devuelve el correo asociado.</td></tr>
+<tr><td>POST</td><td><code>/auth/invitations/{token}/accept</code></td><td>Pública</td><td>Crea la cuenta. Errores: <code>404</code>, <code>409 INVITATION_EXPIRED</code>, <code>409 INVITATION_ALREADY_USED</code>.</td></tr>
+<tr><td>POST</td><td><code>/auth/password-reset/request</code></td><td>Pública</td><td>Devuelve siempre <code>202</code> con el mismo cuerpo, exista o no la cuenta (RN-41).</td></tr>
+<tr><td>POST</td><td><code>/auth/password-reset/confirm</code></td><td>Pública</td><td>Define la nueva contraseña y revoca todas las sesiones (RN-42).</td></tr>
+</table>
+<p class="small"><strong>POST <code>/auth/login</code></strong> responde <code>401 UNAUTHENTICATED</code> con credenciales incorrectas <em>o</em> cuenta desactivada, y <strong>el mensaje es idéntico en ambos casos</strong> para no revelar qué correos existen.</p>
+
+<h2>8.2 Usuarios e invitaciones</h2>
+<p>Todo este grupo exige rol global <code>ADMIN</code>, salvo <code>GET /users</code>, que cualquier autenticado puede consultar en versión reducida (id, nombre y correo) para los selectores de asignación.</p>
+<table>
+<tr><th style="width:10%">Método</th><th style="width:34%">Ruta</th><th>Descripción</th></tr>
+<tr><td>GET</td><td><code>/users</code></td><td>Lista con <code>?search=&amp;status=&amp;global_role=</code>.</td></tr>
+<tr><td>GET</td><td><code>/users/{id}</code></td><td>Detalle.</td></tr>
+<tr><td>PATCH</td><td><code>/users/{id}/role</code></td><td>Cambia el rol global. <code>409 LAST_ADMIN</code> si dejaría el sistema sin administradores.</td></tr>
+<tr><td>PATCH</td><td><code>/users/{id}/status</code></td><td>Activa o desactiva. Misma protección <code>LAST_ADMIN</code>.</td></tr>
+<tr><td>GET</td><td><code>/invitations</code></td><td>Lista con <code>?status=</code>.</td></tr>
+<tr><td>POST</td><td><code>/invitations</code></td><td>Crea y envía. <code>409 EMAIL_ALREADY_REGISTERED</code> si el correo ya tiene cuenta.</td></tr>
+<tr><td>POST</td><td><code>/invitations/{id}/resend</code></td><td>Reenvía, invalidando el token anterior.</td></tr>
+<tr><td>DELETE</td><td><code>/invitations/{id}</code></td><td>Revoca una invitación pendiente.</td></tr>
+</table>
+<pre>// POST /invitations → 201
+{
+  "id": "...",
+  "email": "nuevo@ejemplo.com",
+  "global_role": "MEMBER",
+  "status": "PENDING",
+  "expires_at": "2026-09-12T14:00:00Z",
+  "invite_url": "https://app.kairospartners.uk/invitacion/a1b2c3..."
+}</pre>
+<p class="small"><code>invite_url</code> se devuelve <strong>una sola vez</strong>, para que el administrador pueda copiarla y enviarla por otro canal. Después no se puede recuperar: solo se guarda el hash del token.</p>
+
+<h2>8.3 Proyectos, miembros y roles</h2>
+<table>
+<tr><th style="width:10%">Método</th><th style="width:44%">Ruta</th><th>Requisito</th></tr>
+<tr><td>GET</td><td><code>/projects</code></td><td>Autenticado. Devuelve los proyectos del usuario; un <code>ADMIN</code> los ve todos. Filtro <code>?status=</code>.</td></tr>
+<tr><td>POST</td><td><code>/projects</code></td><td>Rol global <code>ADMIN</code></td></tr>
+<tr><td>GET</td><td><code>/projects/{id}</code></td><td><code>task.view</code></td></tr>
+<tr><td>PATCH</td><td><code>/projects/{id}</code></td><td><code>project.edit</code></td></tr>
+<tr><td>POST</td><td><code>/projects/{id}/archive</code> · <code>/unarchive</code></td><td><code>project.archive</code></td></tr>
+<tr><td>GET</td><td><code>/projects/{id}/members</code></td><td><code>task.view</code></td></tr>
+<tr><td>POST</td><td><code>/projects/{id}/members</code></td><td><code>member.add</code></td></tr>
+<tr><td>DELETE</td><td><code>/projects/{id}/members/{user_id}</code></td><td><code>member.remove</code>. <code>409 LAST_PROJECT_ADMIN</code> si dejaría el proyecto sin nadie con <code>project.archive</code>.</td></tr>
+<tr><td>PATCH</td><td><code>/projects/{id}/members/{user_id}/role</code></td><td><code>role.assign</code>. Misma protección <code>LAST_PROJECT_ADMIN</code>.</td></tr>
+<tr><td>GET</td><td><code>/projects/{id}/roles</code></td><td><code>task.view</code></td></tr>
+<tr><td>POST · PATCH · DELETE</td><td><code>/projects/{id}/roles[/{role_id}]</code></td><td><code>role.manage</code>. Errores: <code>409 ROLE_NAME_TAKEN</code>, <code>422</code> si falta <code>task.view</code>, <code>409 ROLE_HAS_MEMBERS</code>, <code>409 SYSTEM_ROLE_IMMUTABLE</code>.</td></tr>
+<tr><td>GET</td><td><code>/permissions</code></td><td>Autenticado. Catálogo completo para armar la interfaz de roles.</td></tr>
+</table>
+<p><strong>POST <code>/projects</code></strong> ejecuta en una sola transacción: crea el proyecto, genera los tres roles predeterminados con sus permisos y agrega al líder designado.</p>
+<pre>// POST /projects
+{ "name": "Detección de anomalías", "description": "...",
+  "start_date": "2026-09-10", "leader_user_id": "uuid-de-carlos" }
+
+// GET /projects/{id} → incluye los permisos del usuario, para que el frontend sepa qué mostrar
+{ "id": "...", "name": "Detección de anomalías", "status": "ACTIVE", "member_count": 5,
+  "task_counts": { "BACKLOG": 3, "TODO": 4, "IN_PROGRESS": 2, "IN_REVIEW": 1, "DONE": 12 },
+  "my_permissions": ["task.view", "task.comment", "task.create", "..."] }</pre>
+
+<h2>8.4 Tareas, entregas y comentarios</h2>
+<table>
+<tr><th style="width:10%">Método</th><th style="width:40%">Ruta</th><th>Requisito</th></tr>
+<tr><td>GET</td><td><code>/projects/{pid}/tasks</code></td><td><code>task.view</code>. Filtros <code>?status=&amp;assignee_id=&amp;periodicity=&amp;overdue=true</code>.</td></tr>
+<tr><td>POST</td><td><code>/projects/{pid}/tasks</code></td><td><code>task.create</code></td></tr>
+<tr><td>GET</td><td><code>/tasks/{id}</code></td><td><code>task.view</code> del proyecto</td></tr>
+<tr><td>PATCH · DELETE</td><td><code>/tasks/{id}</code></td><td><code>task.edit_any</code> · <code>task.delete</code> (borrado lógico)</td></tr>
+<tr><td>POST · DELETE</td><td><code>/tasks/{id}/assignees[/{user_id}]</code></td><td><code>task.assign</code></td></tr>
+<tr><td>POST</td><td><code>/tasks/{id}/status</code></td><td>Según la máquina de estados (5.3). <code>409 INVALID_TRANSITION</code>, <code>409 SUBMISSION_REQUIRED</code>.</td></tr>
+<tr><td>GET</td><td><code>/me/tasks</code></td><td>Autenticado. Tareas propias entre todos los proyectos, con <code>?due_before=&amp;status=</code> y el nombre del proyecto en cada fila.</td></tr>
+<tr><td>GET · POST</td><td><code>/tasks/{id}/submissions</code></td><td><code>task.view</code> · ser responsable de la tarea</td></tr>
+<tr><td>PATCH</td><td><code>/submissions/{id}</code></td><td>Autor, solo mientras esté <code>PENDING</code> (RN-12)</td></tr>
+<tr><td>POST</td><td><code>/submissions/{id}/review</code></td><td><code>task.review</code> y <strong>no</strong> ser responsable (RN-07)</td></tr>
+<tr><td>GET · POST</td><td><code>/tasks/{id}/comments</code></td><td><code>task.view</code> · <code>task.comment</code></td></tr>
+<tr><td>PATCH · DELETE</td><td><code>/comments/{id}</code></td><td>Autor; además <code>task.delete</code> para moderar comentarios ajenos</td></tr>
+</table>
+<pre>// POST /tasks/{id}/submissions   → mueve la tarea a IN_REVIEW en la misma transacción
+{ "description": "Entrené el modelo base con los datos de agosto. Exactitud del 0.87 en validación.",
+  "commit_url": "https://github.com/semillero-ml/anomalias/commit/a1b2c3d" }
+// Errores: 409 SUBMISSION_ALREADY_PENDING · 422 si commit_url no es de GitHub · 403 NOT_ASSIGNEE
+
+// POST /submissions/{id}/review  → aprobar lleva a DONE; devolver lleva a IN_PROGRESS
+{ "approved": false, "comment": "Falta la evaluación en el conjunto de prueba." }
+// Errores: 422 REVIEW_COMMENT_REQUIRED · 403 CANNOT_REVIEW_OWN_SUBMISSION</pre>
+
+<h2>8.5 Notificaciones y lecciones</h2>
+<table>
+<tr><th style="width:10%">Método</th><th style="width:40%">Ruta</th><th>Requisito</th></tr>
+<tr><td>GET</td><td><code>/notifications</code> · <code>/notifications/unread-count</code></td><td>Autenticado. <code>?unread_only=true</code>.</td></tr>
+<tr><td>POST</td><td><code>/notifications/{id}/read</code> · <code>/notifications/read-all</code></td><td>Autenticado, sobre las propias.</td></tr>
+<tr><td>GET · PUT</td><td><code>/admin/notification-settings</code></td><td>Rol global <code>ADMIN</code>. Máximo 5 valores en <code>reminder_days_before</code>, cada uno entre 0 y 30 y sin repetidos; <code>send_hour</code> entre 0 y 23.</td></tr>
+<tr><td>GET</td><td><code>/lesson-modules</code></td><td>Autenticado. Solo publicados, salvo para <code>ADMIN</code> y <code>LESSON_EDITOR</code>. Devuelve el árbol completo en una sola petición.</td></tr>
+<tr><td>POST · PATCH · DELETE</td><td><code>/lesson-modules[/{id}]</code> · <code>/publish</code> · <code>/reorder</code></td><td><code>ADMIN</code> o <code>LESSON_EDITOR</code>. El DELETE exige <code>?confirm=true</code> y devuelve <code>409</code> sin él, indicando cuántas lecciones se perderían (RN-36).</td></tr>
+<tr><td>GET · POST · PATCH · DELETE</td><td><code>/lessons[/{id}]</code> · <code>/lessons/{id}/resources</code> · <code>/resources/{id}</code></td><td>Lectura para cualquier autenticado si está publicada; escritura solo <code>ADMIN</code> o <code>LESSON_EDITOR</code>.</td></tr>
+</table>
+<p class="small"><strong>Contador de no leídas:</strong> el frontend lo consulta cada 60 segundos mientras la pestaña esté visible. No se usan WebSockets ni eventos del servidor: mantener una conexión abierta contra un servicio que se suspende no tiene sentido.</p>
+
+<h2>8.6 Endpoints internos y de sistema</h2>
+<table>
+<tr><th style="width:10%">Método</th><th style="width:34%">Ruta</th><th>Autenticación</th></tr>
+<tr><td>GET</td><td><code>/health</code></td><td>Pública. Ejecuta <code>SELECT 1</code>; sirve de sonda y de mecanismo para mantener despiertos el servicio y la base de datos.</td></tr>
+<tr><td>POST</td><td><code>/internal/jobs/reminders</code></td><td>Cabecera <code>X-Job-Token</code> comparada en tiempo constante. No aparece en el esquema público de OpenAPI.</td></tr>
+</table>
+<pre>// POST /internal/jobs/reminders → resumen de la ejecución
+{ "executed_at": "2026-09-05T12:00:03Z", "due_soon_sent": 7,
+  "overdue_sent": 2, "skipped_duplicates": 3, "failures": 0 }</pre>
+
+<h2>8.7 Códigos de error</h2>
+<table>
+<tr><th style="width:34%">Código</th><th style="width:10%">HTTP</th><th>Cuándo</th></tr>
+<tr><td><code>UNAUTHENTICATED</code></td><td>401</td><td>Token ausente, vencido o inválido.</td></tr>
+<tr><td><code>FORBIDDEN</code></td><td>403</td><td>Autenticado sin el permiso necesario.</td></tr>
+<tr><td><code>NOT_FOUND</code></td><td>404</td><td>Recurso inexistente o sin visibilidad para el usuario (incluye el proyecto ajeno).</td></tr>
+<tr><td><code>VALIDATION_ERROR</code></td><td>422</td><td>Cuerpo inválido.</td></tr>
+<tr><td><code>INVALID_TRANSITION</code></td><td>409</td><td>Cambio de estado no permitido.</td></tr>
+<tr><td><code>SUBMISSION_REQUIRED</code></td><td>409</td><td>Falta la entrega para pasar a revisión.</td></tr>
+<tr><td><code>SUBMISSION_ALREADY_PENDING</code></td><td>409</td><td>Ya hay una entrega sin revisar.</td></tr>
+<tr><td><code>CANNOT_REVIEW_OWN_SUBMISSION</code></td><td>403</td><td>El revisor es responsable de la tarea.</td></tr>
+<tr><td><code>PROJECT_ARCHIVED</code></td><td>409</td><td>Escritura sobre un proyecto archivado.</td></tr>
+<tr><td><code>ROLE_NAME_TAKEN</code></td><td>409</td><td>Nombre de rol repetido en el proyecto.</td></tr>
+<tr><td><code>ROLE_HAS_MEMBERS</code></td><td>409</td><td>Borrado de un rol con miembros asignados.</td></tr>
+<tr><td><code>SYSTEM_ROLE_IMMUTABLE</code></td><td>409</td><td>Edición de un rol predeterminado.</td></tr>
+<tr><td><code>LAST_ADMIN</code></td><td>409</td><td>La operación dejaría el sistema sin administradores activos.</td></tr>
+<tr><td><code>LAST_PROJECT_ADMIN</code></td><td>409</td><td>La operación dejaría el proyecto sin nadie con <code>project.archive</code>.</td></tr>
+<tr><td><code>EMAIL_ALREADY_REGISTERED</code></td><td>409</td><td>Invitación a un correo que ya tiene cuenta.</td></tr>
+<tr><td><code>INVITATION_EXPIRED</code></td><td>409</td><td>Token de invitación vencido.</td></tr>
+<tr><td><code>INVITATION_ALREADY_USED</code></td><td>409</td><td>Token de invitación ya utilizado.</td></tr>
+</table>
+
+<h2>8.8 Escenarios de error y borde</h2>
+<table>
+<tr><th class="id">ID</th><th style="width:34%">Situación</th><th>Comportamiento esperado</th></tr>
+<tr><td class="id">EB-01</td><td>Token de invitación vencido o ya usado</td><td>Mensaje claro y sugerencia de pedir un enlace nuevo. Nunca se revela si el correo ya tiene cuenta.</td></tr>
+<tr><td class="id">EB-02</td><td>Invitar un correo que ya tiene cuenta</td><td><code>409 EMAIL_ALREADY_REGISTERED</code>.</td></tr>
+<tr><td class="id">EB-03</td><td>Invitación pendiente duplicada</td><td>Se reemplaza la anterior y el token viejo queda invalidado.</td></tr>
+<tr><td class="id">EB-04</td><td>Usuario retirado con tareas en curso</td><td>Las tareas se conservan sin ese responsable. Si quedan sin ninguno, se marcan visualmente como «sin asignar».</td></tr>
+<tr><td class="id">EB-05</td><td>Eliminar un rol con miembros</td><td><code>409</code> indicando cuántos miembros lo tienen.</td></tr>
+<tr><td class="id">EB-06</td><td>Modificar algo en un proyecto archivado</td><td><code>409 PROJECT_ARCHIVED</code>.</td></tr>
+<tr><td class="id">EB-07</td><td>Tarea sin responsables que se vence</td><td>No hay a quién notificar como responsable; se avisa a los miembros con <code>task.review</code>.</td></tr>
+<tr><td class="id">EB-08</td><td>Fallo del proveedor de correo</td><td>Se registra, se reintenta hasta 3 veces con espera creciente y la notificación en la aplicación se entrega igual. El fallo nunca bloquea la operación que lo originó.</td></tr>
+<tr><td class="id">EB-09</td><td>El proceso programado no corre un día</td><td>Al día siguiente se envía lo del día en curso. No se reconstruyen los atrasados.</td></tr>
+<tr><td class="id">EB-10</td><td>Fecha límite en el pasado al crear</td><td>Se permite, con una advertencia visible: puede ser una tarea que se registra tarde.</td></tr>
+<tr><td class="id">EB-11</td><td>Último administrador se degrada o desactiva</td><td><code>409 LAST_ADMIN</code>, operación rechazada.</td></tr>
+<tr><td class="id">EB-12</td><td>URL de entrega con formato inválido</td><td>Error de validación indicando el formato esperado.</td></tr>
+<tr><td class="id">EB-13</td><td>Backend suspendido (arranque en frío)</td><td>Según RNF-02. Nunca un error genérico ni una pantalla en blanco.</td></tr>
+<tr><td class="id">EB-14</td><td>Token de acceso vencido durante el uso</td><td>El frontend renueva de forma transparente. Si el refresco falla, redirige al ingreso conservando la ruta destino.</td></tr>
+</table>
+
+<h1>9. Stack tecnológico y despliegue</h1>
+
+<h2>9.1 Stack</h2>
+<table>
+<tr><th style="width:22%">Capa</th><th>Decisión</th></tr>
+<tr><td>Frontend</td><td>Angular con componentes standalone y signals, Tailwind CSS, Impeccable como capa de diseño. Pruebas con Vitest.</td></tr>
+<tr><td>Backend</td><td>FastAPI sobre Python 3.12, SQLAlchemy 2.x asíncrono, Alembic, Pydantic v2, asyncpg, Argon2 (<code>argon2-cffi</code>), pytest, <code>ruff</code> para formato y análisis estático.</td></tr>
+<tr><td>Base de datos</td><td>PostgreSQL gestionado en Supabase. <strong>Sin Supabase Auth, sin Storage y sin RLS</strong>: solo la base de datos.</td></tr>
+<tr><td>Autenticación</td><td>Propia, con JWT emitidos por FastAPI.</td></tr>
+<tr><td>Correo</td><td>Resend, con remitente en <code>send.kairospartners.uk</code>.</td></tr>
+<tr><td>Proceso programado</td><td>GitHub Actions con cron, invocando un endpoint interno protegido.</td></tr>
+</table>
+
+<h2>9.2 Topología de despliegue</h2>
+<table>
+<tr><th style="width:24%">Componente</th><th style="width:26%">Servicio</th><th>Dominio</th></tr>
+<tr><td>Frontend</td><td>Cloudflare Pages (o Vercel)</td><td><code>app.kairospartners.uk</code></td></tr>
+<tr><td>Backend</td><td>Render, plan gratuito</td><td><code>api.kairospartners.uk</code></td></tr>
+<tr><td>Base de datos</td><td>Supabase, plan gratuito</td><td>interno</td></tr>
+<tr><td>Correo</td><td>Resend</td><td>remitente en <code>send.kairospartners.uk</code></td></tr>
+<tr><td>Programación</td><td>GitHub Actions</td><td>—</td></tr>
+</table>
+<p><strong>Registros DNS necesarios:</strong> <code>app</code> (CNAME a Cloudflare Pages), <code>api</code> (CNAME a Render), <code>send</code> (los que indique Resend, para SPF y DKIM) y <code>_dmarc</code> (TXT con <code>v=DMARC1; p=none; rua=mailto:…</code>, que <strong>no</strong> crea Resend y hay que poner a mano).</p>
+
+<h2>9.3 Variables de entorno del backend</h2>
+<p>Ningún secreto vive en el código: todo va por variables de entorno, con su entrada correspondiente en <code>.env.example</code>.</p>
+<pre>DATABASE_URL=postgresql+asyncpg://...
+JWT_SECRET=...
+JWT_ACCESS_TTL_MINUTES=15
+JWT_REFRESH_TTL_DAYS=7
+RESEND_API_KEY=...
+EMAIL_FROM=Semillero ML &lt;notificaciones@send.kairospartners.uk&gt;
+FRONTEND_URL=https://app.kairospartners.uk
+JOB_TOKEN=...
+CORS_ORIGINS=https://app.kairospartners.uk
+ENVIRONMENT=production</pre>
+
+<h2>9.4 Migraciones y conexión a Supabase</h2>
+<p>Las migraciones son de Alembic, una por cambio, con mensaje descriptivo, y se ejecutan con <code>alembic upgrade head</code> en el comando de arranque del despliegue de Render. Con un equipo de cuatro personas y despliegues poco frecuentes es aceptable; deja de serlo si en algún momento corren varias instancias.</p>
+<div class="note"><strong>Conexión a Supabase.</strong> Hay que usar el conector agrupado en el puerto <strong>6543</strong> (modo de transacción), no la conexión directa del 5432: el plan gratuito limita las conexiones directas y el agrupador evita agotarlas. Con <code>asyncpg</code> en modo de transacción es obligatorio desactivar la caché de sentencias preparadas: <code>poolclass=NullPool</code> y <code>connect_args={"statement_cache_size": 0}</code>.</div>
+
+<h1>10. Estrategia de pruebas</h1>
+<table>
+<tr><th style="width:18%">Nivel</th><th style="width:44%">Alcance</th><th>Herramienta</th></tr>
+<tr><td>Unitarias</td><td>Servicios con repositorios simulados. Prioridad: máquina de estados de tareas, resolución de permisos y algoritmo del proceso programado.</td><td>pytest</td></tr>
+<tr><td>Integración</td><td>Endpoints contra PostgreSQL real en contenedor. Se derivan de los escenarios Gherkin de <code>user-stories.md</code> y <strong>usan los mismos nombres</strong>, para poder rastrearlas.</td><td>pytest + httpx</td></tr>
+<tr><td>Frontend</td><td>Servicios y guardas de ruta.</td><td>Vitest</td></tr>
+<tr><td>Diseño</td><td>Analizador de anti-patrones sobre lo que se haya tocado.</td><td><code>npx impeccable detect</code></td></tr>
+</table>
+<h3>Cobertura obligatoria, sin excepciones</h3>
+<ol>
+<li><strong>Transiciones de estado de tareas:</strong> cada transición válida e inválida de la tabla 5.3.</li>
+<li><strong>Resolución de permisos:</strong> <code>require_project_permission</code> con rol de sistema, rol a la medida, no miembro y proyecto archivado.</li>
+<li><strong>Idempotencia del proceso programado:</strong> ejecutarlo dos veces no debe generar envíos duplicados.</li>
+</ol>
+<p>Son los tres puntos donde un error pasa desapercibido y hace daño real.</p>
+
+<h1>11. Plan de implementación</h1>
+<p>Ocho fases ordenadas por dependencia. Cada una deja el sistema funcionando de punta a punta, para poder probarlo de verdad antes de seguir.</p>
+<table>
+<tr><th style="width:12%">Fase</th><th style="width:44%">Contenido</th><th>Criterio de cierre</th></tr>
+<tr><td><strong>0 — Cimientos</strong></td><td>Estructura de carpetas; <code>core/config</code>, <code>core/database</code>, <code>core/exceptions</code> con sus manejadores; conexión a Supabase por el agrupador; Alembic; <code>/health</code>; migración inicial con los 14 permisos y la fila de <code>notification_settings</code>; <code>create_admin</code>. Angular con Tailwind, Impeccable instalado e inicializado, esqueleto de rutas e interceptor de arranque en frío. Supabase, Render, Cloudflare Pages, dominio y verificación en Resend.</td><td>El frontend desplegado consulta <code>/health</code> del backend desplegado y muestra el resultado.</td></tr>
+<tr><td><strong>1 — Acceso</strong><br><span class="small">HU-01 a HU-03 · RF-01 a RF-12</span></td><td>Modelos de usuarios, invitaciones y tokens; Argon2, JWT y rotación del refresco; endpoints de <code>/auth</code>, <code>/users</code> e <code>/invitations</code>; Resend con plantillas; pantallas de ingreso, invitación, recuperación y perfil; administración de usuarios; guardas de ruta y renovación transparente.</td><td>Un administrador invita a alguien, esa persona recibe el correo, crea su cuenta y entra. Recuperar contraseña funciona.</td></tr>
+<tr><td><strong>2 — Proyectos, roles y permisos</strong><br><span class="small">HU-04 a HU-06 · RF-13 a RF-24</span></td><td>Modelos de proyectos, roles, permisos de rol y miembros; creación de proyecto con los tres roles predeterminados en una transacción; <code>require_project_permission</code> con la comprobación de archivado incluida; gestión de miembros y roles a la medida; pantallas de lista, detalle, miembros y editor de roles.</td><td>Un administrador crea un proyecto, el líder agrega miembros, crea un rol a la medida y se comprueba que un usuario con ese rol solo puede hacer lo que le corresponde. <strong>Es la fase más delicada y no se paraleliza.</strong></td></tr>
+<tr><td><strong>3 — Tareas</strong><br><span class="small">HU-07, HU-08 · RF-25 a RF-32, RF-36, RF-37</span></td><td>Modelos de tareas y responsables; máquina de estados con validación de transiciones; endpoints de tareas y asignación; tablero Kanban con arrastrar y soltar en escritorio y lista con selector en móvil; vista «Mis tareas»; filtros.</td><td>El ciclo completo de una tarea funciona salvo la revisión.</td></tr>
+<tr><td><strong>4 — Entregas y revisión</strong><br><span class="small">HU-09 · RF-31, RF-33 a RF-35</span></td><td>Modelos de entregas y comentarios; registro de entrega con validación de la URL de GitHub; aprobación y devolución con la prohibición de autoaprobarse; historial de entregas e hilo de comentarios.</td><td>Todos los escenarios de HU-09 pasan, incluidos los de error.</td></tr>
+<tr><td><strong>5 — Notificaciones</strong><br><span class="small">HU-10, HU-11 · RF-38 a RF-45</span></td><td>Modelos de notificaciones y despachos; avisos inmediatos por asignación y por revisión; <code>jobs/reminders.py</code> con la idempotencia; endpoint interno con <code>X-Job-Token</code>; dos flujos de GitHub Actions; campana con contador; pantalla de configuración global.</td><td>El proceso se ejecuta dos veces seguidas y no duplica ningún correo. <strong>Es donde más errores sutiles aparecen.</strong></td></tr>
+<tr><td><strong>6 — Lecciones</strong><br><span class="small">HU-12 · RF-46 a RF-52</span></td><td>Modelos de módulos, lecciones y recursos; endpoints con la restricción de rol global; catálogo público y editor con reordenamiento.</td><td>El editor publica un módulo con lecciones y recursos y los miembros lo ven. Módulo independiente: se puede desarrollar en paralelo a las fases 3 a 5.</td></tr>
+<tr><td><strong>7 — Archivado y pulido</strong><br><span class="small">HU-13, HU-14 · RF-18, RNF-01, RNF-02, RNF-09</span></td><td>Archivar y desarchivar con la restricción de solo lectura verificada endpoint por endpoint; repaso de adaptación a dispositivos, estados vacíos, errores y accesibilidad con Impeccable; verificación del arranque en frío.</td><td>La aplicación es usable en un teléfono de 360 px y el arranque en frío no produce ni una pantalla en blanco.</td></tr>
+</table>
+<h3>Reparto sugerido para cuatro personas</h3>
+<table>
+<tr><th style="width:16%">Fase</th><th>Reparto</th></tr>
+<tr><td>0</td><td>Todos; es corta.</td></tr>
+<tr><td>1</td><td>Dos en backend, dos en frontend.</td></tr>
+<tr><td>2</td><td>Dos en backend (roles y permisos), dos en frontend. Sin paralelizar el diseño del sistema de permisos.</td></tr>
+<tr><td>3 y 6</td><td>Dos personas en tareas, dos en lecciones, en paralelo.</td></tr>
+<tr><td>4</td><td>Dos personas.</td></tr>
+<tr><td>5</td><td>Dos personas, una dedicada al trabajo programado.</td></tr>
+<tr><td>7</td><td>Todos.</td></tr>
+</table>
+
+<h1>12. Fuera de alcance</h1>
+<p>Explícitamente <strong>no</strong> se construye en la versión 1. Implementar cualquiera de estos puntos sin una decisión expresa es salirse del alcance acordado:</p>
+<ul>
+<li>Tareas recurrentes generadas automáticamente: la periodicidad es solo una etiqueta.</li>
+<li>Carga y almacenamiento de archivos.</li>
+<li>Bitácora de auditoría completa.</li>
+<li>Progreso o certificaciones de lecciones.</li>
+<li>Sprints, estimaciones, puntos de historia y gráficos de avance.</li>
+<li>Integración bidireccional con GitHub (webhooks, estado de commits).</li>
+<li>Notificaciones push o por WhatsApp.</li>
+<li>Multi-semillero o multi-institución.</li>
+<li>Modo sin conexión.</li>
+<li>Renderizado de notebooks o PDF dentro de la aplicación.</li>
+<li>Verificación de correo en el registro: el enlace de invitación ya prueba control de la cuenta.</li>
+</ul>
+
+<h1>13. Riesgos y mitigaciones</h1>
+<table>
+<tr><th style="width:44%">Riesgo</th><th>Mitigación</th></tr>
+<tr><td>El arranque en frío de Render arruina la experiencia</td><td>Ping programado en horario hábil e indicador de carga honesto (RNF-02).</td></tr>
+<tr><td>Supabase pausa el proyecto por inactividad</td><td>El mismo ping golpea la base de datos (RNF-07).</td></tr>
+<tr><td>El cron de GitHub Actions se retrasa o se salta</td><td>Aceptable para avisos diarios; RN-29 lo contempla y el trabajo es idempotente.</td></tr>
+<tr><td>Los correos caen en la carpeta de no deseados</td><td>Verificar el dominio, publicar DMARC y calentar el envío con volumen bajo.</td></tr>
+<tr><td>El sistema de permisos se complica de más</td><td>El catálogo es cerrado: catorce permisos, ni uno más sin decisión explícita.</td></tr>
+<tr><td>Se acaba el semestre sin terminar</td><td>Las fases 0 a 4 ya constituyen un producto útil; las fases 5 a 7 son incrementos postergables.</td></tr>
+</table>
+
+<h1>14. Decisiones de arquitectura registradas</h1>
+<table>
+<tr><th style="width:28%">Decisión</th><th style="width:26%">Alternativa descartada</th><th>Motivo</th></tr>
+<tr><td>Autenticación propia con JWT</td><td>Supabase Auth</td><td>Control total; el equipo quiere aprender el mecanismo; evita atar el modelo de usuarios a un proveedor.</td></tr>
+<tr><td>Supabase solo como PostgreSQL</td><td>Supabase con RLS y cliente directo</td><td>Con toda la autorización en FastAPI, RLS duplicaría las reglas en dos lugares y sería fuente de contradicciones.</td></tr>
+<tr><td>Permisos consultados por petición</td><td>Permisos dentro del JWT</td><td>Los cambios de rol deben surtir efecto de inmediato (RN-22).</td></tr>
+<tr><td>GitHub Actions como programador</td><td>Render Cron, APScheduler en el proceso</td><td>Render Cron es de pago; APScheduler no funciona en un servicio que se suspende.</td></tr>
+<tr><td>Idempotencia por restricción de unicidad</td><td>Comprobación previa en Python</td><td>Cualquier comprobación previa deja una ventana de carrera; la base de datos no.</td></tr>
+<tr><td>Periodicidad como etiqueta</td><td>Recurrencia real con generación automática</td><td>El equipo la pidió así; la recurrencia trae plantillas, instancias y sincronización, y no resuelve un problema actual.</td></tr>
+<tr><td>Un rol por usuario por proyecto</td><td>Varios roles acumulables</td><td>La suma de permisos de varios roles vuelve imposible saber por qué alguien puede algo.</td></tr>
+<tr><td>404 en lugar de 403 para no miembros</td><td>403 explícito</td><td>Un 403 confirmaría la existencia del proyecto.</td></tr>
+<tr><td>Sin bitácora de auditoría</td><td>Bitácora completa</td><td>Descartada explícitamente; <code>created_by</code> y <code>updated_at</code> bastan (RNF-11).</td></tr>
+<tr><td>Angular con signals, sin NgRx</td><td>NgRx</td><td>Desproporcionado para esta escala.</td></tr>
+<tr><td>Token de refresco en <code>localStorage</code></td><td>Cookie <code>HttpOnly</code> con CSRF</td><td>Herramienta interna sin datos sensibles; se registra como decisión consciente y no como descuido.</td></tr>
+</table>
+
+<h1>15. Matriz de trazabilidad</h1>
+<h2>15.1 Historias de usuario</h2>
+<table>
+<tr><th class="id">ID</th><th style="width:34%">Historia</th><th>Requisitos que cubre</th></tr>
+<tr><td class="id">HU-01</td><td>Invitar a un nuevo integrante</td><td>RF-01, RF-02, RF-04</td></tr>
+<tr><td class="id">HU-02</td><td>Aceptar la invitación</td><td>RF-03, EB-01</td></tr>
+<tr><td class="id">HU-03</td><td>Recuperar la contraseña</td><td>RF-07, RN-41, RN-42</td></tr>
+<tr><td class="id">HU-04</td><td>Crear un proyecto</td><td>RF-13, RF-14, RF-20, RN-13</td></tr>
+<tr><td class="id">HU-05</td><td>Crear un rol a la medida</td><td>RF-21 a RF-24, RN-05, RN-19, RN-22</td></tr>
+<tr><td class="id">HU-06</td><td>Aislamiento entre proyectos</td><td>RN-04</td></tr>
+<tr><td class="id">HU-07</td><td>Crear y asignar una tarea</td><td>RF-25, RF-26, RF-27, RF-39</td></tr>
+<tr><td class="id">HU-08</td><td>Trabajar y entregar</td><td>RF-28, RF-30, RF-31, RF-32, RN-10</td></tr>
+<tr><td class="id">HU-09</td><td>Revisar una entrega</td><td>RF-33, RF-34, RF-42, RN-07, RN-09</td></tr>
+<tr><td class="id">HU-10</td><td>Recibir recordatorios de vencimiento</td><td>RF-38, RF-40, RF-41, RF-44, RF-45, RN-27, RN-28</td></tr>
+<tr><td class="id">HU-11</td><td>Configurar los recordatorios</td><td>RF-43, RN-26</td></tr>
+<tr><td class="id">HU-12</td><td>Publicar material de estudio</td><td>RF-46 a RF-52, RN-31, RN-33</td></tr>
+<tr><td class="id">HU-13</td><td>Archivar un proyecto terminado</td><td>RF-18, RN-15, RN-16, EB-06</td></tr>
+<tr><td class="id">HU-14</td><td>Usar la plataforma desde el teléfono</td><td>RNF-01, RNF-02</td></tr>
+</table>
+
+<h2>15.2 Requisito → historia → fase</h2>
+<table>
+<tr><th style="width:24%">Requisitos</th><th style="width:22%">Historia</th><th style="width:14%">Fase</th><th>Verificación principal</th></tr>
+<tr><td>RF-01, RF-02, RF-04</td><td>HU-01</td><td>1</td><td>Integración: invitación creada, correo enviado, <code>invite_url</code> devuelta una sola vez.</td></tr>
+<tr><td>RF-03</td><td>HU-02</td><td>1</td><td>Integración: token de un solo uso, contraseña mínima de 10 caracteres.</td></tr>
+<tr><td>RF-05, RF-06, RF-08</td><td>—</td><td>1</td><td>Integración: rotación del refresco y revocación al cambiar contraseña.</td></tr>
+<tr><td>RF-07</td><td>HU-03</td><td>1</td><td>Integración: respuesta <code>202</code> idéntica exista o no la cuenta.</td></tr>
+<tr><td>RF-09 a RF-12</td><td>—</td><td>1</td><td>Integración: <code>LAST_ADMIN</code> y desactivación sin pérdida de historial.</td></tr>
+<tr><td>RF-13, RF-14, RF-20</td><td>HU-04</td><td>2</td><td>Integración: tres roles del sistema y catorce permisos en el rol Líder, todo en una transacción.</td></tr>
+<tr><td>RF-15 a RF-17, RF-19</td><td>—</td><td>2</td><td>Integración: <code>LAST_PROJECT_ADMIN</code> al retirar o degradar al último líder.</td></tr>
+<tr><td>RF-21 a RF-24</td><td>HU-05</td><td>2</td><td>Integración: <code>ROLE_NAME_TAKEN</code>, <code>SYSTEM_ROLE_IMMUTABLE</code>, <code>ROLE_HAS_MEMBERS</code>, efecto inmediato del cambio de permisos.</td></tr>
+<tr><td>RN-04</td><td>HU-06</td><td>2</td><td>Integración: 403 en el proyecto ajeno donde solo se es colaborador, 404 en el proyecto del que no se es miembro.</td></tr>
+<tr><td>RF-25 a RF-27, RF-36, RF-37</td><td>HU-07</td><td>3</td><td>Unitarias y de integración: filtros del tablero y vista «Mis tareas».</td></tr>
+<tr><td>RF-28 a RF-32</td><td>HU-08</td><td>3</td><td><strong>Cobertura obligatoria:</strong> cada transición válida e inválida de la tabla 5.3.</td></tr>
+<tr><td>RF-33 a RF-35</td><td>HU-09</td><td>4</td><td>Integración: autoaprobación rechazada, devolución sin comentario rechazada, historial completo.</td></tr>
+<tr><td>RF-38 a RF-42, RF-44, RF-45</td><td>HU-10</td><td>5</td><td><strong>Cobertura obligatoria:</strong> ejecutar el proceso dos veces sin duplicar envíos.</td></tr>
+<tr><td>RF-43</td><td>HU-11</td><td>5</td><td>Integración: validación de <code>reminder_days_before</code> y <code>send_hour</code>; solo <code>ADMIN</code>.</td></tr>
+<tr><td>RF-46 a RF-52</td><td>HU-12</td><td>6</td><td>Integración: borrador invisible, módulo en borrador oculta sus lecciones publicadas, borrado con confirmación.</td></tr>
+<tr><td>RF-18</td><td>HU-13</td><td>7</td><td><strong>Cobertura obligatoria:</strong> <code>require_project_permission</code> con proyecto archivado.</td></tr>
+<tr><td>RNF-01, RNF-02, RNF-09</td><td>HU-14</td><td>0 y 7</td><td>Manual y Vitest: 360 px sin arrastrar y soltar, aviso de arranque en frío a los 3 s.</td></tr>
+</table>
+
+<h1>Anexo A. Discrepancias detectadas en la documentación de origen</h1>
+<p>Al consolidar los siete documentos aparecieron tres puntos en los que no coinciden entre sí. Se registran aquí en lugar de resolverse en silencio; cada uno necesita una decisión explícita del equipo antes de escribir el código correspondiente.</p>
+
+<h2>A.1 Ubicación de <code>CLAUDE.md</code></h2>
+<p><strong>Qué pasa.</strong> El propio <code>CLAUDE.md</code>, en su sección «Estructura del repositorio», se ubica en la raíz del proyecto, pero el archivo está en <code>docs/CLAUDE.md</code>.<br>
+<strong>Por qué importa.</strong> Las convenciones que contiene son obligatorias para todo el repositorio y se cargan automáticamente solo desde la raíz.<br>
+<strong>Propuesta.</strong> Mover el archivo a <code>KAIROS/CLAUDE.md</code>, tal como este documento lo refleja en la figura 5.</p>
+
+<h2>A.2 Destinatarios del aviso de tarea vencida</h2>
+<p><strong>Qué pasa.</strong> RF-41 y EB-07 dicen que el aviso de tarea vencida va a los responsables «y al líder del proyecto». RN-25 y el algoritmo de <code>architecture.md</code> dicen que va a los responsables y a <strong>los miembros con <code>task.review</code></strong>.<br>
+<strong>Por qué importa.</strong> No son el mismo conjunto: un rol a la medida como «Revisor» tiene <code>task.review</code> sin ser líder, y un rol podría no tener <code>task.review</code>.<br>
+<strong>Resolución aplicada.</strong> Por la regla de precedencia manda <code>business-rules.md</code>: los destinatarios son los responsables activos más los miembros con <code>task.review</code>. Este documento ya redacta RF-41 y EB-07 en ese sentido; falta actualizar el PRD.</p>
+
+<h2>A.3 Notificaciones sin tipo en el enumerado</h2>
+<p><strong>Qué pasa.</strong> RN-24 afirma que <em>toda</em> notificación se entrega por dos canales, y RN-25 lista entre los eventos la invitación a la plataforma y el restablecimiento de contraseña. Pero <code>notification_kind</code> solo define cinco valores, todos de tarea o entrega, y en ninguno de esos dos casos puede existir un registro dentro de la aplicación: en el primero la cuenta todavía no existe y en el segundo el usuario no ha iniciado sesión.<br>
+<strong>Por qué importa.</strong> Tal como está, el modelo de datos no admite lo que la regla promete.<br>
+<strong>Propuesta.</strong> Declarar explícitamente en RN-24 que los correos transaccionales de acceso (invitación y restablecimiento) son <strong>solo correo</strong> y quedan fuera del registro de notificaciones, dejando el enumerado como está. Es más simple que agregar dos tipos que nunca se mostrarían en la campana.</p>
+
+
+</body>
+</html>
