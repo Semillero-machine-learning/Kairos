@@ -6,13 +6,15 @@ and dropped at the end; each test runs inside a transaction-scoped session that
 is rolled back afterwards, so tests never see each other's writes.
 """
 
+import asyncio
 import os
 from collections.abc import AsyncGenerator
 
 import pytest_asyncio
+from alembic import command
+from alembic.config import Config
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -22,25 +24,27 @@ TEST_DATABASE_URL = os.environ.get(
 )
 
 
+def _run_migrations(url: str) -> None:
+    """Apply every Alembic migration up to head. Runs in a worker thread so the
+    async env.py can own its own event loop (pytest-asyncio already holds one)."""
+    cfg = Config("alembic.ini")
+    cfg.set_main_option("sqlalchemy.url", url)
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+
+
 @pytest_asyncio.fixture(scope="session")
 async def engine():
+    # Build the test schema from the migrations themselves, so any drift between
+    # models and migrations surfaces here rather than in production.
+    await asyncio.to_thread(_run_migrations, TEST_DATABASE_URL)
+
     eng = create_async_engine(
         TEST_DATABASE_URL,
         poolclass=NullPool,
         connect_args={"statement_cache_size": 0},
     )
-    # Import every module's models so they register on the shared metadata,
-    # then create the schema. Models are added as the phases progress.
-    from app.core.database import Base
-
-    _import_all_models()
-    async with eng.begin() as conn:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
     yield eng
-    async with eng.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
     await eng.dispose()
 
 
@@ -80,21 +84,3 @@ async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
                 yield ac
     finally:
         app.dependency_overrides.clear()
-
-
-def _import_all_models() -> None:
-    """Import model modules so their tables register on Base.metadata.
-
-    Extended as each phase adds models. Missing modules are ignored so the
-    suite runs during early phases.
-    """
-    module_paths = [
-        "app.modules.users.models",
-        "app.modules.auth.models",
-        "app.modules.notifications.models",
-    ]
-    for path in module_paths:
-        try:
-            __import__(path)
-        except ModuleNotFoundError:
-            pass

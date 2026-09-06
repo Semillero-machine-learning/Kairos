@@ -43,6 +43,9 @@ src = ["app", "tests"]
 select = ["E", "F", "I", "UP", "B", "ASYNC", "W"]
 ignore = ["B008"]  # FastAPI usa llamadas en los valores por defecto (Depends)
 
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
