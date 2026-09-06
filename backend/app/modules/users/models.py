@@ -4,7 +4,6 @@ Enum types and the set_updated_at() trigger are created by migrations; the
 models reference them with create_type=False so nothing is emitted twice.
 """
 
-import enum
 import uuid
 from datetime import datetime
 
@@ -15,17 +14,10 @@ from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.core.enums import GlobalRole, UserStatus
 
-
-class GlobalRole(enum.StrEnum):
-    ADMIN = "ADMIN"
-    LESSON_EDITOR = "LESSON_EDITOR"
-    MEMBER = "MEMBER"
-
-
-class UserStatus(enum.StrEnum):
-    ACTIVE = "ACTIVE"
-    DISABLED = "DISABLED"
+# Re-exported so existing imports (app.modules.users.models.GlobalRole) keep working.
+__all__ = ["GlobalRole", "User", "UserStatus"]
 
 
 global_role_enum = PGEnum(
