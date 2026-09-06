@@ -1,0 +1,80 @@
+"""Domain exceptions and their HTTP handlers.
+
+Services raise these; the router layer never builds HTTP error responses by
+hand. Every error is serialized to the uniform shape from architecture.md 7:
+
+    {"error": {"code": "...", "message": "...", "details": ...}}
+
+Messages are in Spanish (shown to the user); codes are in English (consumed by
+the frontend).
+"""
+
+from typing import Any
+
+from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+
+class DomainError(Exception):
+    """Base class for business errors. Maps to a single HTTP status and code."""
+
+    status_code: int = status.HTTP_400_BAD_REQUEST
+    code: str = "DOMAIN_ERROR"
+
+    def __init__(self, message: str, details: Any = None) -> None:
+        self.message = message
+        self.details = details
+        super().__init__(message)
+
+
+class NotFoundError(DomainError):
+    status_code = status.HTTP_404_NOT_FOUND
+    code = "NOT_FOUND"
+
+
+class ForbiddenError(DomainError):
+    status_code = status.HTTP_403_FORBIDDEN
+    code = "FORBIDDEN"
+
+
+class ConflictError(DomainError):
+    status_code = status.HTTP_409_CONFLICT
+    code = "CONFLICT"
+
+
+class ValidationError(DomainError):
+    status_code = 422  # UNPROCESSABLE_CONTENT
+    code = "VALIDATION_ERROR"
+
+
+class AuthenticationError(DomainError):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    code = "UNAUTHENTICATED"
+
+
+def _error_body(code: str, message: str, details: Any = None) -> dict[str, Any]:
+    return {"error": {"code": code, "message": message, "details": details}}
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(DomainError)
+    async def _handle_domain_error(_: Request, exc: DomainError) -> JSONResponse:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=_error_body(exc.code, exc.message, exc.details),
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def _handle_request_validation(
+        _: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=422,
+            content=_error_body(
+                "VALIDATION_ERROR",
+                "Los datos enviados no son válidos.",
+                jsonable_encoder(exc.errors()),
+            ),
+        )
