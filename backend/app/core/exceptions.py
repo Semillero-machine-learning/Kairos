@@ -18,14 +18,21 @@ from fastapi.responses import JSONResponse
 
 
 class DomainError(Exception):
-    """Base class for business errors. Maps to a single HTTP status and code."""
+    """Base class for business errors. Maps to an HTTP status and an error code.
+
+    Each subclass sets a default code; a specific code (e.g. EMAIL_ALREADY_REGISTERED)
+    may be supplied per instance so the frontend can distinguish cases that share
+    the same HTTP status.
+    """
 
     status_code: int = status.HTTP_400_BAD_REQUEST
     code: str = "DOMAIN_ERROR"
 
-    def __init__(self, message: str, details: Any = None) -> None:
+    def __init__(self, message: str, *, code: str | None = None, details: Any = None) -> None:
         self.message = message
         self.details = details
+        if code is not None:
+            self.code = code
         super().__init__(message)
 
 
