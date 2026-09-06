@@ -71,6 +71,18 @@ class InvitationCreatedResponse(BaseModel):
     invite_url: str
 
 
+class InvitationTokenInfo(BaseModel):
+    """Returned by GET /auth/invitations/{token}: the invited email, precargado
+    y no editable in the accept form."""
+
+    email: EmailStr
+
+
+class AcceptInvitationRequest(BaseModel):
+    full_name: str = Field(min_length=2, max_length=120)
+    password: str = Field(min_length=1)
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=1)

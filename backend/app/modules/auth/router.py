@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.modules.auth.schemas import (
+    AcceptInvitationRequest,
     ChangePasswordRequest,
+    InvitationTokenInfo,
     LoginRequest,
     LogoutRequest,
     MeRead,
@@ -38,6 +40,28 @@ async def login(
     service = AuthService(db)
     issued = await service.login(
         body.email, body.password, user_agent=request.headers.get("user-agent")
+    )
+    return _token_response(issued, service.access_expires_in)
+
+
+@router.get("/invitations/{token}", response_model=InvitationTokenInfo)
+async def validate_invitation(
+    token: str, db: AsyncSession = Depends(get_db)
+) -> InvitationTokenInfo:
+    invitation = await AuthService(db).validate_invitation_token(token)
+    return InvitationTokenInfo(email=invitation.email)
+
+
+@router.post("/invitations/{token}/accept", response_model=TokenResponse)
+async def accept_invitation(
+    token: str,
+    body: AcceptInvitationRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    service = AuthService(db)
+    issued = await service.accept_invitation(
+        token, body.full_name, body.password, user_agent=request.headers.get("user-agent")
     )
     return _token_response(issued, service.access_expires_in)
 

@@ -196,6 +196,54 @@ class AuthService:
     ) -> list[Invitation]:
         return await self.repo.list_invitations(status=status)
 
+    async def validate_invitation_token(self, raw_token: str) -> Invitation:
+        """Resolve a usable (PENDING, not expired) invitation from a raw token.
+
+        A replaced/revoked or unknown token is reported as 404 so the old link
+        simply stops working without revealing whether the email has an account
+        (EB-01). Expiry is assigned lazily on read.
+        """
+        invitation = await self.repo.get_invitation_by_token_hash(hash_opaque_token(raw_token))
+        if invitation is None or invitation.status == InvitationStatus.REVOKED:
+            raise NotFoundError("La invitación no existe o ya no es válida.")
+        if invitation.status == InvitationStatus.ACCEPTED:
+            raise ConflictError(
+                "La invitación ya fue utilizada.", code="INVITATION_ALREADY_USED"
+            )
+        if invitation.expires_at <= datetime.now(UTC):
+            if invitation.status != InvitationStatus.EXPIRED:
+                invitation.status = InvitationStatus.EXPIRED
+                await self.db.commit()
+            raise ConflictError("La invitación expiró.", code="INVITATION_EXPIRED")
+        return invitation
+
+    async def accept_invitation(
+        self,
+        raw_token: str,
+        full_name: str,
+        password: str,
+        *,
+        user_agent: str | None = None,
+    ) -> IssuedTokens:
+        """Create the account, invalidate the token and sign the user in (RF-03)."""
+        invitation = await self.validate_invitation_token(raw_token)
+        self.users.validate_password_strength(password)
+
+        user = await self.users.create_user(
+            full_name=full_name,
+            email=str(invitation.email),
+            password_hash=hash_password(password),
+            global_role=invitation.global_role,
+        )
+        invitation.status = InvitationStatus.ACCEPTED
+        invitation.accepted_at = datetime.now(UTC)
+        invitation.accepted_user_id = user.id
+
+        access = create_access_token(user.id, user.global_role)
+        refresh = self._issue_refresh_token(user.id, user_agent)
+        await self.db.commit()
+        return IssuedTokens(user=user, access_token=access, refresh_token=refresh)
+
     async def change_password(
         self, user: User, current_password: str, new_password: str
     ) -> None:
