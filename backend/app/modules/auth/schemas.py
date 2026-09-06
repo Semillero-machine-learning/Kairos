@@ -83,6 +83,22 @@ class AcceptInvitationRequest(BaseModel):
     password: str = Field(min_length=1)
 
 
+# --- Password reset ---
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=1)
+    new_password: str = Field(min_length=1)
+
+
+class PasswordResetRequestResponse(BaseModel):
+    message: str
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=1)

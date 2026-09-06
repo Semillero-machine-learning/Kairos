@@ -12,6 +12,9 @@ from app.modules.auth.schemas import (
     LoginRequest,
     LogoutRequest,
     MeRead,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    PasswordResetRequestResponse,
     RefreshRequest,
     TokenResponse,
     UpdateMeRequest,
@@ -22,6 +25,10 @@ from app.modules.users.models import User
 from app.modules.users.service import UsersService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+_RESET_REQUEST_MESSAGE = (
+    "Si el correo está registrado, enviamos un enlace para restablecer la contraseña."
+)
 
 
 def _token_response(issued: IssuedTokens, expires_in: int) -> TokenResponse:
@@ -84,6 +91,29 @@ async def logout(
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     await AuthService(db).logout(user, body.refresh_token)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/password-reset/request",
+    response_model=PasswordResetRequestResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def request_password_reset(
+    body: PasswordResetRequest, request: Request, db: AsyncSession = Depends(get_db)
+) -> PasswordResetRequestResponse:
+    await AuthService(db).request_password_reset(
+        body.email, user_agent=request.headers.get("user-agent")
+    )
+    # Always the same response, whether or not the email exists (RN-41).
+    return PasswordResetRequestResponse(message=_RESET_REQUEST_MESSAGE)
+
+
+@router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
+async def confirm_password_reset(
+    body: PasswordResetConfirm, db: AsyncSession = Depends(get_db)
+) -> Response:
+    await AuthService(db).confirm_password_reset(body.token, body.new_password)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

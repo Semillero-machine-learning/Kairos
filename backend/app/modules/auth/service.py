@@ -13,7 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.enums import GlobalRole, UserStatus
-from app.core.exceptions import AuthenticationError, ConflictError, NotFoundError
+from app.core.exceptions import (
+    AuthenticationError,
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+)
 from app.core.security import (
     create_access_token,
     generate_opaque_token,
@@ -22,12 +27,18 @@ from app.core.security import (
     verify_password,
 )
 from app.integrations.email import EmailClient, render_email
-from app.modules.auth.models import Invitation, InvitationStatus, RefreshToken
+from app.modules.auth.models import (
+    Invitation,
+    InvitationStatus,
+    PasswordResetToken,
+    RefreshToken,
+)
 from app.modules.auth.repository import AuthRepository
 from app.modules.users.models import User
 from app.modules.users.service import UsersService
 
 INVITATION_TTL_DAYS = 7
+PASSWORD_RESET_TTL_HOURS = 1
 
 ROLE_LABELS: dict[GlobalRole, str] = {
     GlobalRole.ADMIN: "Administrador",
@@ -243,6 +254,63 @@ class AuthService:
         refresh = self._issue_refresh_token(user.id, user_agent)
         await self.db.commit()
         return IssuedTokens(user=user, access_token=access, refresh_token=refresh)
+
+    # --- Password reset ---
+
+    def _reset_url(self, raw_token: str) -> str:
+        return f"{self.settings.frontend_url.rstrip('/')}/restablecer/{raw_token}"
+
+    async def request_password_reset(
+        self, email: str, *, user_agent: str | None = None
+    ) -> None:
+        """Issue a reset token and email it, only for an existing active account.
+        The endpoint always responds identically, so this never signals whether
+        the email exists (RN-41)."""
+        user = await self.users.get_by_email(email)
+        if user is None or user.status != UserStatus.ACTIVE:
+            return
+
+        raw = generate_opaque_token()
+        self.repo.add(
+            PasswordResetToken(
+                user_id=user.id,
+                token_hash=hash_opaque_token(raw),
+                expires_at=datetime.now(UTC) + timedelta(hours=PASSWORD_RESET_TTL_HOURS),
+                user_agent=user_agent,
+            )
+        )
+        await self.db.commit()
+
+        html = render_email("password_reset.html", reset_url=self._reset_url(raw))
+        await self.email.send(
+            to=str(user.email),
+            subject="Restablecer tu contraseña",
+            html=html,
+        )
+
+    async def confirm_password_reset(self, raw_token: str, new_password: str) -> None:
+        """Set a new password from a single-use reset token, then revoke every
+        refresh token (RN-41, RN-42)."""
+        record = await self.repo.get_reset_by_hash(hash_opaque_token(raw_token))
+        now = datetime.now(UTC)
+        if record is None or record.used_at is not None or record.expires_at <= now:
+            raise ValidationError(
+                "El enlace de restablecimiento no es válido o expiró.",
+                code="INVALID_RESET_TOKEN",
+            )
+
+        self.users.validate_password_strength(new_password)
+        user = await self.users.get_by_id(record.user_id)
+        if user is None:
+            raise ValidationError(
+                "El enlace de restablecimiento no es válido o expiró.",
+                code="INVALID_RESET_TOKEN",
+            )
+
+        self.users.set_password(user, hash_password(new_password))
+        record.used_at = now
+        await self.repo.revoke_all_refresh_tokens(user.id, when=now)
+        await self.db.commit()
 
     async def change_password(
         self, user: User, current_password: str, new_password: str
