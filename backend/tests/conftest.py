@@ -15,7 +15,7 @@ from alembic import command
 from alembic.config import Config
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 TEST_DATABASE_URL = os.environ.get(
@@ -50,19 +50,56 @@ async def engine():
 
 @pytest_asyncio.fixture
 async def db(engine) -> AsyncGenerator[AsyncSession, None]:
-    """A session whose writes are rolled back at the end of each test."""
+    """A session whose writes are rolled back at the end of each test.
+
+    The session joins the fixture's outer transaction via a SAVEPOINT
+    (join_transaction_mode="create_savepoint"), so commits made by the
+    application code release and recreate the savepoint without ending the outer
+    transaction, which is then rolled back to isolate each test.
+    """
     connection = await engine.connect()
     transaction = await connection.begin()
-    session_factory = async_sessionmaker(
-        bind=connection, expire_on_commit=False, autoflush=False
+    session = AsyncSession(
+        bind=connection,
+        expire_on_commit=False,
+        autoflush=False,
+        join_transaction_mode="create_savepoint",
     )
-    session = session_factory()
     try:
         yield session
     finally:
         await session.close()
         await transaction.rollback()
         await connection.close()
+
+
+@pytest_asyncio.fixture
+def make_user(db: AsyncSession):
+    """Factory that inserts a user directly, for arranging test preconditions."""
+    from app.core.enums import GlobalRole, UserStatus
+    from app.core.security import hash_password
+    from app.modules.users.models import User
+
+    async def _make(
+        *,
+        email: str,
+        full_name: str = "Persona de Prueba",
+        password: str = "unaClaveLarga123",
+        global_role: GlobalRole = GlobalRole.MEMBER,
+        status: UserStatus = UserStatus.ACTIVE,
+    ) -> User:
+        user = User(
+            full_name=full_name,
+            email=email,
+            password_hash=hash_password(password),
+            global_role=global_role,
+            status=status,
+        )
+        db.add(user)
+        await db.flush()
+        return user
+
+    return _make
 
 
 @pytest_asyncio.fixture

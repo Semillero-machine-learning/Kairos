@@ -7,6 +7,7 @@ call chain commit explicitly.
 """
 
 import uuid
+from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,6 +57,17 @@ class UsersService:
         if user is None:
             raise NotFoundError("Usuario no encontrado.")
         return user
+
+    async def get_by_email(self, email: str) -> User | None:
+        return await self.repo.get_by_email(email)
+
+    async def get_by_id(self, user_id: uuid.UUID) -> User | None:
+        return await self.repo.get_by_id(user_id)
+
+    async def touch_last_login(self, user: User, *, when: datetime) -> None:
+        """Record a successful login. Flushes; the caller commits."""
+        user.last_login_at = when
+        await self.db.flush()
 
     @staticmethod
     def validate_password_strength(password: str) -> None:
