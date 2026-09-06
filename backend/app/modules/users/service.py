@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import GlobalRole, UserStatus
 from app.core.exceptions import ConflictError, NotFoundError, ValidationError
+from app.core.pagination import Pagination
 from app.modules.users.models import User
 from app.modules.users.repository import UsersRepository
 
@@ -88,3 +89,57 @@ class UsersService:
             raise ValidationError(
                 f"La contraseña debe tener al menos {PASSWORD_MIN_LENGTH} caracteres."
             )
+
+    # --- Administration ---
+
+    async def list_users(
+        self,
+        *,
+        pagination: Pagination,
+        search: str | None = None,
+        status: UserStatus | None = None,
+        global_role: GlobalRole | None = None,
+    ) -> tuple[list[User], int]:
+        return await self.repo.list_users(
+            search=search,
+            status=status,
+            global_role=global_role,
+            offset=pagination.offset,
+            limit=pagination.limit,
+        )
+
+    async def change_global_role(
+        self, user_id: uuid.UUID, new_role: GlobalRole
+    ) -> User:
+        """Change a user's global role (RF-11), rejecting any change that would
+        leave the platform without an active administrator (RN-02, RF-12)."""
+        user = await self.get_or_404(user_id)
+        if (
+            user.global_role == GlobalRole.ADMIN
+            and user.status == UserStatus.ACTIVE
+            and new_role != GlobalRole.ADMIN
+            and await self.repo.count_active_admins(exclude_user_id=user.id) == 0
+        ):
+            raise ConflictError(
+                "No puedes degradar al último administrador activo.", code="LAST_ADMIN"
+            )
+        user.global_role = new_role
+        await self.db.commit()
+        return user
+
+    async def set_status(self, user_id: uuid.UUID, new_status: UserStatus) -> User:
+        """Activate or deactivate a user (RF-09), rejecting the deactivation of the
+        last active administrator (RN-02, EB-11)."""
+        user = await self.get_or_404(user_id)
+        if (
+            new_status == UserStatus.DISABLED
+            and user.global_role == GlobalRole.ADMIN
+            and user.status == UserStatus.ACTIVE
+            and await self.repo.count_active_admins(exclude_user_id=user.id) == 0
+        ):
+            raise ConflictError(
+                "No puedes desactivar al último administrador activo.", code="LAST_ADMIN"
+            )
+        user.status = new_status
+        await self.db.commit()
+        return user

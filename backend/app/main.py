@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.modules.auth import invitations_router
 from app.modules.auth import router as auth_router
+from app.modules.users import router as users_router
 
 API_V1_PREFIX = "/api/v1"
 
@@ -34,6 +35,7 @@ def create_app() -> FastAPI:
     app.include_router(system.router)
     app.include_router(auth_router.router, prefix=API_V1_PREFIX)
     app.include_router(invitations_router.router, prefix=API_V1_PREFIX)
+    app.include_router(users_router.router, prefix=API_V1_PREFIX)
 
     return app
 
