@@ -42,6 +42,35 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(min_length=1)
 
 
+# --- Invitations ---
+
+
+class InvitationCreate(BaseModel):
+    email: EmailStr
+    global_role: GlobalRole
+
+
+class InvitationRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    email: EmailStr
+    global_role: GlobalRole
+    status: str
+    expires_at: datetime
+    created_at: datetime
+    accepted_at: datetime | None = None
+
+
+class InvitationCreatedResponse(BaseModel):
+    id: uuid.UUID
+    email: EmailStr
+    global_role: GlobalRole
+    status: str
+    expires_at: datetime
+    invite_url: str
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=1)

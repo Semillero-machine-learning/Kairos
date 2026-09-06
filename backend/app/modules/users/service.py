@@ -61,6 +61,9 @@ class UsersService:
     async def get_by_email(self, email: str) -> User | None:
         return await self.repo.get_by_email(email)
 
+    async def email_exists(self, email: str) -> bool:
+        return await self.repo.email_exists(email)
+
     async def get_by_id(self, user_id: uuid.UUID) -> User | None:
         return await self.repo.get_by_id(user_id)
 
