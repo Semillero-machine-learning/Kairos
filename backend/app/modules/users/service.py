@@ -69,6 +69,16 @@ class UsersService:
         user.last_login_at = when
         await self.db.flush()
 
+    def set_password(self, user: User, password_hash: str) -> None:
+        """Building block: set a new password hash. Flush/commit is the caller's."""
+        user.password_hash = password_hash
+
+    async def update_own_name(self, user: User, full_name: str) -> User:
+        """Edit the user's display name (RF-08). Commits."""
+        user.full_name = full_name
+        await self.db.commit()
+        return user
+
     @staticmethod
     def validate_password_strength(password: str) -> None:
         if len(password) < PASSWORD_MIN_LENGTH:

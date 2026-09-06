@@ -107,6 +107,18 @@ class AuthService:
         await self.db.commit()
         return IssuedTokens(user=user, access_token=access, refresh_token=refresh)
 
+    async def change_password(
+        self, user: User, current_password: str, new_password: str
+    ) -> None:
+        """Change the password after verifying the current one, then revoke every
+        refresh token so other sessions must sign in again (RN-42)."""
+        if not verify_password(current_password, user.password_hash):
+            raise AuthenticationError("La contraseña actual no es correcta.")
+        self.users.validate_password_strength(new_password)
+        self.users.set_password(user, hash_password(new_password))
+        await self.repo.revoke_all_refresh_tokens(user.id, when=datetime.now(UTC))
+        await self.db.commit()
+
     async def logout(self, user: User, raw_token: str) -> None:
         """Revoke the given refresh token if it belongs to the user. Idempotent."""
         record = await self.repo.get_refresh_by_hash(hash_opaque_token(raw_token))

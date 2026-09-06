@@ -6,14 +6,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.modules.auth.schemas import (
+    ChangePasswordRequest,
     LoginRequest,
     LogoutRequest,
+    MeRead,
     RefreshRequest,
     TokenResponse,
+    UpdateMeRequest,
     UserRead,
 )
 from app.modules.auth.service import AuthService, IssuedTokens
 from app.modules.users.models import User
+from app.modules.users.service import UsersService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -56,4 +60,29 @@ async def logout(
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     await AuthService(db).logout(user, body.refresh_token)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/me", response_model=MeRead)
+async def read_me(user: User = Depends(get_current_user)) -> MeRead:
+    return MeRead.model_validate(user)
+
+
+@router.patch("/me", response_model=MeRead)
+async def update_me(
+    body: UpdateMeRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> MeRead:
+    updated = await UsersService(db).update_own_name(user, body.full_name)
+    return MeRead.model_validate(updated)
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    body: ChangePasswordRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    await AuthService(db).change_password(user, body.current_password, body.new_password)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
