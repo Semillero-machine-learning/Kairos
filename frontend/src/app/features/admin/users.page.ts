@@ -123,7 +123,7 @@ const PAGE_SIZE = 20;
           <ul>
             @for (user of users(); track user.id) {
               <li
-                class="grid grid-cols-1 gap-3 border-b border-line py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+                class="-mx-3 grid grid-cols-1 gap-3 rounded-[var(--radius-control)] border-b border-line px-3 py-4 transition-colors hover:bg-sunken sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
               >
                 <div class="min-w-0">
                   <p class="truncate text-sm font-medium text-ink">
@@ -134,7 +134,7 @@ const PAGE_SIZE = 20;
                   </p>
                   <p class="truncate text-sm text-ink-muted">{{ user.email }}</p>
                   <p class="mt-1 text-xs text-ink-muted">
-                    Ingresó el {{ user.created_at | bogotaDate }}
+                    Se unió el {{ user.created_at | bogotaDate }}
                   </p>
                 </div>
 

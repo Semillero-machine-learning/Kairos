@@ -36,8 +36,8 @@ export type BrandVariant = 'horizontal' | 'stacked';
           src="/brand/kairos-mark.png"
           alt=""
           aria-hidden="true"
-          width="384"
-          height="397"
+          width="93"
+          height="96"
           class="h-6 w-auto"
         />
         <span [class]="wordmarkClasses()">KAIROS</span>
@@ -50,9 +50,9 @@ export class BrandComponent {
   /** Ancho del lockup apilado, en píxeles. Su alto sale de la proporción. */
   readonly width = input(148);
 
-  /** Proporción del asset recortado: 717 × 586. */
+  /** Proporción del asset: 400 × 327. */
   protected readonly stackedWidth = computed(() => this.width());
-  protected readonly stackedHeight = computed(() => Math.round((this.width() * 586) / 717));
+  protected readonly stackedHeight = computed(() => Math.round((this.width() * 327) / 400));
 
   protected readonly wordmarkClasses = computed(() =>
     ['text-sm font-semibold tracking-[0.22em] text-ink select-none'].join(' '),

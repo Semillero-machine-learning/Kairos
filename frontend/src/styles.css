@@ -18,19 +18,24 @@
 @theme {
   /* Superficies. La aplicación se apoya en `ground`; `surface` se usa para lo
      que debe despegarse de ella (paneles, filas activas, menús). */
-  --color-ground: #fcfbfa;
+  --color-ground: #fbfafc;
   --color-surface: #ffffff;
-  --color-sunken: #f6f4f2;
+  --color-sunken: #f5f3f8;
 
   /* Bordes de un pelo. Estructuran sin sombra: la sombra se reserva para lo
      que de verdad flota sobre el contenido. */
-  --color-line: #e9e5e1;
-  --color-line-strong: #d6d0ca;
+  --color-line: #e7e4ee;
+  --color-line-strong: #d3cedd;
 
   /* Tinta. `ink` es el texto principal; `muted` cumple 4.5:1 sobre `ground`;
      `faint` solo para texto grande o no esencial. */
   --color-ink: #1f1b24;
   --color-ink-muted: #6b6470;
+  /* Texto de marcador de posición. Cumple 4.5:1 sobre `ground`: un marcador
+     más claro se lee como campo deshabilitado. */
+  --color-ink-placeholder: #746c7c;
+  /* Solo para lo deshabilitado, que sí debe verse apagado. Nunca para texto
+     que el usuario tenga que leer. */
   --color-ink-faint: #948d99;
 
   /* Acento: el extremo violeta del logo. */
@@ -122,6 +127,22 @@
 }
 
 @layer components {
+  /*
+   * `select` con su propia flecha.
+   *
+   * Un control que lleva nuestro borde, nuestro radio y nuestra tipografía y
+   * luego delega la flecha al sistema operativo delata que la pantalla se
+   * ensambló en vez de construirse. El triángulo nativo se apaga y se dibuja
+   * uno con el mismo grosor de trazo que el resto de los iconos.
+   */
+  .ui-select {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6470' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
   /*
    * Un único gesto de movimiento en la aplicación: lo que aparece, aparece
    * subiendo un poco y desde una opacidad ya visible, con salida exponencial.

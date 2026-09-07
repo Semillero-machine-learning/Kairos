@@ -9,7 +9,7 @@ related_targets: ["frontend/src/app/features/auth","frontend/src/app/features/ad
 
 Audiencia: ~50 estudiantes de un semillero de ML y 1–2 coordinadores. Tarea: entrar, y saber qué se debe y para cuándo. Restricciones: español, AA, 360 px en adelante, áreas táctiles de 44 px, arranque en frío visible.
 
-Decisión abierta: falta el archivo del logo (SVG/PNG transparente).
+Sin decisiones abiertas. El logo llegó y está en `frontend/logo/kairos_logo.jpeg`; los assets con transparencia derivados viven en `frontend/public/brand/` con su procedencia documentada al lado.
 
 ## Direction contract
 

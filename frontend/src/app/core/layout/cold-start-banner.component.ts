@@ -9,7 +9,9 @@ import { ColdStartService } from '../http/cold-start.service';
  * El backend del plan gratuito se suspende y la primera petición puede tardar
  * cerca de un minuto. En vez de una pantalla en blanco o un error genérico, se
  * dice lo que está pasando. Ocupa su propia franja en el flujo, empujando el
- * contenido hacia abajo en vez de taparlo.
+ * contenido hacia abajo en vez de taparlo, y queda fija en el borde superior:
+ * durante una espera de 90 segundos, un desplazamiento no debe borrar la única
+ * explicación que tiene el usuario.
  */
 @Component({
   selector: 'app-cold-start-banner',
@@ -20,7 +22,7 @@ import { ColdStartService } from '../http/cold-start.service';
       <div
         role="status"
         aria-live="polite"
-        class="motion-enter flex items-center justify-center gap-2.5 border-b border-notice-line bg-notice-soft px-4 py-2.5 text-sm text-notice"
+        class="motion-enter sticky top-0 z-50 flex items-center justify-center gap-2.5 border-b border-notice-line bg-notice-soft px-4 py-2.5 text-sm text-notice"
       >
         <ui-spinner [size]="16" />
         <span>Despertando el servidor… la primera carga del día tarda un poco.</span>

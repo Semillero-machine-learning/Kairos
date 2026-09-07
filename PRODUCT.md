@@ -128,9 +128,12 @@ lección, recurso, periodicidad (Puntual, Semanal, Mensual, Semestral).
   sigue en pie para fondos, botones, tarjetas y cualquier superficie de la
   aplicación. El degradado se usa únicamente dentro del logo. La paleta de la
   interfaz se deriva de los extremos del degradado como colores **sólidos**.
-- **Pendiente:** el archivo del logo aún no está en el repositorio. Hace falta el
-  original (SVG preferiblemente, o PNG con fondo transparente) para poder
-  usarlo; hasta que llegue no se debe redibujar ni aproximar el monograma.
+- **El archivo del logo ya está en el repositorio:** `frontend/logo/kairos_logo.jpeg`
+  es el original entregado por el usuario, sin modificar. De ahí salen los
+  assets con transparencia de `frontend/public/brand/`, cuya derivación está
+  documentada en `frontend/public/brand/PROVENANCE.md`. No se redibujó el
+  monograma y no debe redibujarse: si aparece el original vectorial, se
+  reemplazan esos PNG y nada más.
 - **Voz:** española, directa y sin ceremonia. Los mensajes de error explican qué
   pasó y qué hacer. Los códigos de error, nombres de variables, tablas y
   endpoints van en inglés; todo lo que lee el usuario, en español.
