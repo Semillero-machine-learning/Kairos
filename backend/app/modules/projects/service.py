@@ -245,6 +245,27 @@ class ProjectsService:
         users = await self.users.get_many([member.user_id for member, _ in rows])
         return [(member, role, users[member.user_id]) for member, role in rows]
 
+    # --- Cross-module queries ---
+    #
+    # Both return plain identifiers and strings rather than Project or User rows.
+    # Another module (tasks, today) needs to know who belongs where without ever
+    # touching this module's tables or its models (architecture.md 2).
+
+    async def member_user_ids(self, project_id: uuid.UUID) -> set[uuid.UUID]:
+        """Who is a member of this project, by id."""
+        return await self.repo.member_user_ids(project_id)
+
+    async def member_project_names(self, user_id: uuid.UUID) -> dict[uuid.UUID, str]:
+        """Project id to project name, for every project the user belongs to.
+
+        It is what a cross-project view needs to label its rows: "Mis tareas"
+        shows the project each task comes from (RF-36).
+        """
+        return {
+            project.id: project.name
+            for project in await self.repo.list_member_projects(user_id)
+        }
+
     async def add_member(
         self,
         ctx: ProjectContext,

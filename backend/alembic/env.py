@@ -26,6 +26,8 @@ if config.config_file_name is not None:
 for _path in (
     "app.modules.users.models",
     "app.modules.auth.models",
+    "app.modules.projects.models",
+    "app.modules.tasks.models",
     "app.modules.notifications.models",
 ):
     try:

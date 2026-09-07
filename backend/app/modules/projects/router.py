@@ -13,9 +13,9 @@ from app.core.dependencies import (
     require_global_role,
     require_project_permission,
 )
-from app.core.enums import GlobalRole, ProjectStatus
+from app.core.enums import GlobalRole, ProjectStatus, TaskStatus
 from app.core.pagination import Pagination
-from app.modules.projects.models import Project, ProjectRole
+from app.modules.projects.models import ProjectRole
 from app.modules.projects.schemas import (
     MyRole,
     ProjectCreate,
@@ -26,6 +26,7 @@ from app.modules.projects.schemas import (
     TaskCounts,
 )
 from app.modules.projects.service import ProjectContext, ProjectsService
+from app.modules.tasks.service import TasksService
 from app.modules.users.models import User
 
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -37,13 +38,18 @@ def _my_role(role: ProjectRole | None) -> MyRole | None:
     return MyRole(id=role.id, name=role.name, color=role.color)
 
 
-def _detail(
-    project: Project,
-    *,
-    permissions: frozenset[str],
-    member_count: int,
-    role: ProjectRole | None,
-) -> ProjectDetail:
+async def _detail(db: AsyncSession, ctx: ProjectContext) -> ProjectDetail:
+    """Assemble the project detail, board tallies included.
+
+    The tallies are asked of the tasks service *here*, in the router, and not
+    from ``projects.service``. The allowed dependency runs ``tasks → projects``
+    (architecture.md 2), so the projects service stays unaware that tasks exist
+    and only this HTTP layer knows both. Nothing is stored either way: the counts
+    are a GROUP BY on every read (data-model.md 8).
+    """
+    project = ctx.project
+    service = ProjectsService(db)
+    counts = await TasksService(db).count_by_status(project.id)
     return ProjectDetail(
         id=project.id,
         name=project.name,
@@ -51,11 +57,12 @@ def _detail(
         status=project.status,
         start_date=project.start_date,
         archived_at=project.archived_at,
-        member_count=member_count,
-        # Zeros until the tasks module lands in Phase 3.
-        task_counts=TaskCounts(),
-        my_permissions=sorted(permissions),
-        my_role=_my_role(role),
+        member_count=await service.count_members(project.id),
+        task_counts=TaskCounts(
+            **{status.value: counts.get(status, 0) for status in TaskStatus}
+        ),
+        my_permissions=sorted(ctx.permissions),
+        my_role=_my_role(await service.get_member_role(ctx)),
         created_at=project.created_at,
         updated_at=project.updated_at,
     )
@@ -111,12 +118,7 @@ async def create_project(
     )
     ctx = await service.get_context(project.id, current_user)
     assert ctx is not None  # the creator is a global ADMIN, so a context exists
-    return _detail(
-        project,
-        permissions=ctx.permissions,
-        member_count=await service.count_members(project.id),
-        role=await service.get_member_role(ctx),
-    )
+    return await _detail(db, ctx)
 
 
 @router.get("/{project_id}", response_model=ProjectDetail)
@@ -124,13 +126,7 @@ async def get_project(
     ctx: ProjectContext = Depends(require_project_permission("task.view")),
     db: AsyncSession = Depends(get_db),
 ) -> ProjectDetail:
-    service = ProjectsService(db)
-    return _detail(
-        ctx.project,
-        permissions=ctx.permissions,
-        member_count=await service.count_members(ctx.project_id),
-        role=await service.get_member_role(ctx),
-    )
+    return await _detail(db, ctx)
 
 
 @router.patch("/{project_id}", response_model=ProjectDetail)
@@ -139,14 +135,8 @@ async def update_project(
     ctx: ProjectContext = Depends(require_project_permission("project.edit")),
     db: AsyncSession = Depends(get_db),
 ) -> ProjectDetail:
-    service = ProjectsService(db)
-    project = await service.update_project(ctx, fields=body.model_dump(exclude_unset=True))
-    return _detail(
-        project,
-        permissions=ctx.permissions,
-        member_count=await service.count_members(ctx.project_id),
-        role=await service.get_member_role(ctx),
-    )
+    await ProjectsService(db).update_project(ctx, fields=body.model_dump(exclude_unset=True))
+    return await _detail(db, ctx)
 
 
 @router.post("/{project_id}/archive", response_model=ProjectDetail)
@@ -156,14 +146,8 @@ async def archive_project(
 ) -> ProjectDetail:
     """Archive the project (RF-18). It stays fully readable and stops accepting
     every kind of modification, plus every notification (RN-15, RN-16)."""
-    service = ProjectsService(db)
-    project = await service.set_archived(ctx, archived=True)
-    return _detail(
-        project,
-        permissions=ctx.permissions,
-        member_count=await service.count_members(ctx.project_id),
-        role=await service.get_member_role(ctx),
-    )
+    await ProjectsService(db).set_archived(ctx, archived=True)
+    return await _detail(db, ctx)
 
 
 @router.post("/{project_id}/unarchive", response_model=ProjectDetail)
@@ -171,11 +155,5 @@ async def unarchive_project(
     ctx: ProjectContext = Depends(require_project_permission("project.archive")),
     db: AsyncSession = Depends(get_db),
 ) -> ProjectDetail:
-    service = ProjectsService(db)
-    project = await service.set_archived(ctx, archived=False)
-    return _detail(
-        project,
-        permissions=ctx.permissions,
-        member_count=await service.count_members(ctx.project_id),
-        role=await service.get_member_role(ctx),
-    )
+    await ProjectsService(db).set_archived(ctx, archived=False)
+    return await _detail(db, ctx)

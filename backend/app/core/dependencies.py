@@ -27,6 +27,7 @@ from app.modules.projects.constants import (
     READ_ONLY_PERMISSIONS,
 )
 from app.modules.projects.service import ProjectContext, ProjectsService
+from app.modules.tasks.service import TaskContext, TasksService
 from app.modules.users.models import User
 from app.modules.users.repository import UsersRepository
 
@@ -66,8 +67,36 @@ def require_global_role(
     return dependency
 
 
+def _authorize(ctx: ProjectContext, permission: str, *, mutates: bool) -> None:
+    """The single authorization decision, shared by both project-scoped guards.
+
+    An archived project still answers reads: RF-18 says it can be consulted in
+    full, and RN-15 restricts it to read-only, not to no access. So the archived
+    check keys off whether the request *writes*, not off the permission alone —
+    a status change asks for nothing more than ``task.view`` and still has to be
+    refused on an archived project.
+    """
+    if permission not in ctx.permissions:
+        raise ForbiddenError(f"Se requiere el permiso «{permission}».")
+    if (
+        ctx.project.status == ProjectStatus.ARCHIVED
+        and mutates
+        and permission != PROJECT_ADMIN_PERMISSION
+    ):
+        raise ConflictError(
+            "El proyecto está archivado y no admite modificaciones.",
+            code="PROJECT_ARCHIVED",
+        )
+
+
+def _writes_by_default(permission: str) -> bool:
+    return permission not in READ_ONLY_PERMISSIONS
+
+
 def require_project_permission(
     permission: str,
+    *,
+    mutates: bool | None = None,
 ) -> Callable[..., Awaitable[ProjectContext]]:
     """Guard every project-scoped endpoint (architecture.md 3).
 
@@ -85,7 +114,12 @@ def require_project_permission(
     architecture.md 3 rejects everything but ``project.archive``, which would
     lock the project out of view entirely; business-rules.md wins, so reads and
     unarchiving pass and every other permission is refused.
+
+    ``mutates`` overrides that last judgement for an endpoint whose permission
+    does not describe what it does; it defaults to "anything but a read-only
+    permission writes".
     """
+    writes = _writes_by_default(permission) if mutates is None else mutates
 
     async def dependency(
         project_id: uuid.UUID,
@@ -95,17 +129,45 @@ def require_project_permission(
         ctx = await ProjectsService(db).get_context(project_id, user)
         if ctx is None:
             raise NotFoundError("Proyecto no encontrado.")
-        if permission not in ctx.permissions:
-            raise ForbiddenError(f"Se requiere el permiso «{permission}».")
-        if (
-            ctx.project.status == ProjectStatus.ARCHIVED
-            and permission not in READ_ONLY_PERMISSIONS
-            and permission != PROJECT_ADMIN_PERMISSION
-        ):
-            raise ConflictError(
-                "El proyecto está archivado y no admite modificaciones.",
-                code="PROJECT_ARCHIVED",
-            )
+        _authorize(ctx, permission, mutates=writes)
         return ctx
+
+    return dependency
+
+
+def require_task_permission(
+    permission: str,
+    *,
+    mutates: bool | None = None,
+) -> Callable[..., Awaitable[TaskContext]]:
+    """The same guard, for the endpoints that hang off ``/tasks/{task_id}``.
+
+    Those routes carry no ``project_id``, so the project is resolved from the
+    task and handed to the very same ``get_context``: one path for permission
+    resolution, with its 404-instead-of-403 and its archived check in one place
+    rather than two that can drift apart.
+
+    A task in a project the user cannot see is reported as missing, exactly like
+    a task that does not exist — the 404 must not tell a stranger which of the
+    two it was.
+
+    ``mutates=True`` is what ``POST /tasks/{id}/status`` and ``POST
+    /tasks/{id}/submissions`` need: they ask only for ``task.view``, because who
+    may make the move is the state machine's business, but they are writes and an
+    archived project has to refuse them (RN-15).
+    """
+    writes = _writes_by_default(permission) if mutates is None else mutates
+
+    async def dependency(
+        task_id: uuid.UUID,
+        user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> TaskContext:
+        task = await TasksService(db).get_or_404(task_id)
+        ctx = await ProjectsService(db).get_context(task.project_id, user)
+        if ctx is None:
+            raise NotFoundError("Tarea no encontrada.")
+        _authorize(ctx, permission, mutates=writes)
+        return TaskContext(task=task, project=ctx)
 
     return dependency

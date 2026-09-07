@@ -10,6 +10,8 @@ from app.modules.auth import invitations_router
 from app.modules.auth import router as auth_router
 from app.modules.projects import members_router, permissions_router, roles_router
 from app.modules.projects import router as projects_router
+from app.modules.tasks import me_router, tasks_router
+from app.modules.tasks import router as project_tasks_router
 from app.modules.users import router as users_router
 
 API_V1_PREFIX = "/api/v1"
@@ -42,6 +44,9 @@ def create_app() -> FastAPI:
     app.include_router(members_router.router, prefix=API_V1_PREFIX)
     app.include_router(roles_router.router, prefix=API_V1_PREFIX)
     app.include_router(permissions_router.router, prefix=API_V1_PREFIX)
+    app.include_router(project_tasks_router.router, prefix=API_V1_PREFIX)
+    app.include_router(tasks_router.router, prefix=API_V1_PREFIX)
+    app.include_router(me_router.router, prefix=API_V1_PREFIX)
 
     return app
 

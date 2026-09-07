@@ -121,7 +121,7 @@ En una sola transacción: crea el proyecto, genera los tres roles predeterminado
 
 ---
 
-`task_counts` devuelve los cinco estados en cero hasta que exista el módulo de tareas (Fase 3). La forma es parte del contrato desde ahora para que el frontend no cambie cuando se llene.
+`task_counts` se calcula al consultar, sin columnas de conteo, y no incluye las tareas con borrado lógico.
 
 Un proyecto **archivado** sigue respondiendo a las lecturas (`task.view`), tal como manda RF-18: solo se rechazan las escrituras, con `409 PROJECT_ARCHIVED`. La única escritura que se permite es desarchivar. Archivar un proyecto ya archivado, o desarchivar uno activo, devuelve `409`.
 
@@ -184,11 +184,39 @@ Errores: `409 ROLE_NAME_TAKEN`, `422` si falta `task.view` (RN-05), `409 ROLE_HA
 }
 ```
 
+Toda respuesta de tarea tiene esta forma:
+
+```json
+{
+  "id": "...",
+  "project_id": "...",
+  "title": "Entrenar el modelo base",
+  "description": "...",
+  "status": "BACKLOG",
+  "periodicity": "WEEKLY",
+  "due_date": "2026-09-20",
+  "is_overdue": false,
+  "assignees": [{ "id": "...", "full_name": "Ana Gómez", "email": "..." }],
+  "created_by": { "id": "...", "full_name": "Carlos", "email": "..." },
+  "completed_at": null,
+  "created_at": "...",
+  "updated_at": "..."
+}
+```
+
+`is_overdue` lo calcula el servidor comparando `due_date` con la fecha de hoy en `America/Bogota`, y **no** se guarda en ninguna columna (`data-model.md` §8). Viaja en la respuesta para que la insignia de la tarjeta y el filtro `?overdue=true` no puedan discrepar.
+
+Un responsable debe ser miembro activo del proyecto; asignar a alguien de fuera devuelve `422`. Perder la membresía después no deshace la asignación: la tarea conserva su historial (RF-16, EB-04).
+
+**POST `/tasks/{id}/assignees`** recibe `{ "user_id": "uuid" }`. Tanto este endpoint como `DELETE /tasks/{id}/assignees/{user_id}` responden `200` con la tarea completa, que es lo que el tablero tiene que volver a pintar.
+
 **POST `/tasks/{id}/status`**
 ```json
 { "status": "IN_REVIEW" }
 ```
 Errores: `409 INVALID_TRANSITION` con el detalle de las transiciones válidas desde el estado actual; `409 SUBMISSION_REQUIRED` al intentar pasar a `IN_REVIEW` sin entrega registrada.
+
+Las dos transiciones que salen de `IN_REVIEW` no se hacen por aquí: aprobar marca la entrega y devolver exige un comentario (RN-07, RN-09), así que van por `POST /submissions/{id}/review`. Pedirlas a este endpoint devuelve `409 INVALID_TRANSITION`.
 
 **GET `/me/tasks`** acepta `?due_before=&status=` y devuelve cada tarea con el nombre de su proyecto, para alimentar el panel de inicio.
 

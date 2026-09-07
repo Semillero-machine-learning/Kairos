@@ -118,11 +118,13 @@ Estas reglas son lo que hace que el monolito sea modular en vez de un montón de
 
 ```
 auth   →  users
-tasks  →  projects, notifications
+tasks  →  projects, users, notifications
 projects → users
 lessons → (ninguno)
 notifications → (ninguno; recibe datos, no los busca)
 ```
+
+`tasks` habla con `users` para poner nombre a los responsables, a quien creó la tarea y a quien registró la entrega. No hay forma de evitarlo pasando por `projects`: un historial sobrevive a que su autor deje el proyecto (RF-16), así que el nombre no siempre está entre los miembros. Como siempre, es el servicio de `users` lo que se importa, nunca su repositorio ni sus modelos.
 
 `notifications` no importa nada de nadie: los otros módulos le pasan la información que debe enviar. Así se puede probar en aislamiento y no se convierte en el nudo donde todo se enreda.
 
