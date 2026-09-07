@@ -169,7 +169,7 @@ export class ProfilePage {
 
   protected fullNameFieldError(): string {
     const control = this.nameForm.controls.fullName;
-    if (!this.nameSubmitted() && !control.touched) return '';
+    if (!this.nameSubmitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Escribe tu nombre completo.';
     if (control.hasError('minlength')) return 'El nombre debe tener al menos 2 caracteres.';
     if (control.hasError('maxlength')) return 'El nombre no puede pasar de 120 caracteres.';
@@ -178,13 +178,13 @@ export class ProfilePage {
 
   protected currentFieldError(): string {
     const control = this.passwordForm.controls.currentPassword;
-    if (!this.passwordSubmitted() && !control.touched) return '';
+    if (!this.passwordSubmitted() && !(control.dirty && control.touched)) return '';
     return control.hasError('required') ? 'Escribe tu contraseña actual.' : '';
   }
 
   protected newFieldError(): string {
     const control = this.passwordForm.controls.newPassword;
-    if (!this.passwordSubmitted() && !control.touched) return '';
+    if (!this.passwordSubmitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Define la contraseña nueva.';
     if (control.hasError('minlength')) return PASSWORD_TOO_SHORT;
     return '';

@@ -98,7 +98,7 @@ export class LoginPage {
 
   protected emailError(): string {
     const control = this.form.controls.email;
-    if (!this.submitted() && !control.touched) return '';
+    if (!this.submitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Escribe tu correo.';
     if (control.hasError('email')) return 'Ese correo no tiene un formato válido.';
     return '';
@@ -106,7 +106,7 @@ export class LoginPage {
 
   protected passwordError(): string {
     const control = this.form.controls.password;
-    if (!this.submitted() && !control.touched) return '';
+    if (!this.submitted() && !(control.dirty && control.touched)) return '';
     return control.hasError('required') ? 'Escribe tu contraseña.' : '';
   }
 

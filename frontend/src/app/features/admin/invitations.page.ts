@@ -267,7 +267,7 @@ export class InvitationsPage {
 
   protected emailError(): string {
     const control = this.form.controls.email;
-    if (!this.submitted() && !control.touched) return '';
+    if (!this.submitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Escribe el correo de la persona.';
     if (control.hasError('email')) return 'Ese correo no tiene un formato válido.';
     return '';

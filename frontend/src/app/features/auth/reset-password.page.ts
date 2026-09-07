@@ -128,7 +128,7 @@ export class ResetPasswordPage {
 
   protected passwordError(): string {
     const control = this.form.controls.password;
-    if (!this.submitted() && !control.touched) return '';
+    if (!this.submitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Define una contraseña.';
     if (control.hasError('minlength')) return PASSWORD_TOO_SHORT;
     return '';
@@ -136,7 +136,7 @@ export class ResetPasswordPage {
 
   protected confirmationError(): string {
     const control = this.form.controls.confirmation;
-    if (!this.submitted() && !control.touched) return '';
+    if (!this.submitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Repite la contraseña.';
     return this.form.hasError('mismatch') ? 'Las dos contraseñas no coinciden.' : '';
   }

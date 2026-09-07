@@ -148,7 +148,7 @@ export class AcceptInvitationPage {
 
   protected nameError(): string {
     const control = this.form.controls.fullName;
-    if (!this.submitted() && !control.touched) return '';
+    if (!this.submitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Escribe tu nombre completo.';
     if (control.hasError('minlength')) return 'El nombre debe tener al menos 2 caracteres.';
     if (control.hasError('maxlength')) return 'El nombre no puede pasar de 120 caracteres.';
@@ -157,7 +157,7 @@ export class AcceptInvitationPage {
 
   protected passwordError(): string {
     const control = this.form.controls.password;
-    if (!this.submitted() && !control.touched) return '';
+    if (!this.submitted() && !(control.dirty && control.touched)) return '';
     if (control.hasError('required')) return 'Define una contraseña.';
     if (control.hasError('minlength')) return PASSWORD_TOO_SHORT;
     return '';
