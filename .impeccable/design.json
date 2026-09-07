@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-06T00:00:00Z",
+  "title": "Design System: KAIROS",
+  "extensions": {
+    "colorMeta": {
+      "ground": { "role": "neutral", "displayName": "Violet Paper", "canonical": "#fbfafc", "tonalRamp": ["#1f1b24", "#332c3d", "#4d4459", "#6b6178", "#9289a0", "#bab3c6", "#ded9e8", "#fbfafc"] },
+      "surface": { "role": "neutral", "displayName": "Panel White", "canonical": "#ffffff", "tonalRamp": ["#232323", "#3d3d3d", "#575757", "#787878", "#a0a0a0", "#c8c8c8", "#e8e8e8", "#ffffff"] },
+      "sunken": { "role": "neutral", "displayName": "Sunken Violet", "canonical": "#f5f3f8", "tonalRamp": ["#1e1a23", "#332d3c", "#4c4457", "#6a6076", "#918aa0", "#b9b3c6", "#ddd8e6", "#f5f3f8"] },
+      "line": { "role": "neutral", "displayName": "Hairline", "canonical": "#e7e4ee", "tonalRamp": ["#1d1a22", "#312c3a", "#4a4355", "#675f74", "#8e879e", "#b6b0c4", "#d3cee0", "#e7e4ee"] },
+      "line-strong": { "role": "neutral", "displayName": "Hairline Strong", "canonical": "#d3cedd", "tonalRamp": ["#1c1922", "#302b3a", "#484154", "#655d73", "#8b849c", "#b2adc2", "#d3cedd", "#eeebf3"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#1f1b24", "tonalRamp": ["#1f1b24", "#332d3b", "#4d4457", "#6b6176", "#928aa0", "#bab4c6", "#ded9e7", "#f6f4f9"] },
+      "ink-muted": { "role": "neutral", "displayName": "Ink Muted", "canonical": "#6b6470", "tonalRamp": ["#1c1a1e", "#2f2c33", "#464149", "#6b6470", "#8f8896", "#b5aebb", "#d9d4de", "#f2f0f4"] },
+      "ink-placeholder": { "role": "neutral", "displayName": "Ink Placeholder", "canonical": "#746c7c", "tonalRamp": ["#1d1a20", "#312d36", "#494350", "#746c7c", "#948da0", "#b8b2c1", "#dad6e0", "#f3f1f6"] },
+      "ink-faint": { "role": "neutral", "displayName": "Ink Faint", "canonical": "#948d99", "tonalRamp": ["#1e1c21", "#333038", "#4b4753", "#6c6675", "#948d99", "#b6b0bd", "#d8d4dd", "#f2f0f4"] },
+      "accent": { "role": "primary", "displayName": "Brand Violet", "canonical": "#4b34e0", "tonalRamp": ["#150c46", "#1f1268", "#2b1a8c", "#3826b4", "#4b34e0", "#7566ea", "#a79ef4", "#e3dffc"] },
+      "accent-hover": { "role": "primary", "displayName": "Violet Pressed", "canonical": "#3d28c4", "tonalRamp": ["#120a3c", "#1a0f5a", "#25157a", "#31209f", "#3d28c4", "#6653dc", "#9d92f0", "#e0dcfb"] },
+      "accent-soft": { "role": "primary", "displayName": "Violet Wash", "canonical": "#efecfd", "tonalRamp": ["#171139", "#221957", "#2f2478", "#40339f", "#5a4cc9", "#8d82e4", "#c3bdf5", "#efecfd"] },
+      "accent-line": { "role": "primary", "displayName": "Violet Hairline", "canonical": "#d9d2fa", "tonalRamp": ["#161038", "#211855", "#2e2275", "#3e319b", "#5849c5", "#8b7fe2", "#d9d2fa", "#f1eefe"] },
+      "danger": { "role": "secondary", "displayName": "Carmine Alarm", "canonical": "#c2255c", "tonalRamp": ["#3d0b1d", "#5b1029", "#7c1737", "#a01e48", "#c2255c", "#dc5b87", "#ec9ab5", "#fbe2ea"] },
+      "danger-hover": { "role": "secondary", "displayName": "Carmine Pressed", "canonical": "#a41d4d", "tonalRamp": ["#340918", "#4e0d23", "#6a1330", "#87173e", "#a41d4d", "#c94a76", "#e392aa", "#f9e0e8"] },
+      "danger-soft": { "role": "secondary", "displayName": "Carmine Wash", "canonical": "#fdeef3", "tonalRamp": ["#3f0c1e", "#5e112b", "#801839", "#a4204b", "#c74a72", "#e08ba5", "#f2c4d4", "#fdeef3"] },
+      "danger-line": { "role": "secondary", "displayName": "Carmine Hairline", "canonical": "#f6ccdb", "tonalRamp": ["#3e0c1e", "#5c112a", "#7d1738", "#a11f49", "#c34a71", "#dd8aa4", "#f6ccdb", "#fdeef3"] },
+      "success": { "role": "tertiary", "displayName": "Field Green", "canonical": "#1f7a4d", "tonalRamp": ["#08281a", "#0d3e28", "#135538", "#186748", "#1f7a4d", "#39a771", "#77cba1", "#d4f0e1"] },
+      "success-soft": { "role": "tertiary", "displayName": "Green Wash", "canonical": "#eaf6ef", "tonalRamp": ["#09291b", "#0f4029", "#155739", "#1b6c47", "#278c5e", "#4fb283", "#98d5b4", "#eaf6ef"] },
+      "success-line": { "role": "tertiary", "displayName": "Green Hairline", "canonical": "#c3e5d2", "tonalRamp": ["#092a1c", "#10412a", "#16583a", "#1d6d48", "#2a8c5f", "#54b287", "#c3e5d2", "#eaf6ef"] },
+      "notice": { "role": "tertiary", "displayName": "Amber Wait", "canonical": "#8a5a10", "tonalRamp": ["#2d1c04", "#452b07", "#5e3b0a", "#744a0d", "#8a5a10", "#b57a26", "#d9a95f", "#f5e0b8"] },
+      "notice-soft": { "role": "tertiary", "displayName": "Amber Wash", "canonical": "#fdf3e3", "tonalRamp": ["#2f1e04", "#472d07", "#603d0b", "#794e0e", "#9c6a1c", "#c69542", "#e6c586", "#fdf3e3"] },
+      "notice-line": { "role": "tertiary", "displayName": "Amber Hairline", "canonical": "#f0dcb8", "tonalRamp": ["#2e1d04", "#462c07", "#5f3c0a", "#774d0e", "#99691b", "#c39340", "#f0dcb8", "#fdf3e3"] }
+    },
+    "typographyMeta": {
+      "title": { "displayName": "Title", "purpose": "Screen title in the page header; once per authenticated screen." },
+      "headline": { "displayName": "Headline", "purpose": "The single heading on screens without a page header: signed-out screens and not-found." },
+      "subtitle": { "displayName": "Subtitle", "purpose": "Empty-state heading. The only 16px text in the system." },
+      "body": { "displayName": "Body", "purpose": "Almost everything: form values, list rows, descriptions, alert text." },
+      "label": { "displayName": "Label", "purpose": "Field labels, button text, in-screen section headings, active navigation." },
+      "meta": { "displayName": "Meta", "purpose": "Badge text and non-essential row metadata. Never required reading." },
+      "wordmark": { "displayName": "Wordmark", "purpose": "The word KAIROS beside the monogram. The only tracked-out uppercase text, brand component only." }
+    },
+    "shadows": [
+      { "name": "float", "value": "0 8px 24px -6px rgb(31 27 36 / 0.14), 0 2px 6px -2px rgb(31 27 36 / 0.08)", "purpose": "The only shadow in the system. Menus, dialogs and layers that overlay content they do not belong to. Cast in ink violet, never black." }
+    ],
+    "motion": [
+      { "name": "enter", "value": "240ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "The single entrance gesture: a 4px rise from 0.4 opacity. Exponential ease-out, no overshoot." },
+      { "name": "state", "value": "150ms (color transitions only)", "purpose": "Hover, focus and disabled state changes on buttons, inputs, rows and nav items. Color only; nothing moves." },
+      { "name": "reduced-motion", "value": "0.01ms", "purpose": "All animation and transition duration collapses under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "floor", "value": "360px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single committing action on a screen. 44px tall, accent violet, color-only hover.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Ingresar</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: none; border-radius: var(--radius-control, 0.5rem); font-family: Figtree, ui-sans-serif, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms, color 150ms, border-color 150ms; } .ds-btn-primary { background: var(--color-accent, #4b34e0); color: #ffffff; } .ds-btn-primary:hover { background: var(--color-accent-hover, #3d28c4); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-accent, #4b34e0); outline-offset: 2px; border-radius: 0.25rem; } .ds-btn-primary:disabled { background: rgb(75 52 224 / 0.45); cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Row-level and dismissive actions. Panel white on a strong hairline; hover sinks to the tinted fill.",
+      "html": "<button class=\"ds-btn ds-btn-secondary\">Desactivar</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: var(--radius-control, 0.5rem); font-family: Figtree, ui-sans-serif, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms, color 150ms, border-color 150ms; } .ds-btn-secondary { background: var(--color-surface, #ffffff); color: var(--color-ink, #1f1b24); border: 1px solid var(--color-line-strong, #d3cedd); } .ds-btn-secondary:hover { background: var(--color-sunken, #f5f3f8); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-accent, #4b34e0); outline-offset: 2px; border-radius: 0.25rem; } .ds-btn-secondary:disabled { color: var(--color-ink-faint, #948d99); cursor: not-allowed; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Tertiary action such as retry. No fill at rest; 36px tall, rising to 44px on any coarse pointer.",
+      "html": "<button class=\"ds-btn-ghost\">Volver a probar</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 12px; background: transparent; border: none; border-radius: var(--radius-control, 0.5rem); color: var(--color-ink-muted, #6b6470); font-family: Figtree, ui-sans-serif, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 150ms, color 150ms; } @media (any-pointer: coarse) { .ds-btn-ghost { min-height: 44px; } } .ds-btn-ghost:hover { background: var(--color-sunken, #f5f3f8); color: var(--color-ink, #1f1b24); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--color-accent, #4b34e0); outline-offset: 2px; border-radius: 0.25rem; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label, native control and a single message line. The error replaces the hint; it never stacks.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-email\">Correo</label><input class=\"ds-input\" id=\"ds-email\" type=\"email\" placeholder=\"tucorreo@ejemplo.com\"><p class=\"ds-field-hint\">Te llegará el enlace de un solo uso.</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: Figtree, ui-sans-serif, sans-serif; max-width: 380px; } .ds-field-label { font-size: 14px; font-weight: 500; color: var(--color-ink, #1f1b24); } .ds-input { width: 100%; min-height: 44px; padding: 8px 12px; background: var(--color-surface, #ffffff); border: 1px solid var(--color-line-strong, #d3cedd); border-radius: var(--radius-control, 0.5rem); font-family: inherit; font-size: 14px; color: var(--color-ink, #1f1b24); caret-color: var(--color-accent, #4b34e0); transition: border-color 150ms; } .ds-input::placeholder { color: var(--color-ink-placeholder, #746c7c); } .ds-input:hover { border-color: var(--color-ink-faint, #948d99); } .ds-input:focus-visible { outline: 2px solid var(--color-accent, #4b34e0); outline-offset: 2px; } .ds-input[aria-invalid=\"true\"] { border-color: var(--color-danger, #c2255c); } .ds-input:disabled { background: var(--color-sunken, #f5f3f8); color: var(--color-ink-muted, #6b6470); cursor: not-allowed; } .ds-field-hint { font-size: 14px; color: var(--color-ink-muted, #6b6470); margin: 0; }"
+    },
+    {
+      "name": "Select",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "The native select with the OS triangle turned off and a 1.75-stroke chevron drawn in its place.",
+      "html": "<select class=\"ds-input ds-select\"><option>Todos</option><option>Activos</option><option>Desactivados</option></select>",
+      "css": ".ds-input { width: 100%; min-height: 44px; padding: 8px 12px; background: var(--color-surface, #ffffff); border: 1px solid var(--color-line-strong, #d3cedd); border-radius: var(--radius-control, 0.5rem); font-family: Figtree, ui-sans-serif, sans-serif; font-size: 14px; color: var(--color-ink, #1f1b24); transition: border-color 150ms; } .ds-select { appearance: none; padding-right: 36px; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6470' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 12px center; } .ds-select:hover { border-color: var(--color-ink-faint, #948d99); } .ds-select:focus-visible { outline: 2px solid var(--color-accent, #4b34e0); outline-offset: 2px; } .ds-select:disabled { background-color: var(--color-sunken, #f5f3f8); color: var(--color-ink-muted, #6b6470); background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23948d99' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\"); cursor: not-allowed; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-success",
+      "description": "Pill on a tinted wash with a matching hairline. Always carries a word; color never signals alone.",
+      "html": "<span class=\"ds-badge ds-badge-success\">Activo</span> <span class=\"ds-badge ds-badge-neutral\">Desactivado</span> <span class=\"ds-badge ds-badge-danger\">Sin respuesta</span> <span class=\"ds-badge ds-badge-notice\">Comprobando</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 2px 10px; border: 1px solid; border-radius: 9999px; font-family: Figtree, ui-sans-serif, sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; } .ds-badge-neutral { background: var(--color-sunken, #f5f3f8); color: var(--color-ink-muted, #6b6470); border-color: var(--color-line, #e7e4ee); } .ds-badge-success { background: var(--color-success-soft, #eaf6ef); color: var(--color-success, #1f7a4d); border-color: var(--color-success-line, #c3e5d2); } .ds-badge-danger { background: var(--color-danger-soft, #fdeef3); color: var(--color-danger, #c2255c); border-color: var(--color-danger-line, #f6ccdb); } .ds-badge-notice { background: var(--color-notice-soft, #fdf3e3); color: var(--color-notice, #8a5a10); border-color: var(--color-notice-line, #f0dcb8); }"
+    },
+    {
+      "name": "Inline Alert",
+      "kind": "custom",
+      "refersTo": "alert-error",
+      "description": "Block-level message above or inside a form. Tinted wash, matching hairline, saturated text.",
+      "html": "<div class=\"ds-alert ds-alert-error\" role=\"alert\">Correo o contraseña incorrectos.</div><div class=\"ds-alert ds-alert-notice\" role=\"status\">Tu sesión terminó. Ingresa de nuevo para continuar.</div>",
+      "css": ".ds-alert { border: 1px solid; border-radius: var(--radius-control, 0.5rem); padding: 12px 14px; margin-bottom: 12px; font-family: Figtree, ui-sans-serif, sans-serif; font-size: 14px; line-height: 1.625; } .ds-alert-error { background: var(--color-danger-soft, #fdeef3); color: var(--color-danger, #c2255c); border-color: var(--color-danger-line, #f6ccdb); } .ds-alert-notice { background: var(--color-notice-soft, #fdf3e3); color: var(--color-notice, #8a5a10); border-color: var(--color-notice-line, #f0dcb8); } .ds-alert-info { background: var(--color-accent-soft, #efecfd); color: var(--color-accent, #4b34e0); border-color: var(--color-accent-line, #d9d2fa); } .ds-alert-success { background: var(--color-success-soft, #eaf6ef); color: var(--color-success, #1f7a4d); border-color: var(--color-success-line, #c3e5d2); }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Panel-white rail, 240px, right hairline. Items are 44px tall; the active one takes the violet wash.",
+      "html": "<nav class=\"ds-nav\"><ul class=\"ds-nav-list\"><li><a class=\"ds-nav-item ds-nav-item-active\" href=\"#\">Inicio</a></li><li><a class=\"ds-nav-item\" href=\"#\">Usuarios</a></li><li><a class=\"ds-nav-item\" href=\"#\">Invitaciones</a></li></ul></nav>",
+      "css": ".ds-nav { width: 240px; background: var(--color-surface, #ffffff); border-right: 1px solid var(--color-line, #e7e4ee); padding: 12px; font-family: Figtree, ui-sans-serif, sans-serif; } .ds-nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; } .ds-nav-item { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: var(--radius-control, 0.5rem); font-size: 14px; color: var(--color-ink-muted, #6b6470); text-decoration: none; transition: background-color 150ms, color 150ms; } .ds-nav-item:hover { background: var(--color-sunken, #f5f3f8); color: var(--color-ink, #1f1b24); } .ds-nav-item-active { background: var(--color-accent-soft, #efecfd); color: var(--color-accent, #4b34e0); font-weight: 500; } .ds-nav-item:focus-visible { outline: 2px solid var(--color-accent, #4b34e0); outline-offset: 2px; border-radius: 0.25rem; }"
+    },
+    {
+      "name": "List Row",
+      "kind": "card",
+      "refersTo": "list-row-hover",
+      "description": "The collection pattern. Hover bleeds 12px outward on the row; the hairline stays on the inner wrapper so it aligns with section rules.",
+      "html": "<ul class=\"ds-rows\"><li class=\"ds-row\"><div class=\"ds-row-inner\"><div class=\"ds-row-id\"><p class=\"ds-row-name\">Ana María Restrepo</p><p class=\"ds-row-sub\">ana.restrepo@ejemplo.com</p><p class=\"ds-row-meta\">Se unió el 12 ago 2026</p></div><span class=\"ds-badge-success\">Activo</span></div></li></ul>",
+      "css": ".ds-rows { list-style: none; margin: 0; padding: 0; font-family: Figtree, ui-sans-serif, sans-serif; border-top: 1px solid var(--color-line, #e7e4ee); } .ds-row { margin: 0 -12px; padding: 0 12px; border-radius: var(--radius-control, 0.5rem); transition: background-color 150ms; } .ds-row:hover { background: var(--color-sunken, #f5f3f8); } .ds-row-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 0; border-bottom: 1px solid var(--color-line, #e7e4ee); } .ds-row-name { margin: 0; font-size: 14px; font-weight: 500; color: var(--color-ink, #1f1b24); } .ds-row-sub { margin: 0; font-size: 14px; color: var(--color-ink-muted, #6b6470); } .ds-row-meta { margin: 4px 0 0; font-size: 12px; color: var(--color-ink-muted, #6b6470); } .ds-badge-success { display: inline-flex; align-items: center; padding: 2px 10px; border: 1px solid var(--color-success-line, #c3e5d2); border-radius: 9999px; background: var(--color-success-soft, #eaf6ef); color: var(--color-success, #1f7a4d); font-size: 12px; font-weight: 500; }"
+    },
+    {
+      "name": "Cold-Start Band",
+      "kind": "custom",
+      "refersTo": "alert-notice",
+      "description": "Signature component. Appears when a request passes 3 seconds; pushes content down instead of covering it and stays pinned for the whole wait.",
+      "html": "<div class=\"ds-coldstart\" role=\"status\" aria-live=\"polite\"><svg class=\"ds-spin\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\" stroke=\"currentColor\" stroke-width=\"2.5\" opacity=\"0.25\"/><path d=\"M21 12a9 9 0 0 0-9-9\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg><span>Despertando el servidor… la primera carga del día tarda un poco.</span></div>",
+      "css": ".ds-coldstart { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; background: var(--color-notice-soft, #fdf3e3); border-bottom: 1px solid var(--color-notice-line, #f0dcb8); color: var(--color-notice, #8a5a10); font-family: Figtree, ui-sans-serif, sans-serif; font-size: 14px; animation: ds-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both; } .ds-spin { animation: ds-rotate 1s linear infinite; flex-shrink: 0; } @keyframes ds-enter { from { opacity: 0.4; transform: translateY(4px); } to { opacity: 1; transform: none; } } @keyframes ds-rotate { to { transform: rotate(360deg); } }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": "input",
+      "description": "Names what is missing, says why it is empty, and offers the action that fills it when one exists. No illustration.",
+      "html": "<div class=\"ds-empty\"><p class=\"ds-empty-title\">Ningún usuario coincide</p><p class=\"ds-empty-body\">Prueba con otro término o quita los filtros.</p><button class=\"ds-empty-action\">Quitar los filtros</button></div>",
+      "css": ".ds-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 48px 20px; font-family: Figtree, ui-sans-serif, sans-serif; } .ds-empty-title { margin: 0; font-size: 16px; font-weight: 500; color: var(--color-ink, #1f1b24); } .ds-empty-body { margin: 0; max-width: 28rem; font-size: 14px; line-height: 1.625; color: var(--color-ink-muted, #6b6470); } .ds-empty-action { margin-top: 12px; min-height: 44px; padding: 0 16px; background: var(--color-surface, #ffffff); border: 1px solid var(--color-line-strong, #d3cedd); border-radius: var(--radius-control, 0.5rem); font-family: inherit; font-size: 14px; font-weight: 500; color: var(--color-ink, #1f1b24); cursor: pointer; transition: background-color 150ms; } .ds-empty-action:hover { background: var(--color-sunken, #f5f3f8); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Desk",
+    "overview": "KAIROS is the category standard played straight, without irony and without a metaphor world. It owns calm: there is nothing to learn before you can work. The finish bar is Notion — generous air, friendly type, low density, no ornament competing with content. A student who opens this on a phone between classes should find the answer to \"what do I owe and when\" without decoding anything.\n\nThe surface is a near-white violet-tinted paper (ground), and structure is drawn with hairline rules rather than shadows. There is exactly one accent — the violet end of the brand mark — and exactly one alarm color, a carmine-shifted magenta reserved for destruction and errors. Everything neutral is tinted toward that violet, so the whole app reads as one family instead of a template with a brand color dropped in. The type is a single family, Figtree, in a compressed ramp: the interface says almost everything at 14px and earns attention with weight and space, not size.\n\nDepth is spent, not sprinkled. One shadow token exists and it belongs to things that genuinely float above content. Everything else — panels, list rows, active navigation, the cold-start band — separates with a hairline or a tonal shift.",
+    "keyCharacteristics": [
+      "Violet-tinted neutrals; never a pure gray, never a warm cream",
+      "Hairline borders in place of shadows; one shadow token, for floating layers only",
+      "One accent (violet), one alarm (carmine-magenta), one green, one amber",
+      "Single type family, compressed ramp, tabular numerals everywhere",
+      "44px touch targets gated on any-pointer-coarse, from 360px up",
+      "One motion gesture: a 240ms rise with exponential ease-out, no bounce"
+    ],
+    "rules": [
+      { "name": "The Tinted Neutral Rule", "body": "Every neutral is violet-tinted — blue is the highest channel in each. No pure black, no pure gray, and no warm cream: a neutral whose red channel leads has left the system, however small the drift.", "section": "colors" },
+      { "name": "The Gradient Stays In The Mark Rule", "body": "The blue-to-magenta gradient exists only inside the logo raster. No UI surface reproduces it. In the interface the two ends of the mark appear as separate flat colors: violet for the accent, carmine for the destructive.", "section": "colors" },
+      { "name": "The Placeholder Ink Rule", "body": "Placeholder text uses ink-placeholder, never ink-faint. ink-faint is disabled-only; a placeholder set in it reads as a dead field.", "section": "colors" },
+      { "name": "The Color Is Never Alone Rule", "body": "Every tone carries the words that say what happened. Badges and alerts always contain text; hue confirms the message, it is never the message.", "section": "colors" },
+      { "name": "The One Family Rule", "body": "Figtree ships with the app and does every job; the operating system's default face never appears. No Inter, no Arial, no system stack in a component class.", "section": "typography" },
+      { "name": "The Fourteen-Pixel Floor Rule", "body": "Body text is 14px. The 12px step is for badges and non-essential metadata only; nothing a user must read to complete a task drops below 14px.", "section": "typography" },
+      { "name": "The Weight-Not-Size Rule", "body": "The ramp has four steps across 12–24px. Emphasis is bought with weight (500/600) and whitespace, never by inventing a new size.", "section": "typography" },
+      { "name": "The Any-Pointer Rule", "body": "Touch sizing is gated on any-pointer-coarse:, never pointer-coarse:. A touchscreen laptop reports a fine primary pointer and would keep the 36px control while a finger is aiming at it.", "section": "layout" },
+      { "name": "The Single Column Rule", "body": "One centered column per screen with an explicit max width. No two-column content layouts, no sidebars inside the content region.", "section": "layout" },
+      { "name": "The Hairline Before Shadow Rule", "body": "If a thing sits in the page, it separates with line. If it sits over the page, it gets the float shadow. There is no third option and no second shadow value.", "section": "elevation" },
+      { "name": "The Ink-Tinted Shadow Rule", "body": "Shadows are cast in the ink violet (rgb(31 27 36 / …)), never in black. A pure-black shadow on violet paper reads as dirt.", "section": "elevation" },
+      { "name": "The Two Radii Rule", "body": "8px for controls, 12px for panels, full round for badges. A new radius value is a new system, not a new component.", "section": "shapes" },
+      { "name": "The No Bounce Rule", "body": "Easing is exponential ease-out. Nothing overshoots and nothing springs back.", "section": "shapes" },
+      { "name": "The Drawn Chevron Rule", "body": "Every select carries .ui-select: the OS triangle is turned off and a 1.75-stroke chevron is drawn in its place, with a second rule for the disabled state. Because a data URI cannot read a custom property, the chevron color is written as a literal hex in those two rules — the one sanctioned color duplication in the system. If ink-muted or ink-faint change, those two hexes change with them.", "section": "components" },
+      { "name": "The Row Bleed Rule", "body": "Hover bleeds, rules do not. The hover surface goes on the outer row with -mx-3 px-3; the hairline goes on the inner wrapper. Swapping them makes the row rule overshoot the section rule, which is visible and wrong.", "section": "components" },
+      { "name": "The Native Element Rule", "body": "Form controls are styled by a directive on the native element, never wrapped in a component that replaces it. Type, autocomplete and keyboard behavior belong to the user, not to us.", "section": "components" }
+    ],
+    "dos": [
+      "Do build new screens from the existing primitives — button, input directive plus field, alert, badge, page header, empty state, spinner. A new one-off control is a system change, not a screen detail.",
+      "Do keep every neutral violet-tinted, with blue as the highest channel.",
+      "Do separate structure with line hairlines and reserve the float shadow for layers that overlay content.",
+      "Do gate touch sizing on any-pointer-coarse: and hold 44×44px.",
+      "Do carry the row pattern exactly: hover bleeds via -mx-3 px-3, hairline on the inner wrapper.",
+      "Do render dates through the Bogotá date pipe and leave tabular numerals in force so columns of numbers align.",
+      "Do write user-facing text in Spanish and code identifiers in English.",
+      "Do pair every colored state with the words that explain it.",
+      "Do let the global :focus-visible ring be the only focus treatment."
+    ],
+    "donts": [
+      "Don't introduce a second accent, a second green, or any hue outside accent / danger / success / notice.",
+      "Don't reproduce the logo's blue-to-magenta gradient on any UI surface — or any gradient, on any surface.",
+      "Don't use ink-faint for text a user has to read; it is disabled-only, and placeholders have their own token.",
+      "Don't put a card inside a card, or wrap a signed-out form in a floating panel; the flat 380px column is the pattern.",
+      "Don't add a second shadow value, or a hard offset shadow.",
+      "Don't ship a select with the operating system's triangle, or an icon from a glyph font; icons are inline SVG at 1.75 stroke.",
+      "Don't use bouncy, elastic or overshooting easing, or animate outside the 240ms rise and 150ms color-transition vocabulary.",
+      "Don't invent a radius, a font size, or a spacing step outside the recorded scales.",
+      "Don't set gray text on a colored background, and never use a pure black or gray.",
+      "Don't link to a destination that does not exist yet."
+    ]
+  }
+}

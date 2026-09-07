@@ -140,8 +140,9 @@ const STATUS_TONES: Record<InvitationStatus, BadgeTone> = {
             <label for="filtro-estado" class="shrink-0 text-sm text-ink-muted">Estado</label>
             <select
               uiInput
+              [compact]="true"
               id="filtro-estado"
-              class="!w-44"
+              class="w-44"
               [ngModel]="statusFilter()"
               (ngModelChange)="onStatusChange($event)"
             >
