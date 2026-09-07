@@ -68,6 +68,11 @@ class UsersService:
     async def get_by_id(self, user_id: uuid.UUID) -> User | None:
         return await self.repo.get_by_id(user_id)
 
+    async def get_many(self, user_ids: list[uuid.UUID]) -> dict[uuid.UUID, User]:
+        """Batch lookup keyed by id, so other modules can decorate their rows
+        with names without importing the users repository."""
+        return {user.id: user for user in await self.repo.get_many(user_ids)}
+
     async def touch_last_login(self, user: User, *, when: datetime) -> None:
         """Record a successful login. Flushes; the caller commits."""
         user.last_login_at = when

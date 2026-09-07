@@ -121,6 +121,14 @@ En una sola transacción: crea el proyecto, genera los tres roles predeterminado
 
 ---
 
+`task_counts` devuelve los cinco estados en cero hasta que exista el módulo de tareas (Fase 3). La forma es parte del contrato desde ahora para que el frontend no cambie cuando se llene.
+
+Un proyecto **archivado** sigue respondiendo a las lecturas (`task.view`), tal como manda RF-18: solo se rechazan las escrituras, con `409 PROJECT_ARCHIVED`. La única escritura que se permite es desarchivar. Archivar un proyecto ya archivado, o desarchivar uno activo, devuelve `409`.
+
+El rol global `ADMIN` que **no** es miembro de un proyecto obtiene `task.view`, `member.add` y `role.assign`: lectura universal para supervisar (RN-01) más lo justo para reasignar el liderazgo, que RN-14 le garantiza siempre. No obtiene ningún permiso de trabajo sobre tareas.
+
+---
+
 ## 4. Miembros y roles de proyecto
 
 | Método | Ruta | Requisito |

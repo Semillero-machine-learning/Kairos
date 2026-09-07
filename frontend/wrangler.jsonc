@@ -1,0 +1,28 @@
+{
+  // Worker de assets estáticos que sirve el build de Angular.
+  //
+  // Cloudflare dejó de crear proyectos de Pages desde la interfaz: todo lo nuevo
+  // nace como Worker. Para un SPA da lo mismo, siempre que el Worker no tenga
+  // script propio —sin `main`— y se limite a servir la carpeta del build.
+  //
+  // `name` DEBE coincidir con el nombre del Worker que ya existe en el panel.
+  // Si no coincide, el despliegue crea un Worker nuevo y el dominio se queda
+  // colgado del viejo, que es justo el «Hello world» actual.
+  //
+  // Es el nombre del Worker, no el del dominio: el panel muestra
+  // app.kairospartners.uk como título, pero eso es el dominio conectado. Los
+  // nombres de Worker tampoco admiten puntos.
+  "name": "kairos",
+
+  "compatibility_date": "2026-09-07",
+
+  "assets": {
+    // Relativa a este archivo. `ng build` escribe en dist/<proyecto>/browser.
+    "directory": "./dist/frontend/browser",
+
+    // Las rutas son del lado del cliente: cualquier ruta que no case con un
+    // archivo devuelve index.html con 200, no 404. Sin esto, abrir directamente
+    // el /invitacion/{token} que manda el backend por correo daría 404.
+    "not_found_handling": "single-page-application"
+  }
+}

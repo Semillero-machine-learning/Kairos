@@ -103,6 +103,20 @@ def make_user(db: AsyncSession):
 
 
 @pytest_asyncio.fixture
+def auth_header(client):
+    """Log a user in and return the Authorization header for them."""
+
+    async def _header(email: str, password: str = "unaClaveLarga123") -> dict[str, str]:
+        response = await client.post(
+            "/api/v1/auth/login", json={"email": email, "password": password}
+        )
+        assert response.status_code == 200, response.text
+        return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+    return _header
+
+
+@pytest_asyncio.fixture
 async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     """HTTP client whose get_db dependency is bound to the rolled-back session."""
     from app.core.database import get_db
