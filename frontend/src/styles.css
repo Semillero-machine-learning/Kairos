@@ -134,13 +134,25 @@
    * luego delega la flecha al sistema operativo delata que la pantalla se
    * ensambló en vez de construirse. El triángulo nativo se apaga y se dibuja
    * uno con el mismo grosor de trazo que el resto de los iconos.
+   *
+   * Un data URI no puede leer una propiedad personalizada, así que el color va
+   * escrito dentro del SVG. Son dos reglas y no una para que un `select`
+   * deshabilitado no conserve la flecha a plena intensidad. Si cambian
+   * `--color-ink-muted` o `--color-ink-faint`, estos dos hexadecimales se
+   * cambian con ellos: es el único sitio del sistema donde un color se repite.
    */
   .ui-select {
     appearance: none;
     padding-right: 2.25rem;
+    /* stroke = --color-ink-muted (#6b6470) */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6470' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
+  }
+
+  .ui-select:disabled {
+    /* stroke = --color-ink-faint (#948d99) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23948d99' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   }
 
   /*

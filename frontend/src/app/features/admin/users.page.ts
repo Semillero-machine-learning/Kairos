@@ -123,8 +123,9 @@ const PAGE_SIZE = 20;
           <ul>
             @for (user of users(); track user.id) {
               <li
-                class="-mx-3 grid grid-cols-1 gap-3 rounded-[var(--radius-control)] border-b border-line px-3 py-4 transition-colors hover:bg-sunken sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+                class="-mx-3 rounded-[var(--radius-control)] px-3 transition-colors hover:bg-sunken"
               >
+                <div class="grid grid-cols-1 gap-3 border-b border-line py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-medium text-ink">
                     {{ user.full_name }}
@@ -151,7 +152,7 @@ const PAGE_SIZE = 20;
                   <select
                     uiInput
                     [id]="'rol-' + user.id"
-                    class="!w-auto !min-h-9 pointer-coarse:!min-h-11 !py-1 text-sm"
+                    class="!w-auto !min-h-9 any-pointer-coarse:!min-h-11 !py-1 text-sm"
                     [ngModel]="user.global_role"
                     [disabled]="busyId() === user.id"
                     (ngModelChange)="changeRole(user, $event)"
@@ -169,6 +170,7 @@ const PAGE_SIZE = 20;
                   >
                     {{ user.status === 'ACTIVE' ? 'Desactivar' : 'Activar' }}
                   </ui-button>
+                </div>
                 </div>
               </li>
             }

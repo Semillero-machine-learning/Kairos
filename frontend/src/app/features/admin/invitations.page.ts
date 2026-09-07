@@ -179,7 +179,7 @@ const STATUS_TONES: Record<InvitationStatus, BadgeTone> = {
             <ul>
               @for (invitation of invitations(); track invitation.id) {
                 <li
-                  class="-mx-3 grid grid-cols-1 gap-3 rounded-[var(--radius-control)] border-b border-line px-3 py-4 transition-colors hover:bg-sunken sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+                  class="-mx-3 rounded-[var(--radius-control)] px-3 transition-colors hover:bg-sunken"
                 >
                   <div class="min-w-0">
                     <p class="truncate text-sm font-medium text-ink">{{ invitation.email }}</p>
