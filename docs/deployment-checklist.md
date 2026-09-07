@@ -58,8 +58,24 @@ El orden importa: la base de datos y el dominio son prerrequisitos del resto.
 
 ## 5. Cloudflare Pages (frontend)
 
-Se conecta cuando exista el frontend (Fase 1 en adelante). Compilación estática,
-dominio `app.kairospartners.uk`.
+1. Conecta el repositorio y configura la compilación:
+
+   | Ajuste | Valor |
+   |---|---|
+   | Directorio raíz | `frontend` |
+   | Comando de compilación | `npm install && npm run build` |
+   | Directorio de salida | `dist/frontend/browser` |
+   | Versión de Node | 22.12 o superior (variable `NODE_VERSION`) |
+
+2. El `frontend/.npmrc` fija `legacy-peer-deps=true`. No lo quites: npm 10.9.4
+   falla al resolver el conjunto de pares de vitest con
+   `Cannot read properties of null (reading 'edgesOut')`.
+3. El `frontend/public/_redirects` reescribe todo a `index.html`. Sin él,
+   abrir directamente el `/invitacion/{token}` que llega por correo daría 404.
+4. Añade el dominio `app.kairospartners.uk`.
+5. El origen del backend está fijado en `frontend/src/environments/environment.ts`
+   (`https://api.kairospartners.uk`). Si el dominio de la API cambia, se cambia
+   ahí y se vuelve a compilar: no es una variable de entorno del despliegue.
 
 ## 6. Proceso programado (GitHub Actions)
 
