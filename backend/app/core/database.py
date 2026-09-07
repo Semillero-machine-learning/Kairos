@@ -17,6 +17,11 @@ NullPool is the right choice for ephemeral, per-invocation runtimes such as edge
 or serverless functions. This is a long-lived uvicorn process, where it is the
 wrong one. The pool is deliberately small: one Render instance holds at most ten
 client slots on the pooler.
+
+Those measurements were taken with the API in Oregon and the database in São
+Paulo. Both now live in us-east-1, which shrinks every figure above by roughly
+two orders of magnitude — but the shape of the argument is unchanged, and the
+pool still saves a handshake on every request.
 """
 
 from collections.abc import AsyncGenerator
@@ -42,14 +47,16 @@ engine = create_async_engine(
     _settings.database_url,
     pool_size=5,
     max_overflow=5,
-    # Recycled well before the pooler drops an idle client, which is what
-    # pool_pre_ping would otherwise have to detect.
-    pool_recycle=180,
-    # Off on purpose: a pre-ping is a full round trip, and with the API in
-    # Oregon and the database in São Paulo that costs ~650 ms on every single
-    # request — more than the query it protects. Turn it back on (and raise
-    # pool_recycle) once both live in the same region, where it costs ~2 ms.
-    pool_pre_ping=False,
+    # Half an hour: long enough that recycling is rare, short enough to stay
+    # well inside any idle timeout the pooler enforces.
+    pool_recycle=1800,
+    # A pre-ping is one round trip to the database. It was off while the API ran
+    # in Oregon and the database in São Paulo, where that cost ~650 ms per
+    # request — more than the query it was protecting. Both now live in
+    # us-east-1, so it costs single-digit milliseconds and is worth having: it
+    # turns a connection the pooler closed underneath us into a transparent
+    # reconnect instead of a 500 for whoever made that request.
+    pool_pre_ping=True,
     connect_args={"statement_cache_size": 0},
     echo=False,
 )

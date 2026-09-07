@@ -148,9 +148,9 @@ importa, porque el servicio nuevo necesita la base nueva.
    Este es el paso que se olvida y deja la API inalcanzable.
 6. **Verifica** `https://api.kairospartners.uk/health` y que
    `/api/v1/permissions` devuelva 401 y no 404.
-7. **Reactiva el pre-ping.** En `backend/app/core/database.py`, pon
+7. **Reactiva el pre-ping.** Hecho: `backend/app/core/database.py` ya lleva
    `pool_pre_ping=True` y `pool_recycle=1800`. Estaba apagado porque un viaje de
-   ida y vuelta costaba ~650 ms; en la misma región cuesta ~2 ms y sí compensa.
+   ida y vuelta costaba ~650 ms; en la misma región cuesta milisegundos.
 8. **Pausa el proyecto viejo de Supabase** en vez de borrarlo. Los proyectos
    pausados no cuentan para el límite del plan gratuito, y te deja marcha atrás
    durante unos días.
