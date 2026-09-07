@@ -12,9 +12,12 @@ contraseña— y sobre él, el sistema de autorización: proyectos con sus tres 
 predeterminados, roles a la medida con selección libre del catálogo de 14 permisos,
 gestión de miembros y archivado de solo lectura. Los permisos se resuelven en cada
 petición y nunca viajan dentro del token, así que un cambio de rol surte efecto de
-inmediato (RN-22). La base de datos de Supabase está migrada y el primer administrador
-creado. Falta desplegar en Render y Cloudflare Pages, y verificar el dominio en Resend:
-hasta entonces los correos se registran en el log en vez de enviarse.
+inmediato (RN-22).
+
+**Desplegado y funcionando** en `https://app.kairospartners.uk` (Cloudflare Workers) contra
+`https://api.kairospartners.uk` (Render), con la base de datos de Supabase migrada y el
+primer administrador creado. El dominio de envío está verificado en Resend, con SPF, DKIM
+y DMARC publicados.
 
 Lo siguiente es la **Fase 3** (tareas): el tablero Kanban y la máquina de estados. Las
 fases 3 y 6 se pueden repartir en paralelo.

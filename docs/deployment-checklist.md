@@ -104,8 +104,17 @@ secretos `API_URL` y `JOB_TOKEN` en el repositorio.
 
 ---
 
-## Cierre de la Fase 0
+## Cierre de la Fase 0 — verificado
 
 El frontend desplegado consulta `GET /health` del backend desplegado y muestra
 el resultado. Verifícalo abriendo `https://api.kairospartners.uk/health`, que
 debe responder `{"status":"ok"}`.
+
+Comprobado el 7 de septiembre de 2026: `app.kairospartners.uk` sirve el SPA con
+los enlaces profundos funcionando, `api.kairospartners.uk` responde con
+certificado válido, y el CORS acepta el origen del frontend.
+
+**Si el dominio no te resuelve desde una red institucional**, no es un fallo del
+despliegue: algunos cortafuegos —Palo Alto entre ellos— sinkholean dominios
+recién registrados. Compruébalo con `nslookup api.kairospartners.uk`; si
+responde algo terminado en `sinkhole`, es la red. Usa datos móviles.
