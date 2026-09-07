@@ -13,9 +13,9 @@ interface NavItem {
 /**
  * Armazón de la aplicación autenticada.
  *
- * Solo se listan destinos que existen. Las fases siguientes (proyectos,
- * tareas, lecciones) agregan los suyos aquí cuando se construyan; poner
- * enlaces a pantallas inexistentes sería mentirle al usuario.
+ * Solo se listan destinos que existen. Las fases siguientes (tareas,
+ * lecciones) agregan los suyos aquí cuando se construyan; poner enlaces a
+ * pantallas inexistentes sería mentirle al usuario.
  *
  * Adaptación (RNF-01): barra lateral fija desde 768 px; por debajo, barra
  * superior con menú desplegable, porque la lateral se come el ancho útil de un
@@ -124,6 +124,7 @@ export class AppShellComponent {
 
   private readonly nav: NavItem[] = [
     { path: '/inicio', label: 'Inicio', adminOnly: false },
+    { path: '/proyectos', label: 'Proyectos', adminOnly: false },
     { path: '/admin/usuarios', label: 'Usuarios', adminOnly: true },
     { path: '/admin/invitaciones', label: 'Invitaciones', adminOnly: true },
   ];

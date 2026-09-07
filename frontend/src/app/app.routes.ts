@@ -31,6 +31,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/dashboard/home.page').then((m) => m.HomePage),
       },
       {
+        path: 'proyectos',
+        loadChildren: () =>
+          import('./features/projects/projects.routes').then((m) => m.PROJECTS_ROUTES),
+      },
+      {
         path: 'perfil',
         title: 'Mi perfil · KAIROS',
         loadComponent: () => import('./features/profile/profile.page').then((m) => m.ProfilePage),

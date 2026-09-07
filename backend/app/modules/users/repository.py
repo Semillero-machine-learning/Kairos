@@ -19,6 +19,14 @@ class UsersRepository:
         result = await self.db.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
+    async def get_many(self, user_ids: list[uuid.UUID]) -> list[User]:
+        """Resolve a batch of users in one query, for lists that show names next
+        to ids (project members, role authors)."""
+        if not user_ids:
+            return []
+        result = await self.db.execute(select(User).where(User.id.in_(user_ids)))
+        return list(result.scalars().all())
+
     async def email_exists(self, email: str) -> bool:
         result = await self.db.execute(
             select(func.count()).select_from(User).where(User.email == email)

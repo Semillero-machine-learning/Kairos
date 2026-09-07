@@ -18,3 +18,8 @@ class GlobalRole(enum.StrEnum):
 class UserStatus(enum.StrEnum):
     ACTIVE = "ACTIVE"
     DISABLED = "DISABLED"
+
+
+class ProjectStatus(enum.StrEnum):
+    ACTIVE = "ACTIVE"
+    ARCHIVED = "ARCHIVED"
