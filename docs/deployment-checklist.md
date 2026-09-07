@@ -83,10 +83,14 @@ los archivos del build. La configuración vive en
 4. El `frontend/.npmrc` fija `legacy-peer-deps=true`. No lo quites: npm 10.9.4
    falla al resolver el conjunto de pares de vitest con
    `Cannot read properties of null (reading 'edgesOut')`.
-5. **Dominio:** en el Worker, **Settings → Domains & Routes → Add → Custom
+5. **No agregues un `public/_redirects`.** La reescritura del SPA ya la hace
+   `not_found_handling`. Un `/* /index.html 200` junto a ella hace fallar el
+   despliegue completo con `Infinite loop detected in this rule`, porque la
+   regla se aplica también a su propio destino.
+6. **Dominio:** en el Worker, **Settings → Domains & Routes → Add → Custom
    domain**, `app.kairospartners.uk`. Cloudflare crea el registro DNS solo; no
    hay que añadirlo a mano, y no es un CNAME visible en la zona.
-6. El origen del backend está fijado en `frontend/src/environments/environment.ts`
+7. El origen del backend está fijado en `frontend/src/environments/environment.ts`
    (`https://api.kairospartners.uk`). Si el dominio de la API cambia, se cambia
    ahí y se vuelve a compilar: no es una variable de entorno del despliegue.
 

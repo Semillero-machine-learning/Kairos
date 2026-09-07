@@ -23,6 +23,10 @@
     // Las rutas son del lado del cliente: cualquier ruta que no case con un
     // archivo devuelve index.html con 200, no 404. Sin esto, abrir directamente
     // el /invitacion/{token} que manda el backend por correo daría 404.
+    //
+    // Este es el ÚNICO mecanismo de reescritura. No añadas un public/_redirects
+    // con `/* /index.html 200`: Workers rechaza el despliegue entero porque la
+    // regla se dispara sobre su propio destino («Infinite loop detected»).
     "not_found_handling": "single-page-application"
   }
 }

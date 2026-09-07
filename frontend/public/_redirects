@@ -1,9 +1,0 @@
-# Respaldo de la reescritura del SPA.
-#
-# El mecanismo principal es `not_found_handling: "single-page-application"` en
-# frontend/wrangler.jsonc. Este archivo hace lo mismo y lo respetan tanto los
-# Workers con assets como Pages, así que se conserva por si el alojamiento
-# cambia: sin la reescritura, abrir directamente un enlace profundo —el
-# /invitacion/{token} que el backend manda por correo, o /restablecer/{token}—
-# daría 404.
-/*    /index.html   200
