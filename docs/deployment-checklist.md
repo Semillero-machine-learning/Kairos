@@ -96,6 +96,44 @@ los archivos del build. La configuración vive en
 
 ---
 
+## 5b. Igualar las regiones
+
+**La API y la base deben vivir en la misma región.** Con Render en Oregón y
+Supabase en São Paulo, cada consulta costaba ~350 ms y un endpoint que hace seis
+consultas seguidas superaba el segundo. En la misma región cuesta ~2 ms.
+
+El par correcto es **Render Virginia + Supabase `us-east-1` (Norte de Virginia)**.
+
+Ninguno de los dos permite cambiar de región en sitio: hay que recrear. El orden
+importa, porque el servicio nuevo necesita la base nueva.
+
+1. **Supabase.** Crea un proyecto en `us-east-1`. El plan gratuito admite dos
+   proyectos, así que puede convivir con el viejo. Copia la cadena del agrupador
+   (puerto 6543) y conviértela al formato de asyncpg.
+2. **Migra el esquema** apuntando el `.env` local a la base nueva:
+   `uv run alembic upgrade head`. Crea las 14 filas de `permissions` y la fila de
+   `notification_settings`.
+3. **Recrea los administradores:** `uv run python -m app.cli create_admin`. Las
+   contraseñas están cifradas y no se pueden trasladar; quien tenga cuenta
+   deberá recibir una invitación nueva o restablecer su contraseña.
+4. **Render.** Crea un servicio nuevo desde el mismo `render.yaml`, esta vez en
+   Virginia. Carga a mano `DATABASE_URL` (la nueva) y `RESEND_API_KEY`.
+   `JWT_SECRET` y `JOB_TOKEN` se regeneran solos: las sesiones abiertas mueren,
+   que con tres usuarios no es problema.
+5. **DNS.** El servicio nuevo tiene otro `onrender.com`. **Actualiza el CNAME de
+   `api` en Cloudflare** y vuelve a añadir el dominio personalizado en Render.
+   Este es el paso que se olvida y deja la API inalcanzable.
+6. **Verifica** `https://api.kairospartners.uk/health` y que
+   `/api/v1/permissions` devuelva 401 y no 404.
+7. **Reactiva el pre-ping.** En `backend/app/core/database.py`, pon
+   `pool_pre_ping=True` y `pool_recycle=1800`. Estaba apagado porque un viaje de
+   ida y vuelta costaba ~650 ms; en la misma región cuesta ~2 ms y sí compensa.
+8. **Pausa el proyecto viejo de Supabase** en vez de borrarlo. Los proyectos
+   pausados no cuentan para el límite del plan gratuito, y te deja marcha atrás
+   durante unos días.
+
+---
+
 ## 6. Proceso programado (GitHub Actions)
 
 Los flujos de recordatorios y de mantenimiento (`keepalive`) se añaden en la

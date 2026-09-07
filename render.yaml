@@ -5,7 +5,11 @@ services:
     name: kairos-api
     runtime: python
     plan: free
-    region: oregon
+    # Virginia, no Oregón: la base vive en us-east-1 (Norte de Virginia). Con la
+    # API en Oregón cada consulta cruzaba el hemisferio y costaba ~350 ms; en la
+    # misma región cuesta ~2 ms. Render no permite cambiar la región de un
+    # servicio existente, así que cambiar esto exige recrear el servicio.
+    region: virginia
     rootDir: backend
     buildCommand: "pip install uv && uv sync --no-dev"
     # Aplica migraciones en el arranque del despliegue y luego levanta la API.
