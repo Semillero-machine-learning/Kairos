@@ -151,7 +151,7 @@ const PAGE_SIZE = 20;
                   <select
                     uiInput
                     [id]="'rol-' + user.id"
-                    class="!w-auto !min-h-9 !py-1 text-sm"
+                    class="!w-auto !min-h-9 pointer-coarse:!min-h-11 !py-1 text-sm"
                     [ngModel]="user.global_role"
                     [disabled]="busyId() === user.id"
                     (ngModelChange)="changeRole(user, $event)"

@@ -30,7 +30,7 @@ type HealthState = 'checking' | 'up' | 'down';
 
       <section class="mt-8" aria-labelledby="estado-servidor">
         <h2 id="estado-servidor" class="text-sm font-medium text-ink">Estado del servidor</h2>
-        <div class="mt-3 flex flex-wrap items-center gap-3">
+        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
           @switch (health()) {
             @case ('checking') {
               <ui-badge tone="neutral">Comprobando…</ui-badge>
@@ -43,20 +43,32 @@ type HealthState = 'checking' | 'up' | 'down';
             }
           }
           <p class="text-sm text-ink-muted">
-            @if (health() === 'down') {
-              El servidor no respondió. Si acaba de despertar, vuelve a intentarlo en un momento.
-            } @else {
-              La base de datos responde a la sonda del servidor.
+            @switch (health()) {
+              @case ('checking') {
+                Preguntándole al servidor. Si estaba dormido, puede tardar.
+              }
+              @case ('up') {
+                La base de datos responde a la sonda del servidor.
+              }
+              @case ('down') {
+                No respondió. Si acaba de despertar, vuelve a intentarlo en un momento.
+              }
             }
           </p>
-          <ui-button variant="ghost" size="sm" (pressed)="checkHealth()">Volver a probar</ui-button>
+          <!-- El margen negativo compensa el relleno del botón, para que su
+               texto quede a plomo con el encabezado de la sección. -->
+          <div class="-ml-3">
+            <ui-button variant="ghost" size="sm" (pressed)="checkHealth()">
+              Volver a probar
+            </ui-button>
+          </div>
         </div>
       </section>
 
       @if (session.isAdmin()) {
         <section class="mt-10 border-t border-line pt-8" aria-labelledby="administracion">
           <h2 id="administracion" class="text-sm font-medium text-ink">Administración</h2>
-          <ul class="mt-3 flex flex-col gap-1">
+          <ul class="mt-3 -mx-3 flex flex-col gap-1">
             <li>
               <a
                 routerLink="/admin/usuarios"

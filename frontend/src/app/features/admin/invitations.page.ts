@@ -134,15 +134,14 @@ const STATUS_TONES: Record<InvitationStatus, BadgeTone> = {
 
       <!-- Lista -->
       <section class="mt-10 border-t border-line pt-8" aria-labelledby="listado">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 id="listado" class="text-sm font-medium text-ink">Invitaciones enviadas</h2>
-          <div class="sm:w-52">
-            <label for="filtro-estado" class="mb-1.5 block text-sm font-medium text-ink">
-              Estado
-            </label>
+          <div class="flex items-center gap-2.5">
+            <label for="filtro-estado" class="shrink-0 text-sm text-ink-muted">Estado</label>
             <select
               uiInput
               id="filtro-estado"
+              class="!w-44"
               [ngModel]="statusFilter()"
               (ngModelChange)="onStatusChange($event)"
             >

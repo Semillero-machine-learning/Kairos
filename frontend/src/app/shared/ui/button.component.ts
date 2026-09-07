@@ -14,9 +14,11 @@ const VARIANTS: Record<ButtonVariant, string> = {
 };
 
 const SIZES: Record<ButtonSize, string> = {
-  // 44 px de alto: el mínimo táctil de RNF-01.
+  // 44 px de alto es el mínimo táctil de RNF-01. El tamaño `sm` se queda en 36
+  // px con puntero fino, donde el ratón apunta bien, y sube a 44 en cuanto el
+  // dispositivo es táctil.
   md: 'min-h-11 px-4 text-sm',
-  sm: 'min-h-9 px-3 text-sm',
+  sm: 'min-h-9 pointer-coarse:min-h-11 px-3 text-sm',
 };
 
 @Component({
