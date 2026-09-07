@@ -56,26 +56,41 @@ El orden importa: la base de datos y el dominio son prerrequisitos del resto.
 4. `healthCheckPath` es `/health`.
 5. Añade el dominio `api.kairospartners.uk` en la configuración del servicio.
 
-## 5. Cloudflare Pages (frontend)
+## 5. Cloudflare Workers (frontend)
 
-1. Conecta el repositorio y configura la compilación:
+Cloudflare dejó de ofrecer la creación de proyectos de Pages desde el panel:
+**Workers & Pages → Create** siempre produce un Worker. Para un SPA es
+equivalente, siempre que el Worker no tenga script propio y se limite a servir
+los archivos del build. La configuración vive en
+[`frontend/wrangler.jsonc`](../frontend/wrangler.jsonc).
+
+1. **Workers & Pages → Create → Import a repository.** Conecta el repositorio.
+2. Ajustes de compilación:
 
    | Ajuste | Valor |
    |---|---|
    | Directorio raíz | `frontend` |
    | Comando de compilación | `npm install && npm run build` |
-   | Directorio de salida | `dist/frontend/browser` |
+   | Comando de despliegue | `npx wrangler deploy` |
    | Versión de Node | 22.12 o superior (variable `NODE_VERSION`) |
 
-2. El `frontend/.npmrc` fija `legacy-peer-deps=true`. No lo quites: npm 10.9.4
+   El directorio de salida no se configura aquí: lo declara `assets.directory`
+   en `wrangler.jsonc` (`./dist/frontend/browser`).
+
+3. **El campo `name` de `wrangler.jsonc` debe coincidir con el nombre del Worker
+   creado en el paso 1.** Si no coincide, el despliegue crea un Worker distinto y
+   el dominio personalizado se queda apuntando al que ya existía.
+4. El `frontend/.npmrc` fija `legacy-peer-deps=true`. No lo quites: npm 10.9.4
    falla al resolver el conjunto de pares de vitest con
    `Cannot read properties of null (reading 'edgesOut')`.
-3. El `frontend/public/_redirects` reescribe todo a `index.html`. Sin él,
-   abrir directamente el `/invitacion/{token}` que llega por correo daría 404.
-4. Añade el dominio `app.kairospartners.uk`.
-5. El origen del backend está fijado en `frontend/src/environments/environment.ts`
+5. **Dominio:** en el Worker, **Settings → Domains & Routes → Add → Custom
+   domain**, `app.kairospartners.uk`. Cloudflare crea el registro DNS solo; no
+   hay que añadirlo a mano, y no es un CNAME visible en la zona.
+6. El origen del backend está fijado en `frontend/src/environments/environment.ts`
    (`https://api.kairospartners.uk`). Si el dominio de la API cambia, se cambia
    ahí y se vuelve a compilar: no es una variable de entorno del despliegue.
+
+---
 
 ## 6. Proceso programado (GitHub Actions)
 
