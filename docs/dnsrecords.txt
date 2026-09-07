@@ -1,6 +1,6 @@
 ;;
 ;; Domain:     kairospartners.uk.
-;; Exported:   2026-09-07 16:00:23
+;; Exported:   2026-09-07 19:09:20
 ;;
 ;; This file is intended for use for informational and archival
 ;; purposes ONLY and MUST be edited before use on a production
@@ -24,7 +24,7 @@
 ;;
 ;; Use at your own risk.
 ;; SOA Record
-kairospartners.uk	3600	IN	SOA	stanley.ns.cloudflare.com. dns.cloudflare.com. 2054046342 10000 2400 604800 3600
+kairospartners.uk	3600	IN	SOA	stanley.ns.cloudflare.com. dns.cloudflare.com. 2054047476 10000 2400 604800 3600
 
 ;; NS Records
 kairospartners.uk.	86400	IN	NS	stanley.ns.cloudflare.com.
@@ -34,9 +34,11 @@ kairospartners.uk.	86400	IN	NS	zara.ns.cloudflare.com.
 api.kairospartners.uk.	1	IN	CNAME	kairos-pzy5.onrender.com. ; cf_tags=cf-proxied:false
 
 ;; MX Records
+kairospartners.uk.	1	IN	MX	0 .
 send.kairospartners.uk.	3600	IN	MX	10 feedback-smtp.sa-east-1.amazonses.com.
 
 ;; TXT Records
 _dmarc.kairospartners.uk.	1	IN	TXT	"v=DMARC1; p=none; rua=mailto:luiseduardomendoza2006@gmail.com"
+kairospartners.uk.	1	IN	TXT	"v=spf1 -all"
 resend._domainkey.send.kairospartners.uk.	3600	IN	TXT	"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdkIJwkT3aQSE39l75P84APmZwvb6wE981hZ65183OF5SOUeFKM+UJY8NH/fuxfqT5bHEv3vV2UgUUwb35cOt26+Vz7OmZDruQCXqvV9QnSvj4/VR7y4s/Osm9WXxrE3MeOxF0gLDdO68yupq3zQOD0vjhzhHTparF5vG6Jyoc+QIDAQAB"
 send.kairospartners.uk.	3600	IN	TXT	"v=spf1 include:amazonses.com ~all"
