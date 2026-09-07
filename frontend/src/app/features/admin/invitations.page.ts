@@ -181,41 +181,43 @@ const STATUS_TONES: Record<InvitationStatus, BadgeTone> = {
                 <li
                   class="-mx-3 rounded-[var(--radius-control)] px-3 transition-colors hover:bg-sunken"
                 >
-                  <div class="min-w-0">
-                    <p class="truncate text-sm font-medium text-ink">{{ invitation.email }}</p>
-                    <p class="text-sm text-ink-muted">{{ roleLabel(invitation.global_role) }}</p>
-                    <p class="mt-1 text-xs text-ink-muted">
-                      @if (invitation.status === 'ACCEPTED') {
-                        Aceptada el {{ invitation.accepted_at | bogotaDate }}
-                      } @else {
-                        Vence el {{ invitation.expires_at | bogotaDate: 'datetime' }}
+                  <div class="grid grid-cols-1 gap-3 border-b border-line py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-medium text-ink">{{ invitation.email }}</p>
+                      <p class="text-sm text-ink-muted">{{ roleLabel(invitation.global_role) }}</p>
+                      <p class="mt-1 text-xs text-ink-muted">
+                        @if (invitation.status === 'ACCEPTED') {
+                          Aceptada el {{ invitation.accepted_at | bogotaDate }}
+                        } @else {
+                          Vence el {{ invitation.expires_at | bogotaDate: 'datetime' }}
+                        }
+                      </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                      <ui-badge [tone]="statusTone(invitation.status)">
+                        {{ statusLabel(invitation.status) }}
+                      </ui-badge>
+
+                      @if (invitation.status === 'PENDING') {
+                        <ui-button
+                          variant="secondary"
+                          size="sm"
+                          [loading]="busyId() === invitation.id"
+                          (pressed)="resend(invitation)"
+                        >
+                          Reenviar
+                        </ui-button>
+                        <ui-button
+                          variant="ghost"
+                          size="sm"
+                          [disabled]="busyId() === invitation.id"
+                          (pressed)="revoke(invitation)"
+                        >
+                          Revocar
+                        </ui-button>
                       }
-                    </p>
-                  </div>
-
-                  <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                    <ui-badge [tone]="statusTone(invitation.status)">
-                      {{ statusLabel(invitation.status) }}
-                    </ui-badge>
-
-                    @if (invitation.status === 'PENDING') {
-                      <ui-button
-                        variant="secondary"
-                        size="sm"
-                        [loading]="busyId() === invitation.id"
-                        (pressed)="resend(invitation)"
-                      >
-                        Reenviar
-                      </ui-button>
-                      <ui-button
-                        variant="ghost"
-                        size="sm"
-                        [disabled]="busyId() === invitation.id"
-                        (pressed)="revoke(invitation)"
-                      >
-                        Revocar
-                      </ui-button>
-                    }
+                    </div>
                   </div>
                 </li>
               }
