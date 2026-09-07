@@ -324,7 +324,13 @@ ENVIRONMENT=production
 
 Alembic, ejecutado en el arranque del despliegue de Render mediante `alembic upgrade head` en el comando de inicio. Con un equipo de cuatro personas y despliegues poco frecuentes, es aceptable; deja de serlo si en algún momento hay varias instancias.
 
-**Conexión a Supabase:** usar el conector agrupado en el puerto 6543 (modo de transacción), no la conexión directa. El plan gratuito limita las conexiones directas y el agrupador evita agotarlas. Con `asyncpg` en modo de transacción hay que desactivar la caché de sentencias preparadas: `poolclass=NullPool` y `connect_args={"statement_cache_size": 0}`.
+**Conexión a Supabase:** usar el conector agrupado en el puerto 6543 (modo de transacción), no la conexión directa. El plan gratuito limita las conexiones directas y el agrupador evita agotarlas. Con `asyncpg` en modo de transacción hay que desactivar la caché de sentencias preparadas: `connect_args={"statement_cache_size": 0}`.
+
+**Las conexiones se reutilizan.** El diseño original indicaba `poolclass=NullPool`, que abre una conexión nueva por petición. Medido contra la base de producción, ese saludo —TCP, TLS y autenticación SCRAM— cuesta ~1,8 s, mientras que la consulta cuesta ~0,35 s: cada petición pagaba cinco veces más por conectarse que por preguntar. Con un pool reutilizado, un `/health` bajó de ~2,2 s a ~0,34 s.
+
+`NullPool` es correcto en tiempos de ejecución efímeros —funciones sin servidor, donde el proceso muere con la invocación—, no en un uvicorn de larga vida. El pool es pequeño a propósito: `pool_size=5, max_overflow=5`, o sea diez asientos como máximo por instancia.
+
+`pool_pre_ping` va desactivado y `pool_recycle` en 180 s. Un pre-ping es un viaje completo, y con la API en Oregón y la base en São Paulo cuesta ~650 ms en cada petición, más que la consulta que protege; reciclar antes de que el agrupador cierre un cliente ocioso logra lo mismo sin ese costo. **Cuando la API y la base queden en la misma región, hay que volver a activarlo** y subir `pool_recycle`: ahí el pre-ping cuesta ~2 ms y sí compensa.
 
 ---
 
