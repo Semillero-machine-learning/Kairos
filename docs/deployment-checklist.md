@@ -10,18 +10,41 @@ El orden importa: la base de datos y el dominio son prerrequisitos del resto.
 
 ## 1. Supabase (base de datos)
 
-1. Crea un proyecto en [supabase.com](https://supabase.com). Guarda la
-   contraseña de la base de datos.
-2. En **Project Settings → Database → Connection string**, copia la cadena del
-   **agrupador en modo de transacción (puerto 6543)**, no la conexión directa
-   del 5432 (agota las conexiones del plan gratuito).
-3. Conviértela al formato de asyncpg para `DATABASE_URL`:
-   ```
-   postgresql+asyncpg://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
-   ```
-4. No se usan Supabase Auth, Storage ni RLS. Solo la base de datos.
-5. La extensión `citext` y todo el esquema los crea `alembic upgrade head`
+1. Crea un proyecto en [supabase.com](https://supabase.com), **en `us-east-1`
+   (Norte de Virginia)**, para que quede junto al servicio de Render. Guarda la
+   contraseña de la base.
+2. No se usan Supabase Auth, Storage ni RLS. Solo la base de datos.
+3. La extensión `citext` y todo el esquema los crea `alembic upgrade head`
    (migración 0001 en adelante); no hay que ejecutar SQL a mano.
+
+### Las tres conexiones, que no son intercambiables
+
+Este es el punto donde más tiempo se pierde. Supabase ofrece tres cadenas y la
+interfaz no explica cuál sirve para qué.
+
+| Conexión | Host y puerto | Para qué |
+|---|---|---|
+| **Directa** | `db.<ref>.supabase.co:5432` | **Ninguna.** Es solo IPv6: no tiene registro `A`, así que falla con `getaddrinfo failed` desde cualquier red IPv4, incluida la de Render. |
+| **Agrupador de sesión** | `aws-0-<region>.pooler.supabase.com:5432` | Migraciones y DDL. Se comporta como una conexión normal. |
+| **Agrupador de transacción** | `aws-0-<region>.pooler.supabase.com:6543` | **La aplicación.** Multiplexa, y por eso exige `statement_cache_size=0`. |
+
+Dos detalles que rompen la conexión en silencio:
+
+- **El usuario es `postgres.<ref>`, no `postgres`.** Con el usuario equivocado el
+  agrupador responde `Tenant or user not found`.
+- **La contraseña va codificada** dentro de la URL: `#`→`%23`, `!`→`%21`,
+  `@`→`%40`, `$`→`%24`, `&`→`%26`. Sin codificar, un `@` parte la cadena y el
+  cliente busca un host que no existe.
+
+El formato final para `DATABASE_URL`:
+
+```
+postgresql+asyncpg://postgres.<ref>:<contraseña-codificada>@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+```
+
+Las cadenas reales viven en `backend/.env.supabase`, que `.gitignore` excluye.
+
+---
 
 ## 2. Dominio y DNS (Cloudflare)
 

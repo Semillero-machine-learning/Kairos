@@ -192,7 +192,7 @@ Las pruebas de integración se derivan de los escenarios Gherkin de `docs/user-s
 | Devolver 403 en un proyecto ajeno | Filtra la existencia del proyecto; devolver 404 |
 | Dejar que un revisor apruebe su propia entrega | Viola RN-07 |
 | Olvidar la comprobación de proyecto archivado | Va centralizada en la dependencia, no repetida por endpoint |
-| Conectarse a Supabase por el puerto 5432 | Agota las conexiones del plan gratuito; usar el agrupador en el 6543 con `statement_cache_size=0` |
+| Usar la conexión directa de Supabase (`db.<ref>.supabase.co`) | Es solo IPv6 y falla desde Render. La aplicación usa el agrupador de transacción en el 6543 con `statement_cache_size=0`; las migraciones, el de sesión en el 5432. Ver `docs/deployment-checklist.md` §1 |
 | Modelar la periodicidad como recurrencia real | Es solo una etiqueta (RF-26) |
 | Permitir varios roles por usuario en un proyecto | Es uno solo (RN-03) |
 
