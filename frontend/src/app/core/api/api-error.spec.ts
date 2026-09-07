@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { describe, expect, it } from 'vitest';
 
-import { ApiError, CLIENT_ERROR_CODES, TimeoutError, toApiError } from './api-error';
+import { ApiError, CLIENT_ERROR_CODES, TimeoutError, fieldMessage, toApiError } from './api-error';
 
 describe('toApiError', () => {
   it('conserva el código y el mensaje del backend', () => {
@@ -47,7 +47,11 @@ describe('toApiError', () => {
   });
 
   it('no envuelve dos veces un ApiError que ya venía normalizado', () => {
-    const original = new ApiError('LAST_ADMIN', 'No puedes dejar la plataforma sin administradores.', 409);
+    const original = new ApiError(
+      'LAST_ADMIN',
+      'No puedes dejar la plataforma sin administradores.',
+      409,
+    );
 
     expect(toApiError(original)).toBe(original);
   });
@@ -57,5 +61,32 @@ describe('toApiError', () => {
 
     expect(error.is('INVITATION_EXPIRED', 'INVITATION_ALREADY_USED')).toBe(true);
     expect(error.is('NOT_FOUND')).toBe(false);
+  });
+});
+
+describe('fieldMessage', () => {
+  it('saca el detalle por campo de un error de validación', () => {
+    const error = new ApiError('VALIDATION_ERROR', 'Los datos enviados no son válidos.', 422, [
+      {
+        type: 'value_error',
+        loc: ['body', 'commit_url'],
+        msg: 'Value error, El enlace debe apuntar a GitHub: un commit…',
+      },
+    ]);
+
+    // Sin el prefijo en inglés que antepone Pydantic.
+    expect(fieldMessage(error)).toBe('El enlace debe apuntar a GitHub: un commit…');
+  });
+
+  it('deja el mensaje tal cual cuando el error no es de validación', () => {
+    const error = new ApiError('PROJECT_ARCHIVED', 'El proyecto está archivado.', 409);
+
+    expect(fieldMessage(error)).toBe('El proyecto está archivado.');
+  });
+
+  it('cae en el mensaje general si el detalle no trae nada legible', () => {
+    const error = new ApiError('VALIDATION_ERROR', 'Los datos enviados no son válidos.', 422, null);
+
+    expect(fieldMessage(error)).toBe('Los datos enviados no son válidos.');
   });
 });

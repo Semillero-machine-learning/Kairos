@@ -113,6 +113,7 @@ export class ProjectShellComponent {
   protected readonly store = inject(ProjectStore);
 
   protected readonly tabs = [
+    { path: 'tablero', label: 'Tablero' },
     { path: 'resumen', label: 'Resumen' },
     { path: 'miembros', label: 'Miembros' },
     { path: 'roles', label: 'Roles' },

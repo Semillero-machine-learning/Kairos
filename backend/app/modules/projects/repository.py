@@ -141,6 +141,24 @@ class ProjectsRepository:
         )
         return {member.project_id: (member, role) for member, role in result.all()}
 
+    async def member_user_ids(self, project_id: uuid.UUID) -> set[uuid.UUID]:
+        rows = await self.db.execute(
+            select(ProjectMember.user_id).where(ProjectMember.project_id == project_id)
+        )
+        return set(rows.scalars().all())
+
+    async def list_member_projects(self, user_id: uuid.UUID) -> list[Project]:
+        """Every project the user belongs to, unpaginated. With ten active
+        projects this is one small query, and it is what the cross-project views
+        need before they can ask another module anything."""
+        rows = await self.db.execute(
+            select(Project)
+            .join(ProjectMember, ProjectMember.project_id == Project.id)
+            .where(ProjectMember.user_id == user_id)
+            .order_by(Project.name)
+        )
+        return list(rows.scalars().all())
+
     async def list_members(self, project_id: uuid.UUID) -> list[tuple[ProjectMember, ProjectRole]]:
         result = await self.db.execute(
             select(ProjectMember, ProjectRole)

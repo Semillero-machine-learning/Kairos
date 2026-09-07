@@ -39,6 +39,29 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * El mensaje más específico que trae un error, para mostrárselo a quien acaba
+ * de escribir el formulario.
+ *
+ * Un `VALIDATION_ERROR` llega con un mensaje genérico y el detalle por campo en
+ * `details`, que es donde está lo útil: «El enlace debe apuntar a GitHub…» en
+ * vez de «Los datos enviados no son válidos». Pydantic antepone «Value error, »
+ * a lo que levanta un validador propio; ese prefijo es ruido en inglés y se
+ * recorta.
+ */
+export function fieldMessage(error: ApiError): string {
+  if (error.code !== 'VALIDATION_ERROR' || !Array.isArray(error.details)) {
+    return error.message;
+  }
+  const first = error.details.find(
+    (detail): detail is { msg: string } =>
+      typeof detail === 'object' &&
+      detail !== null &&
+      typeof (detail as { msg?: unknown }).msg === 'string',
+  );
+  return first ? first.msg.replace(/^Value error,\s*/, '') : error.message;
+}
+
 const FALLBACK_MESSAGES: Record<number, string> = {
   401: 'Tu sesión no es válida. Vuelve a ingresar.',
   403: 'No tienes permiso para hacer esto.',

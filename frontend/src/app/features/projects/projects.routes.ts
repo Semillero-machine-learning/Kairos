@@ -4,8 +4,9 @@ import { Routes } from '@angular/router';
  * Rutas de proyectos.
  *
  * El detalle vive bajo un armazón que carga el proyecto una vez y lo comparte
- * con las tres pestañas, para no pedir el mismo detalle tres veces al cambiar
- * de sección. Sin guardas propias: quien no sea miembro recibe un 404 del
+ * con sus pestañas, para no pedir el mismo detalle cuatro veces al cambiar de
+ * sección. La pestaña por defecto es el tablero: es como se ve un proyecto
+ * (RF-29), y el resumen es lo que se consulta de vez en cuando. Sin guardas propias: quien no sea miembro recibe un 404 del
  * backend y ve el estado vacío correspondiente.
  */
 export const PROJECTS_ROUTES: Routes = [
@@ -21,7 +22,12 @@ export const PROJECTS_ROUTES: Routes = [
     loadComponent: () =>
       import('./project-shell.component').then((m) => m.ProjectShellComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'resumen' },
+      { path: '', pathMatch: 'full', redirectTo: 'tablero' },
+      {
+        path: 'tablero',
+        loadComponent: () =>
+          import('./board/task-board.page').then((m) => m.TaskBoardPage),
+      },
       {
         path: 'resumen',
         loadComponent: () =>

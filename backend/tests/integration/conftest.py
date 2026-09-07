@@ -59,3 +59,66 @@ def get_roles(client):
         return {role["name"]: role for role in response.json()}
 
     return _get
+
+
+@pytest_asyncio.fixture
+def add_member(client, get_roles):
+    """Add somebody to a project with one of its roles, by role name."""
+
+    async def _add(
+        project_id: str, user_id, role_name: str, headers: dict[str, str]
+    ) -> dict:
+        roles = await get_roles(project_id, headers)
+        assert role_name in roles, f"el proyecto no tiene el rol {role_name}"
+        response = await client.post(
+            f"/api/v1/projects/{project_id}/members",
+            json={"user_id": str(user_id), "project_role_id": roles[role_name]["id"]},
+            headers=headers,
+        )
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _add
+
+
+@pytest_asyncio.fixture
+def make_task(client):
+    """Create a task through the API, so it starts where production starts it."""
+
+    async def _make(
+        project_id: str,
+        headers: dict[str, str],
+        *,
+        title: str = "Entrenar el modelo base",
+        description: str | None = None,
+        periodicity: str = "ONE_TIME",
+        due_date: str | None = None,
+        assignee_ids: tuple = (),
+    ) -> dict:
+        response = await client.post(
+            f"/api/v1/projects/{project_id}/tasks",
+            json={
+                "title": title,
+                "description": description,
+                "periodicity": periodicity,
+                "due_date": due_date,
+                "assignee_ids": [str(user_id) for user_id in assignee_ids],
+            },
+            headers=headers,
+        )
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return _make
+
+
+@pytest_asyncio.fixture
+def move_task(client):
+    """Walk a task through the state machine, one legal step at a time."""
+
+    async def _move(task_id: str, target: str, headers: dict[str, str]):
+        return await client.post(
+            f"/api/v1/tasks/{task_id}/status", json={"status": target}, headers=headers
+        )
+
+    return _move

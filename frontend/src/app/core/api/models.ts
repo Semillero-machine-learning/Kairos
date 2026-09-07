@@ -172,10 +172,7 @@ export interface ProjectListItem {
   created_at: string;
 }
 
-export type TaskCounts = Record<
-  'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE',
-  number
->;
+export type TaskCounts = Record<'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE', number>;
 
 export interface ProjectDetail {
   id: string;
@@ -209,5 +206,81 @@ export interface ProjectRole {
   /** Quién creó el rol (RN-19). Nulo en los tres del sistema. */
   created_by: UserRef | null;
   member_count: number;
+  created_at: string;
+}
+
+// --- Tareas (api-contract.md §5 y §6) ---
+
+export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
+
+/** El orden del tablero, de izquierda a derecha (RF-28). */
+export const TASK_STATUS_ORDER: readonly TaskStatus[] = [
+  'BACKLOG',
+  'TODO',
+  'IN_PROGRESS',
+  'IN_REVIEW',
+  'DONE',
+] as const;
+
+export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
+  BACKLOG: 'Por planear',
+  TODO: 'Por hacer',
+  IN_PROGRESS: 'En progreso',
+  IN_REVIEW: 'En revisión',
+  DONE: 'Hecha',
+};
+
+export type TaskPeriodicity = 'ONE_TIME' | 'WEEKLY' | 'MONTHLY' | 'SEMESTER';
+
+/** Los nombres son los del RF-26. La periodicidad es una etiqueta descriptiva:
+ * no genera ninguna tarea. */
+export const TASK_PERIODICITY_LABEL: Record<TaskPeriodicity, string> = {
+  ONE_TIME: 'Puntual',
+  WEEKLY: 'Semanal',
+  MONTHLY: 'Mensual',
+  SEMESTER: 'Semestral',
+};
+
+export interface Task {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  periodicity: TaskPeriodicity;
+  due_date: string | null;
+  /** Lo calcula el backend contra la fecha de Bogotá: la insignia de la tarjeta
+   * y el filtro «vencidas» no pueden discrepar. */
+  is_overdue: boolean;
+  assignees: UserRef[];
+  created_by: UserRef;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Una fila de «Mis tareas»: la tarea con el proyecto del que viene (RF-36). */
+export interface MyTask extends Task {
+  project: { id: string; name: string };
+}
+
+export type SubmissionReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export const SUBMISSION_STATUS_LABEL: Record<SubmissionReviewStatus, string> = {
+  PENDING: 'Sin revisar',
+  APPROVED: 'Aprobada',
+  REJECTED: 'Devuelta',
+};
+
+export interface Submission {
+  id: string;
+  task_id: string;
+  submitted_by: UserRef;
+  description: string;
+  commit_url: string | null;
+  review_status: SubmissionReviewStatus;
+  reviewed_by: UserRef | null;
+  reviewed_at: string | null;
+  review_comment: string | null;
   created_at: string;
 }

@@ -100,9 +100,8 @@ class ProjectsPage(BaseModel):
 
 
 class TaskCounts(BaseModel):
-    """Board tallies. Every value stays at zero until the tasks module exists
-    (Phase 3); the shape is part of the contract from the start so the frontend
-    does not have to change when it fills in."""
+    """Board tallies, counted on every read. Soft-deleted tasks are not in them
+    (RF-37), so the five values add up to what the board actually shows."""
 
     BACKLOG: int = 0
     TODO: int = 0
