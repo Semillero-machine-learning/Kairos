@@ -164,3 +164,39 @@ async def test_el_catalogo_de_permisos_esta_disponible(client, proyecto):
 async def test_el_catalogo_exige_autenticacion(client):
     response = await client.get("/api/v1/permissions")
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_el_nombre_no_se_puede_dejar_en_nulo(client, proyecto):
+    """`name` es NOT NULL: un null explícito se rechaza aquí, no en la base."""
+    project, headers, _ = proyecto
+    response = await client.patch(
+        f"/api/v1/projects/{project['id']}", json={"name": None}, headers=headers
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+@pytest.mark.asyncio
+async def test_las_fechas_y_la_descripcion_si_se_pueden_vaciar(client, proyecto):
+    """A diferencia del nombre, estas columnas sí admiten nulo."""
+    project, headers, _ = proyecto
+    response = await client.patch(
+        f"/api/v1/projects/{project['id']}",
+        json={"description": None, "start_date": None},
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.json()["description"] is None
+    assert response.json()["start_date"] is None
+
+
+@pytest.mark.asyncio
+async def test_un_nombre_de_solo_espacios_se_rechaza(client, proyecto):
+    """Se recorta antes de medir: si no, «   ab   » pasaría el mínimo de 3 y
+    llegaría a la base con 2 caracteres."""
+    project, headers, _ = proyecto
+    response = await client.patch(
+        f"/api/v1/projects/{project['id']}", json={"name": "   ab   "}, headers=headers
+    )
+    assert response.status_code == 422

@@ -301,3 +301,16 @@ async def test_un_rol_de_otro_proyecto_no_se_puede_editar(
         headers=headers,
     )
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_un_nombre_de_rol_de_solo_espacios_se_rechaza(client, proyecto):
+    """«  A  » tiene cinco caracteres pero se guarda con uno: el recorte va antes
+    de la validación de longitud, no después."""
+    project, headers, _ = proyecto
+    response = await client.post(
+        f"/api/v1/projects/{project['id']}/roles",
+        json={"name": "  A  ", "color": "#B8860B", "permissions": ["task.view"]},
+        headers=headers,
+    )
+    assert response.status_code == 422

@@ -15,6 +15,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 
 
 class DomainError(Exception):
@@ -71,6 +72,26 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=exc.status_code,
             content=_error_body(exc.code, exc.message, exc.details),
+        )
+
+    @app.exception_handler(IntegrityError)
+    async def _handle_integrity_error(_: Request, __: IntegrityError) -> JSONResponse:
+        """Last line of defense for a constraint the service layer did not
+        anticipate.
+
+        Anything reaching here is a gap in validation and should be fixed there;
+        this handler only makes sure the client gets the uniform error shape
+        instead of a bare 500, and that the database message — which names
+        tables, columns and row contents — never leaves the server. The session
+        is discarded by ``get_db`` on the way out, so nothing half-written
+        survives.
+        """
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content=_error_body(
+                "CONSTRAINT_VIOLATION",
+                "La operación no se pudo completar porque viola una restricción de los datos.",
+            ),
         )
 
     @app.exception_handler(RequestValidationError)

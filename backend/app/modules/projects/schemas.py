@@ -23,19 +23,46 @@ class PermissionRead(BaseModel):
 # --- Projects ---
 
 
+def _strip(value: object) -> object:
+    """Trim before the length constraint runs, not after.
+
+    An "after" validator would let ``"  A  "`` through a ``min_length=2`` check
+    and then hand the database a one-character name, which the CHECK constraint
+    rejects as a 500. Trimming first makes the constraint see what will actually
+    be stored.
+    """
+    return value.strip() if isinstance(value, str) else value
+
+
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=3, max_length=120)
     description: str | None = Field(default=None, max_length=4000)
     start_date: datetime.date | None = None
     leader_user_id: uuid.UUID
 
+    _trim_name = field_validator("name", mode="before")(_strip)
+
 
 class ProjectUpdate(BaseModel):
-    """Every field optional: a PATCH only touches what it carries."""
+    """Every field optional: a PATCH only touches what it carries.
+
+    ``description`` and ``start_date`` are genuinely nullable, so sending null
+    clears them. ``name`` is not: the column is NOT NULL, and an explicit null
+    has to be refused here rather than reaching the database.
+    """
 
     name: str | None = Field(default=None, min_length=3, max_length=120)
     description: str | None = Field(default=None, max_length=4000)
     start_date: datetime.date | None = None
+
+    _trim_name = field_validator("name", mode="before")(_strip)
+
+    @field_validator("name")
+    @classmethod
+    def _name_is_never_null(cls, name: str | None) -> str | None:
+        if name is None:
+            raise ValueError("El nombre del proyecto no puede quedar vacío.")
+        return name
 
 
 class UserRef(BaseModel):
@@ -132,10 +159,7 @@ class RoleWrite(BaseModel):
             raise ValueError("La lista de permisos tiene códigos repetidos.")
         return codes
 
-    @field_validator("name")
-    @classmethod
-    def _trim(cls, name: str) -> str:
-        return name.strip()
+    _trim_name = field_validator("name", mode="before")(_strip)
 
 
 class RoleRead(BaseModel):

@@ -6,14 +6,18 @@ Unos 50 usuarios, 10 proyectos activos y ~1.000 tareas por semestre. **Debe oper
 
 > **No es un clon de Jira.** Ante la duda entre una solución simple y una general, se elige la simple.
 
-**Estado:** **Fases 0 y 1 terminadas** ([plan](docs/roadmap.md)). Existe el acceso completo
+**Estado:** **Fases 0, 1 y 2 terminadas** ([plan](docs/roadmap.md)). Existe el acceso completo
 —invitaciones, cuentas, roles globales, ingreso con refresco rotativo y recuperación de
-contraseña— en backend y frontend. La base de datos de Supabase está migrada y el primer
-administrador creado. Falta desplegar en Render y Cloudflare Pages, y verificar el dominio
-en Resend: hasta entonces los correos se registran en el log en vez de enviarse.
+contraseña— y sobre él, el sistema de autorización: proyectos con sus tres roles
+predeterminados, roles a la medida con selección libre del catálogo de 14 permisos,
+gestión de miembros y archivado de solo lectura. Los permisos se resuelven en cada
+petición y nunca viajan dentro del token, así que un cambio de rol surte efecto de
+inmediato (RN-22). La base de datos de Supabase está migrada y el primer administrador
+creado. Falta desplegar en Render y Cloudflare Pages, y verificar el dominio en Resend:
+hasta entonces los correos se registran en el log en vez de enviarse.
 
-Lo siguiente es la **Fase 2** (proyectos, roles y permisos), que el plan marca como la más
-delicada y la única que no conviene paralelizar.
+Lo siguiente es la **Fase 3** (tareas): el tablero Kanban y la máquina de estados. Las
+fases 3 y 6 se pueden repartir en paralelo.
 
 ---
 

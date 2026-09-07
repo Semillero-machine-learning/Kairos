@@ -2,10 +2,12 @@
 version: 1
 slug: "frontend-src-app"
 primary_target: "frontend/src/app"
-related_targets: ["frontend/src/app/features/auth","frontend/src/app/features/admin","frontend/src/app/core/layout"]
+related_targets: ["frontend/src/app/features/auth","frontend/src/app/features/admin","frontend/src/app/features/projects","frontend/src/app/core/layout"]
 ---
 
-Ámbito: superficie de acceso y administración de la Fase 1 (ingreso, aceptar invitación, recuperar contraseña, perfil, usuarios, invitaciones) más el armazón autenticado. Modo: Operate.
+Ámbito: superficie de acceso, administración y proyectos (Fases 1 y 2). Fase 1: ingreso, aceptar invitación, recuperar contraseña, perfil, usuarios, invitaciones, más el armazón autenticado. Fase 2: lista de proyectos con su formulario de creación, armazón del proyecto con tres pestañas, resumen, miembros y editor de roles. Modo: Operate.
+
+**Pendiente de auditoría.** Las cuatro pantallas de la Fase 2 se construyeron dentro del contrato de dirección de abajo y `detect` las da limpias (0 anti-patrones), pero no pasaron por `shape` antes ni por `audit` y `polish` después. Las capturas de `review/` son solo de la Fase 1. Queda por correr `/impeccable audit` sobre `features/projects` y guardar sus capturas.
 
 Audiencia: ~50 estudiantes de un semillero de ML y 1–2 coordinadores. Tarea: entrar, y saber qué se debe y para cuándo. Restricciones: español, AA, 360 px en adelante, áreas táctiles de 44 px, arranque en frío visible.
 
