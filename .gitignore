@@ -1,0 +1,15 @@
+# Artefactos de sesión de Impeccable: rondas de decisión ya resueltas.
+# Los briefs de superficie (.impeccable/surfaces) sí se versionan: llevan el
+# contrato de dirección que consultan las sesiones siguientes.
+.impeccable/questions/
+.impeccable/review/
+.impeccable/build/
+.impeccable/mocks/
+
+# Configuración local de editores
+.cursor/
+.claude/
+.vscode/
+
+.DS_Store
+Thumbs.db

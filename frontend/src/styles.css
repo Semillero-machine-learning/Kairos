@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/*
+ * Sistema visual de KAIROS.
+ *
+ * Dirección: el estándar de la categoría, jugado en serio. Listón de acabado:
+ * Notion — aire generoso, tipografía amable, densidad baja, calma.
+ *
+ * Dos reglas heredadas de CLAUDE.md que gobiernan la paleta:
+ *   1. Ningún negro ni gris puro. Todo neutro va entintado hacia el violeta de
+ *      la marca, para que el conjunto se lea como una familia y no como una
+ *      plantilla.
+ *   2. El degradado azul→magenta vive únicamente dentro del logo. En la
+ *      interfaz esos dos extremos aparecen como colores sólidos y separados:
+ *      el violeta es el acento, el magenta-carmín queda reservado para lo
+ *      destructivo y los errores.
+ */
+@theme {
+  /* Superficies. La aplicación se apoya en `ground`; `surface` se usa para lo
+     que debe despegarse de ella (paneles, filas activas, menús). */
+  --color-ground: #fbfafc;
+  --color-surface: #ffffff;
+  --color-sunken: #f5f3f8;
+
+  /* Bordes de un pelo. Estructuran sin sombra: la sombra se reserva para lo
+     que de verdad flota sobre el contenido. */
+  --color-line: #e7e4ee;
+  --color-line-strong: #d3cedd;
+
+  /* Tinta. `ink` es el texto principal; `muted` cumple 4.5:1 sobre `ground`;
+     `faint` solo para texto grande o no esencial. */
+  --color-ink: #1f1b24;
+  --color-ink-muted: #6b6470;
+  /* Texto de marcador de posición. Cumple 4.5:1 sobre `ground`: un marcador
+     más claro se lee como campo deshabilitado. */
+  --color-ink-placeholder: #746c7c;
+  /* Solo para lo deshabilitado, que sí debe verse apagado. Nunca para texto
+     que el usuario tenga que leer. */
+  --color-ink-faint: #948d99;
+
+  /* Acento: el extremo violeta del logo. */
+  --color-accent: #4b34e0;
+  --color-accent-hover: #3d28c4;
+  --color-accent-soft: #efecfd;
+  --color-accent-line: #d9d2fa;
+
+  /* Destructivo y error: el extremo magenta, desplazado hacia el carmín para
+     que se lea como alarma y no como decoración. */
+  --color-danger: #c2255c;
+  --color-danger-hover: #a41d4d;
+  --color-danger-soft: #fdeef3;
+  --color-danger-line: #f6ccdb;
+
+  /* Confirmación. Único verde del sistema. */
+  --color-success: #1f7a4d;
+  --color-success-soft: #eaf6ef;
+  --color-success-line: #c3e5d2;
+
+  /* Aviso: el arranque en frío y los estados de espera larga. */
+  --color-notice: #8a5a10;
+  --color-notice-soft: #fdf3e3;
+  --color-notice-line: #f0dcb8;
+
+  --font-sans: "Figtree", ui-sans-serif, sans-serif;
+
+  --radius-control: 0.5rem;
+  --radius-panel: 0.75rem;
+
+  /* Una sola sombra en el sistema, con desplazamiento y difuminado reales.
+     Solo para lo que flota: menús, diálogos, capas emergentes. */
+  --shadow-float: 0 8px 24px -6px rgb(31 27 36 / 0.14), 0 2px 6px -2px rgb(31 27 36 / 0.08);
+}
+
+@layer base {
+  html {
+    /* La aplicación fija su propia tipografía; el usuario nunca ve la del
+       sistema operativo. */
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ground);
+    color: var(--color-ink);
+    /* Los números de fechas, contadores y tablas se alinean en columna. */
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Las superficies que no dibujamos también llevan el diseño. */
+  ::selection {
+    background-color: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+
+  :where(input, textarea) {
+    caret-color: var(--color-accent);
+  }
+
+  /* Un solo anillo de foco en toda la aplicación, visible sobre cualquier
+     superficie y solo cuando el foco vino del teclado. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  /* Barras de desplazamiento en la paleta, no en gris del sistema. */
+  * {
+    scrollbar-color: var(--color-line-strong) transparent;
+    scrollbar-width: thin;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * `select` con su propia flecha.
+   *
+   * Un control que lleva nuestro borde, nuestro radio y nuestra tipografía y
+   * luego delega la flecha al sistema operativo delata que la pantalla se
+   * ensambló en vez de construirse. El triángulo nativo se apaga y se dibuja
+   * uno con el mismo grosor de trazo que el resto de los iconos.
+   *
+   * Un data URI no puede leer una propiedad personalizada, así que el color va
+   * escrito dentro del SVG. Son dos reglas y no una para que un `select`
+   * deshabilitado no conserve la flecha a plena intensidad. Si cambian
+   * `--color-ink-muted` o `--color-ink-faint`, estos dos hexadecimales se
+   * cambian con ellos: es el único sitio del sistema donde un color se repite.
+   */
+  .ui-select {
+    appearance: none;
+    padding-right: 2.25rem;
+    /* stroke = --color-ink-muted (#6b6470) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6470' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  .ui-select:disabled {
+    /* stroke = --color-ink-faint (#948d99) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23948d99' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  /*
+   * Un único gesto de movimiento en la aplicación: lo que aparece, aparece
+   * subiendo un poco y desde una opacidad ya visible, con salida exponencial.
+   * No hay rebote ni elástico (CLAUDE.md).
+   */
+  .motion-enter {
+    animation: enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes enter {
+    from {
+      opacity: 0.4;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

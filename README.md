@@ -6,7 +6,14 @@ Unos 50 usuarios, 10 proyectos activos y ~1.000 tareas por semestre. **Debe oper
 
 > **No es un clon de Jira.** Ante la duda entre una solución simple y una general, se elige la simple.
 
-**Estado:** documentación completa y aprobada; implementación en la Fase 0 del [plan](docs/roadmap.md). Todavía no existen `backend/` ni `frontend/`.
+**Estado:** **Fases 0 y 1 terminadas** ([plan](docs/roadmap.md)). Existe el acceso completo
+—invitaciones, cuentas, roles globales, ingreso con refresco rotativo y recuperación de
+contraseña— en backend y frontend. La base de datos de Supabase está migrada y el primer
+administrador creado. Falta desplegar en Render y Cloudflare Pages, y verificar el dominio
+en Resend: hasta entonces los correos se registran en el log en vez de enviarse.
+
+Lo siguiente es la **Fase 2** (proyectos, roles y permisos), que el plan marca como la más
+delicada y la única que no conviene paralelizar.
 
 ---
 
@@ -221,7 +228,17 @@ npm test
 npx impeccable detect src/               # analizador de diseño
 ```
 
-Antes de escribir la primera pantalla: `npx impeccable install` y luego, dentro de Claude Code, `/impeccable init`.
+El sistema visual está documentado en [`frontend/DESIGN.md`](frontend/DESIGN.md) y el contexto
+de producto en [`PRODUCT.md`](PRODUCT.md), ambos generados por Impeccable a partir de lo
+construido. Antes de una pantalla nueva: `/impeccable shape`; al terminarla, `/impeccable audit`
+y `/impeccable polish`.
+
+El backend en desarrollo apunta al Postgres local (`backend/.env`). Para correrlo contra
+Supabase existe `backend/.env.supabase`, ignorado por git:
+
+```bash
+.venv/Scripts/dotenv -f .env.supabase run -- alembic upgrade head
+```
 
 ---
 

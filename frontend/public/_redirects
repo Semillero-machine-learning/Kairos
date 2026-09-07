@@ -1,0 +1,5 @@
+# La aplicación es de una sola página con rutas del lado del cliente. Sin esta
+# reescritura, abrir directamente un enlace profundo —el /invitacion/{token}
+# que el backend manda por correo, o /restablecer/{token}— daría 404, porque
+# Cloudflare Pages buscaría un archivo con ese nombre.
+/*    /index.html   200

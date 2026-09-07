@@ -1,0 +1,145 @@
+"""Business rules for users.
+
+Mutating building blocks (create_user, set_role, set_status) flush but do not
+commit, so a composing service — CLI, or auth accepting an invitation — owns the
+transaction and commits once. Use-case methods that are the top of their own
+call chain commit explicitly.
+"""
+
+import uuid
+from datetime import datetime
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.enums import GlobalRole, UserStatus
+from app.core.exceptions import ConflictError, NotFoundError, ValidationError
+from app.core.pagination import Pagination
+from app.modules.users.models import User
+from app.modules.users.repository import UsersRepository
+
+PASSWORD_MIN_LENGTH = 10
+
+
+class UsersService:
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
+        self.repo = UsersRepository(db)
+
+    async def create_user(
+        self,
+        *,
+        full_name: str,
+        email: str,
+        password_hash: str,
+        global_role: GlobalRole,
+    ) -> User:
+        """Create a user. Flushes (surfacing the email uniqueness constraint as a
+        domain error) but does not commit."""
+        user = User(
+            full_name=full_name,
+            email=email,
+            password_hash=password_hash,
+            global_role=global_role,
+            status=UserStatus.ACTIVE,
+        )
+        self.repo.add(user)
+        try:
+            await self.db.flush()
+        except IntegrityError as exc:
+            await self.db.rollback()
+            raise ConflictError(
+                "El correo ya está registrado.", code="EMAIL_ALREADY_REGISTERED"
+            ) from exc
+        return user
+
+    async def get_or_404(self, user_id: uuid.UUID) -> User:
+        user = await self.repo.get_by_id(user_id)
+        if user is None:
+            raise NotFoundError("Usuario no encontrado.")
+        return user
+
+    async def get_by_email(self, email: str) -> User | None:
+        return await self.repo.get_by_email(email)
+
+    async def email_exists(self, email: str) -> bool:
+        return await self.repo.email_exists(email)
+
+    async def get_by_id(self, user_id: uuid.UUID) -> User | None:
+        return await self.repo.get_by_id(user_id)
+
+    async def touch_last_login(self, user: User, *, when: datetime) -> None:
+        """Record a successful login. Flushes; the caller commits."""
+        user.last_login_at = when
+        await self.db.flush()
+
+    def set_password(self, user: User, password_hash: str) -> None:
+        """Building block: set a new password hash. Flush/commit is the caller's."""
+        user.password_hash = password_hash
+
+    async def update_own_name(self, user: User, full_name: str) -> User:
+        """Edit the user's display name (RF-08). Commits."""
+        user.full_name = full_name
+        await self.db.commit()
+        return user
+
+    @staticmethod
+    def validate_password_strength(password: str) -> None:
+        if len(password) < PASSWORD_MIN_LENGTH:
+            raise ValidationError(
+                f"La contraseña debe tener al menos {PASSWORD_MIN_LENGTH} caracteres."
+            )
+
+    # --- Administration ---
+
+    async def list_users(
+        self,
+        *,
+        pagination: Pagination,
+        search: str | None = None,
+        status: UserStatus | None = None,
+        global_role: GlobalRole | None = None,
+    ) -> tuple[list[User], int]:
+        return await self.repo.list_users(
+            search=search,
+            status=status,
+            global_role=global_role,
+            offset=pagination.offset,
+            limit=pagination.limit,
+        )
+
+    async def change_global_role(
+        self, user_id: uuid.UUID, new_role: GlobalRole
+    ) -> User:
+        """Change a user's global role (RF-11), rejecting any change that would
+        leave the platform without an active administrator (RN-02, RF-12)."""
+        user = await self.get_or_404(user_id)
+        if (
+            user.global_role == GlobalRole.ADMIN
+            and user.status == UserStatus.ACTIVE
+            and new_role != GlobalRole.ADMIN
+            and await self.repo.count_active_admins(exclude_user_id=user.id) == 0
+        ):
+            raise ConflictError(
+                "No puedes degradar al último administrador activo.", code="LAST_ADMIN"
+            )
+        user.global_role = new_role
+        await self.db.commit()
+        return user
+
+    async def set_status(self, user_id: uuid.UUID, new_status: UserStatus) -> User:
+        """Activate or deactivate a user (RF-09), rejecting the deactivation of the
+        last active administrator (RN-02, EB-11)."""
+        user = await self.get_or_404(user_id)
+        if (
+            new_status == UserStatus.DISABLED
+            and user.global_role == GlobalRole.ADMIN
+            and user.status == UserStatus.ACTIVE
+            and await self.repo.count_active_admins(exclude_user_id=user.id) == 0
+        ):
+            raise ConflictError(
+                "No puedes desactivar al último administrador activo.", code="LAST_ADMIN"
+            )
+        user.status = new_status
+        await self.db.commit()
+        return user
