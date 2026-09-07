@@ -8,7 +8,11 @@
   // `name` DEBE coincidir con el nombre del Worker que ya existe en el panel.
   // Si no coincide, el despliegue crea un Worker nuevo y el dominio se queda
   // colgado del viejo, que es justo el «Hello world» actual.
-  "name": "kairos-app",
+  //
+  // Es el nombre del Worker, no el del dominio: el panel muestra
+  // app.kairospartners.uk como título, pero eso es el dominio conectado. Los
+  // nombres de Worker tampoco admiten puntos.
+  "name": "kairos",
 
   "compatibility_date": "2026-09-07",
 
