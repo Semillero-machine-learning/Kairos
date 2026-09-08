@@ -182,6 +182,45 @@ Las pruebas de integración se derivan de los escenarios Gherkin de `docs/user-s
 
 ---
 
+## Flujo de trabajo con git
+
+### Una rama por fase
+
+**Antes de escribir la primera línea de una fase nueva, crea su rama.** No sigas
+confirmando en la rama de la fase anterior, aunque sea la que esté activa cuando
+empiezas.
+
+```bash
+git checkout main
+git pull                       # la rama anterior ya pudo fusionarse
+git checkout -b feat/fase-N-descripcion-corta
+```
+
+Si al empezar te encuentras en la rama de otra fase, esa es la señal de que hay
+que ramificar, no de que puedas seguir ahí. Cuando la rama anterior se fusiona a
+`main` mientras tienes commits encima, esos commits entran a `main` dentro de un
+merge que dice otra cosa, y el historial deja de contar lo que pasó.
+
+Si la fase depende de la anterior y esta aún no está en `main`, ramifica desde
+ella y dilo en el mensaje del primer commit.
+
+### Commits pequeños y frecuentes
+
+Confirma cada pieza que se sostenga por sí sola: una migración con su modelo, un
+endpoint con sus pruebas, una pantalla. **No acumules una fase entera en un solo
+commit**: es imposible de revisar, imposible de revertir en partes, e imposible
+de repartir entre cuatro personas.
+
+Cada commit debe dejar la suite en verde. Un commit que no compila o que rompe
+pruebas no sirve ni para volver a él.
+
+### El push lo hace el equipo
+
+**No ejecutes `git push`.** Deja los commits locales; publicarlos es decisión de
+quien lleva la rama. Si crees que algo debería subirse, dilo y espera respuesta.
+
+---
+
 ## Errores frecuentes que debes evitar
 
 | Error | Por qué importa |
@@ -195,6 +234,7 @@ Las pruebas de integración se derivan de los escenarios Gherkin de `docs/user-s
 | Usar la conexión directa de Supabase (`db.<ref>.supabase.co`) | Es solo IPv6 y falla desde Render. La aplicación usa el agrupador de transacción en el 6543 con `statement_cache_size=0`; las migraciones, el de sesión en el 5432. Ver `docs/deployment-checklist.md` §1 |
 | Modelar la periodicidad como recurrencia real | Es solo una etiqueta (RF-26) |
 | Permitir varios roles por usuario en un proyecto | Es uno solo (RN-03) |
+| Confirmar una fase nueva en la rama de la fase anterior | Al fusionarse esa rama, el trabajo entra a `main` dentro de un merge que dice otra fase |
 
 ---
 
@@ -204,4 +244,4 @@ Las pruebas de integración se derivan de los escenarios Gherkin de `docs/user-s
 2. Verifica que los criterios Gherkin correspondientes pasan
 3. En el frontend, ejecuta `npx impeccable detect` sobre lo que tocaste
 4. Actualiza la documentación si cambiaste una regla de negocio o el contrato de la API
-5. Confirma los cambios con un mensaje que referencie el requisito: `feat(tasks): revisión de entregas (RF-33, RN-07)`
+5. Confirma los cambios con un mensaje que referencie el requisito: `feat(tasks): revisión de entregas (RF-33, RN-07)`, en la rama de la fase y sin publicar (ver «Flujo de trabajo con git»)
