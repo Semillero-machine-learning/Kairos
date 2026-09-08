@@ -10,11 +10,12 @@ import {
   ProjectMember,
   Submission,
   Task,
+  TaskComment,
   TaskPeriodicity,
   TaskStatus,
 } from '../../../core/api/models';
 import { ProjectsApi } from '../../../core/api/projects.api';
-import { SubmissionBody, TasksApi } from '../../../core/api/tasks.api';
+import { ReviewBody, SubmissionBody, TasksApi } from '../../../core/api/tasks.api';
 import { SessionService } from '../../../core/auth/session.service';
 import { AlertComponent } from '../../../shared/ui/alert.component';
 import { ButtonComponent } from '../../../shared/ui/button.component';
@@ -25,6 +26,7 @@ import { SpinnerComponent } from '../../../shared/ui/spinner.component';
 import { ProjectStore } from '../project.store';
 import { BoardStore } from './board.store';
 import { TaskCardComponent } from './task-card.component';
+import { CommentEdit } from './task-comments.component';
 import { TaskDetailComponent } from './task-detail.component';
 import { TaskEditorComponent, TaskFormValue } from './task-editor.component';
 import { canMoveTo } from './transitions';
@@ -221,7 +223,11 @@ const PERIODICITIES: TaskPeriodicity[] = ['ONE_TIME', 'WEEKLY', 'MONTHLY', 'SEME
           [canEdit]="projectStore.can('task.edit_any')"
           [canDelete]="projectStore.can('task.delete')"
           [canAssign]="projectStore.can('task.assign')"
+          [canReview]="projectStore.can('task.review')"
+          [canComment]="projectStore.can('task.comment')"
           [isAssignee]="isAssignee()"
+          [comments]="comments()"
+          [currentUserId]="currentUserId()"
           [busy]="busy()"
           [error]="dialogError()"
           (editRequested)="mode.set('edit')"
@@ -229,6 +235,10 @@ const PERIODICITIES: TaskPeriodicity[] = ['ONE_TIME', 'WEEKLY', 'MONTHLY', 'SEME
           (assigneeAdded)="addAssignee($event)"
           (assigneeRemoved)="removeAssignee($event)"
           (submitted)="submitWork($event)"
+          (reviewed)="reviewSubmission($event)"
+          (commentAdded)="addComment($event)"
+          (commentEdited)="editComment($event)"
+          (commentRemoved)="removeComment($event)"
         />
       } @else if (mode() !== 'closed') {
         <app-task-editor
@@ -260,6 +270,7 @@ export class TaskBoardPage {
 
   protected readonly members = signal<ProjectMember[]>([]);
   protected readonly submissions = signal<Submission[]>([]);
+  protected readonly comments = signal<TaskComment[]>([]);
   protected readonly mode = signal<DialogMode>('closed');
   protected readonly selected = signal<Task | null>(null);
   protected readonly busy = signal(false);
@@ -276,6 +287,8 @@ export class TaskBoardPage {
   protected readonly pointerIsFine = signal(
     typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches,
   );
+
+  protected readonly currentUserId = computed(() => this.session.user()?.id ?? null);
 
   protected readonly isAssignee = computed(() => {
     const userId = this.session.user()?.id;
@@ -349,11 +362,19 @@ export class TaskBoardPage {
   protected openDetail(task: Task): void {
     this.selected.set(task);
     this.submissions.set([]);
+    this.comments.set([]);
     this.dialogError.set('');
     this.mode.set('detail');
     this.tasksApi.submissions(task.id).subscribe({
       next: (submissions) => this.submissions.set(submissions),
       error: () => this.submissions.set([]),
+    });
+    // Dos peticiones y no una: el historial de entregas y el hilo son
+    // endpoints distintos del contrato, y juntarlos en uno solo obligaría a
+    // pedir el hilo también desde el tablero, que no lo muestra.
+    this.tasksApi.comments(task.id).subscribe({
+      next: (comments) => this.comments.set(comments),
+      error: () => this.comments.set([]),
     });
   }
 
@@ -441,6 +462,91 @@ export class TaskBoardPage {
             this.projectStore.refresh();
           },
         });
+        this.busy.set(false);
+      },
+      error: (err: ApiError) => {
+        this.dialogError.set(fieldMessage(err));
+        this.busy.set(false);
+      },
+    });
+  }
+
+  /**
+   * Aprobar o devolver una entrega (RF-33).
+   *
+   * La revisión mueve la tarea a DONE o de vuelta a IN_PROGRESS en la misma
+   * transacción, igual que la entrega, así que hay que releerla: el tablero
+   * mostraría «en revisión» hasta el siguiente refresco.
+   */
+  protected reviewSubmission(event: { submissionId: string; body: ReviewBody }): void {
+    const task = this.selected();
+    if (!task) return;
+    this.busy.set(true);
+    this.dialogError.set('');
+    this.tasksApi.review(event.submissionId, event.body).subscribe({
+      next: (reviewed) => {
+        this.submissions.update((current) =>
+          current.map((item) => (item.id === reviewed.id ? reviewed : item)),
+        );
+        this.tasksApi.get(task.id).subscribe({
+          next: (updated) => {
+            this.board.replace(updated);
+            this.selected.set(updated);
+            this.projectStore.refresh();
+          },
+        });
+        this.busy.set(false);
+      },
+      error: (err: ApiError) => {
+        this.dialogError.set(fieldMessage(err));
+        this.busy.set(false);
+      },
+    });
+  }
+
+  // --- Comentarios ---
+
+  protected addComment(body: string): void {
+    const task = this.selected();
+    if (!task) return;
+    this.busy.set(true);
+    this.dialogError.set('');
+    this.tasksApi.comment(task.id, body).subscribe({
+      next: (comment) => {
+        // Al final: el hilo se lee hacia abajo y el más nuevo es el último.
+        this.comments.update((current) => [...current, comment]);
+        this.busy.set(false);
+      },
+      error: (err: ApiError) => {
+        this.dialogError.set(fieldMessage(err));
+        this.busy.set(false);
+      },
+    });
+  }
+
+  protected editComment(edit: CommentEdit): void {
+    this.busy.set(true);
+    this.dialogError.set('');
+    this.tasksApi.updateComment(edit.id, edit.body).subscribe({
+      next: (updated) => {
+        this.comments.update((current) =>
+          current.map((item) => (item.id === updated.id ? updated : item)),
+        );
+        this.busy.set(false);
+      },
+      error: (err: ApiError) => {
+        this.dialogError.set(fieldMessage(err));
+        this.busy.set(false);
+      },
+    });
+  }
+
+  protected removeComment(commentId: string): void {
+    this.busy.set(true);
+    this.dialogError.set('');
+    this.tasksApi.removeComment(commentId).subscribe({
+      next: () => {
+        this.comments.update((current) => current.filter((item) => item.id !== commentId));
         this.busy.set(false);
       },
       error: (err: ApiError) => {

@@ -12,9 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import require_task_permission
-from app.modules.tasks.presenters import submission_read, task_read
+from app.modules.tasks.presenters import comment_read, submission_read, task_read
 from app.modules.tasks.schemas import (
     AssigneeAdd,
+    CommentCreate,
+    CommentRead,
     SubmissionCreate,
     SubmissionRead,
     TaskRead,
@@ -119,3 +121,26 @@ async def create_submission(
         tctx, description=body.description, commit_url=body.commit_url
     )
     return submission_read(view)
+
+
+@router.get("/{task_id}/comments", response_model=list[CommentRead])
+async def list_comments(
+    tctx: TaskContext = Depends(require_task_permission("task.view")),
+    db: AsyncSession = Depends(get_db),
+) -> list[CommentRead]:
+    """The thread of the task, oldest first (RF-35)."""
+    views = await TasksService(db).list_comments(tctx)
+    return [comment_read(view) for view in views]
+
+
+@router.post(
+    "/{task_id}/comments",
+    response_model=CommentRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_comment(
+    body: CommentCreate,
+    tctx: TaskContext = Depends(require_task_permission("task.comment")),
+    db: AsyncSession = Depends(get_db),
+) -> CommentRead:
+    return comment_read(await TasksService(db).create_comment(tctx, body=body.body))

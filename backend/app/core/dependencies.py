@@ -27,7 +27,12 @@ from app.modules.projects.constants import (
     READ_ONLY_PERMISSIONS,
 )
 from app.modules.projects.service import ProjectContext, ProjectsService
-from app.modules.tasks.service import TaskContext, TasksService
+from app.modules.tasks.service import (
+    CommentContext,
+    SubmissionContext,
+    TaskContext,
+    TasksService,
+)
 from app.modules.users.models import User
 from app.modules.users.repository import UsersRepository
 
@@ -135,6 +140,29 @@ def require_project_permission(
     return dependency
 
 
+async def _task_context(
+    task_id: uuid.UUID,
+    user: User,
+    db: AsyncSession,
+    permission: str,
+    *,
+    writes: bool,
+    missing_message: str,
+) -> TaskContext:
+    """Resolve a task and the caller's standing in its project, or 404.
+
+    Shared by the three task-scoped guards below. The message differs because a
+    404 has to name what the caller asked for — a submission, a comment — and
+    never leak which of "it does not exist" and "you cannot see it" was true.
+    """
+    task = await TasksService(db).get_or_404(task_id)
+    ctx = await ProjectsService(db).get_context(task.project_id, user)
+    if ctx is None:
+        raise NotFoundError(missing_message)
+    _authorize(ctx, permission, mutates=writes)
+    return TaskContext(task=task, project=ctx)
+
+
 def require_task_permission(
     permission: str,
     *,
@@ -163,11 +191,83 @@ def require_task_permission(
         user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db),
     ) -> TaskContext:
-        task = await TasksService(db).get_or_404(task_id)
-        ctx = await ProjectsService(db).get_context(task.project_id, user)
-        if ctx is None:
-            raise NotFoundError("Tarea no encontrada.")
-        _authorize(ctx, permission, mutates=writes)
-        return TaskContext(task=task, project=ctx)
+        return await _task_context(
+            task_id,
+            user,
+            db,
+            permission,
+            writes=writes,
+            missing_message="Tarea no encontrada.",
+        )
+
+    return dependency
+
+def require_submission_permission(
+    permission: str,
+    *,
+    mutates: bool | None = None,
+) -> Callable[..., Awaitable[SubmissionContext]]:
+    """Guard for the routes that hang off ``/submissions/{submission_id}``.
+
+    The chain is submission → task → project, and the authorization decision at
+    the end is the same ``_authorize`` every other guard uses, so the archived
+    check and the 404-instead-of-403 hold here too without being written again.
+
+    ``PATCH /submissions/{id}`` asks only for ``task.view``: being the author is
+    what authorizes it (RN-12), and that is a business rule the service owns,
+    not an entry in the permission catalog.
+    """
+    writes = _writes_by_default(permission) if mutates is None else mutates
+
+    async def dependency(
+        submission_id: uuid.UUID,
+        user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> SubmissionContext:
+        submission = await TasksService(db).get_submission_or_404(submission_id)
+        tctx = await _task_context(
+            submission.task_id,
+            user,
+            db,
+            permission,
+            writes=writes,
+            missing_message="Entrega no encontrada.",
+        )
+        return SubmissionContext(submission=submission, task_ctx=tctx)
+
+    return dependency
+
+
+def require_comment_permission(
+    permission: str,
+    *,
+    mutates: bool | None = None,
+) -> Callable[..., Awaitable[CommentContext]]:
+    """Guard for ``/comments/{comment_id}``.
+
+    Both routes ask for ``task.view`` with ``mutates=True`` rather than for
+    ``task.comment``: who may edit or delete a comment is RN-11 — the author, or
+    a moderator with ``task.delete`` — and the service decides that. Demanding
+    ``task.comment`` here would lock a moderator whose custom role can delete but
+    not write out of moderating, and would stop someone whose role just lost
+    ``task.comment`` from deleting what they had already said.
+    """
+    writes = _writes_by_default(permission) if mutates is None else mutates
+
+    async def dependency(
+        comment_id: uuid.UUID,
+        user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> CommentContext:
+        comment = await TasksService(db).get_comment_or_404(comment_id)
+        tctx = await _task_context(
+            comment.task_id,
+            user,
+            db,
+            permission,
+            writes=writes,
+            missing_message="Comentario no encontrado.",
+        )
+        return CommentContext(comment=comment, task_ctx=tctx)
 
     return dependency

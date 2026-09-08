@@ -255,6 +255,29 @@ class ProjectsService:
         """Who is a member of this project, by id."""
         return await self.repo.member_user_ids(project_id)
 
+    async def member_ids_with_permission(
+        self, project_id: uuid.UUID, permission_code: str
+    ) -> set[uuid.UUID]:
+        """Who holds a permission in this project, by id.
+
+        The scheduled job needs the members with ``task.review`` to notify them
+        of an overdue task (RN-25). It asks here rather than reading roles and
+        permissions itself.
+        """
+        return await self.repo.member_ids_with_permission(project_id, permission_code)
+
+    async def active_project_names(
+        self, project_ids: set[uuid.UUID]
+    ) -> dict[uuid.UUID, str]:
+        """Name by id, for the projects in the set that are not archived.
+
+        Two answers in one query, because the scheduled job needs both: an
+        archived project stops every notification (RN-16), and the ones that
+        survive have to be named in the email. A project that is missing from the
+        result is one to skip.
+        """
+        return await self.repo.active_project_names(project_ids)
+
     async def member_project_names(self, user_id: uuid.UUID) -> dict[uuid.UUID, str]:
         """Project id to project name, for every project the user belongs to.
 

@@ -192,6 +192,41 @@ class ProjectsRepository:
             query = query.where(ProjectMember.user_id != exclude_user_id)
         return (await self.db.execute(query)).scalar_one()
 
+    async def member_ids_with_permission(
+        self, project_id: uuid.UUID, permission_code: str
+    ) -> set[uuid.UUID]:
+        """Who in this project holds a given permission, by id.
+
+        The overdue notice goes to the responsibles plus whoever can review
+        (RN-25), and that second half is this query.
+        """
+        rows = await self.db.execute(
+            select(ProjectMember.user_id)
+            .join(ProjectRole, ProjectRole.id == ProjectMember.project_role_id)
+            .join(
+                ProjectRolePermission,
+                ProjectRolePermission.project_role_id == ProjectRole.id,
+            )
+            .where(
+                ProjectMember.project_id == project_id,
+                ProjectRolePermission.permission_code == permission_code,
+            )
+        )
+        return set(rows.scalars().all())
+
+    async def active_project_names(
+        self, project_ids: set[uuid.UUID]
+    ) -> dict[uuid.UUID, str]:
+        """Id to name for the projects in the set that are not archived."""
+        if not project_ids:
+            return {}
+        rows = await self.db.execute(
+            select(Project.id, Project.name).where(
+                Project.id.in_(project_ids), Project.status == ProjectStatus.ACTIVE
+            )
+        )
+        return {row.id: row.name for row in rows}
+
     async def delete_member(self, member: ProjectMember) -> None:
         await self.db.delete(member)
 

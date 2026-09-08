@@ -6,6 +6,7 @@ decisions.
 """
 
 from app.modules.tasks.schemas import (
+    CommentRead,
     MyTaskRead,
     ProjectRef,
     SubmissionRead,
@@ -13,6 +14,7 @@ from app.modules.tasks.schemas import (
     UserRef,
 )
 from app.modules.tasks.service import (
+    CommentView,
     MyTaskView,
     SubmissionView,
     TaskView,
@@ -63,4 +65,16 @@ def submission_read(view: SubmissionView) -> SubmissionRead:
         reviewed_at=submission.reviewed_at,
         review_comment=submission.review_comment,
         created_at=submission.created_at,
+    )
+
+
+def comment_read(view: CommentView) -> CommentRead:
+    comment = view.comment
+    return CommentRead(
+        id=comment.id,
+        task_id=comment.task_id,
+        author=user_ref(view.author),
+        body=comment.body,
+        created_at=comment.created_at,
+        updated_at=comment.updated_at,
     )

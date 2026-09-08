@@ -182,3 +182,83 @@ class SubmissionRead(BaseModel):
     reviewed_at: datetime.datetime | None
     review_comment: str | None
     created_at: datetime.datetime
+
+
+class SubmissionUpdate(BaseModel):
+    """Correcting your own submission while nobody has looked at it yet (RN-12).
+
+    Both fields are optional, like every PATCH in this API. ``commit_url`` is
+    genuinely nullable, so sending null clears the link; ``description`` is a
+    NOT NULL column and an explicit null has to be refused here.
+    """
+
+    description: str | None = Field(default=None, min_length=10, max_length=4000)
+    commit_url: str | None = None
+
+    _trim_description = field_validator("description", mode="before")(_strip)
+
+    @field_validator("commit_url", mode="before")
+    @classmethod
+    def _blank_is_absent(cls, url: object) -> object:
+        if isinstance(url, str) and not url.strip():
+            return None
+        return url.strip() if isinstance(url, str) else url
+
+    @field_validator("commit_url")
+    @classmethod
+    def _looks_like_github(cls, url: str | None) -> str | None:
+        if url is not None and not GITHUB_URL_PATTERN.match(url):
+            raise ValueError(GITHUB_URL_HELP)
+        return url
+
+    @field_validator("description")
+    @classmethod
+    def _description_is_never_null(cls, description: str | None) -> str | None:
+        if description is None:
+            raise ValueError("La descripción de la entrega no puede quedar vacía.")
+        return description
+
+
+class SubmissionReview(BaseModel):
+    """Approve or send back (RF-33).
+
+    The comment is optional *here* on purpose: returning without one is a
+    business rule (RN-09), and the service refuses it with the specific code
+    REVIEW_COMMENT_REQUIRED that api-contract.md 6 promises. A validator would
+    answer VALIDATION_ERROR instead and the frontend could not tell the two
+    apart.
+    """
+
+    approved: bool
+    comment: str | None = Field(default=None, max_length=4000)
+
+    @field_validator("comment", mode="before")
+    @classmethod
+    def _blank_is_absent(cls, comment: object) -> object:
+        if isinstance(comment, str) and not comment.strip():
+            return None
+        return comment.strip() if isinstance(comment, str) else comment
+
+
+# --- Comments ---
+
+
+class CommentCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=4000)
+
+    _trim_body = field_validator("body", mode="before")(_strip)
+
+
+class CommentUpdate(BaseModel):
+    body: str = Field(min_length=1, max_length=4000)
+
+    _trim_body = field_validator("body", mode="before")(_strip)
+
+
+class CommentRead(BaseModel):
+    id: uuid.UUID
+    task_id: uuid.UUID
+    author: UserRef
+    body: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime

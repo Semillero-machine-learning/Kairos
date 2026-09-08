@@ -284,3 +284,62 @@ export interface Submission {
   review_comment: string | null;
   created_at: string;
 }
+
+/** Un mensaje del hilo de la tarea (RF-35). */
+export interface TaskComment {
+  id: string;
+  task_id: string;
+  author: UserRef;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// --- Notificaciones (api-contract.md §7) ---
+
+export type NotificationKind =
+  | 'TASK_ASSIGNED'
+  | 'TASK_DUE_SOON'
+  | 'TASK_OVERDUE'
+  | 'SUBMISSION_APPROVED'
+  | 'SUBMISSION_REJECTED';
+
+/**
+ * Cómo se pinta cada tipo en la campana.
+ *
+ * El texto viene del backend, que es quien lo redacta en los dos canales a la
+ * vez; aquí solo se decide el color, que es lo que separa un aviso de un
+ * problema de un lado.
+ */
+export const NOTIFICATION_TONE: Record<
+  NotificationKind,
+  'neutral' | 'notice' | 'danger' | 'success'
+> = {
+  TASK_ASSIGNED: 'neutral',
+  TASK_DUE_SOON: 'notice',
+  TASK_OVERDUE: 'danger',
+  SUBMISSION_APPROVED: 'success',
+  SUBMISSION_REJECTED: 'danger',
+};
+
+export interface AppNotification {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  task_id: string | null;
+  project_id: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+/** La configuración global de recordatorios (RF-43, RN-26). */
+export interface NotificationSettings {
+  reminder_days_before: number[];
+  send_hour: number;
+  /** Fija en «America/Bogota»: RN-26 no la deja cambiar. */
+  timezone: string;
+  overdue_enabled: boolean;
+  updated_at: string;
+  updated_by: string | null;
+}

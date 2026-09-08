@@ -1,0 +1,36 @@
+# Disparador del proceso programado de recordatorios (architecture.md §4).
+#
+# Render no ofrece trabajos programados en el plan gratuito, así que el reloj
+# vive aquí y la aplicación solo expone el endpoint interno.
+name: Recordatorios
+
+on:
+  schedule:
+    # 12:00 UTC = 07:00 en America/Bogota, la hora por defecto de RN-26.
+    # Si un Administrador cambia `send_hour`, hay que cambiar este cron también:
+    # la configuración de la base decide el contenido, este archivo el momento.
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+# Dos ejecuciones simultáneas no romperían nada — la restricción de unicidad de
+# `notification_dispatches` las vuelve inofensivas (RN-27) — pero tampoco tiene
+# sentido pagarlas.
+concurrency:
+  group: recordatorios
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      # El servicio puede estar suspendido. Si el disparo llegara directo, la
+      # primera petición se agotaría antes de que el proceso terminara de
+      # arrancar y el día se quedaría sin avisos.
+      - name: Despertar la API
+        run: curl -s -o /dev/null --max-time 120 --retry 3 "${{ secrets.API_URL }}/health"
+
+      - name: Ejecutar recordatorios
+        run: |
+          curl -sS -X POST "${{ secrets.API_URL }}/internal/jobs/reminders" \
+            -H "X-Job-Token: ${{ secrets.JOB_TOKEN }}" \
+            --max-time 300 --fail

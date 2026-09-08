@@ -249,8 +249,18 @@ Errores: `409 SUBMISSION_ALREADY_PENDING`, `422` si `commit_url` no es un enlace
 ```json
 { "approved": false, "comment": "Falta la evaluación en el conjunto de prueba." }
 ```
-Aprobar lleva la tarea a `DONE`; devolver la lleva a `IN_PROGRESS`.
-Errores: `422 REVIEW_COMMENT_REQUIRED` al devolver sin comentario, `403 CANNOT_REVIEW_OWN_SUBMISSION` (RN-07).
+Aprobar lleva la tarea a `DONE` y registra `completed_at`; devolver la lleva a `IN_PROGRESS`. Al aprobar, el comentario es opcional y se conserva si viene.
+Notifica a quien registró la entrega (RF-42).
+Errores: `422 REVIEW_COMMENT_REQUIRED` al devolver sin comentario, `403 CANNOT_REVIEW_OWN_SUBMISSION` (RN-07), `409 SUBMISSION_ALREADY_REVIEWED` si ya se resolvió.
+
+`CANNOT_REVIEW_OWN_SUBMISSION` cubre las dos salidas de `IN_REVIEW`, no solo la aprobación: si un responsable pudiera devolverse su propia entrega, el segundo par de ojos que exige RN-07 sería opcional.
+
+**PATCH `/submissions/{id}`**
+```json
+{ "description": "Agregué la evaluación en prueba.", "commit_url": null }
+```
+Solo el autor, y solo mientras la entrega siga `PENDING` (RN-12).
+Errores: `403` si no es el autor, `409 SUBMISSION_ALREADY_REVIEWED` si ya la revisaron.
 
 ---
 
@@ -274,6 +284,12 @@ Errores: `422 REVIEW_COMMENT_REQUIRED` al devolver sin comentario, `403 CANNOT_R
 }
 ```
 Validaciones: máximo 5 valores en `reminder_days_before`, cada uno entre 0 y 30, sin repetidos; `send_hour` entre 0 y 23.
+
+**GET `/notifications`** devuelve una página: `{ items, total, page, size }`, con `page` y `size` como parámetros y las más nuevas primero.
+**GET `/notifications/unread-count`** responde `{ "unread": 3 }`.
+**POST `/notifications/read-all`** responde `{ "marked": 2 }`, el número de filas que estaban sin leer.
+
+Una notificación ajena responde **404**, no 403: un 403 confirmaría que existe.
 
 **Consulta del contador de no leídas:** el frontend la ejecuta cada 60 segundos mientras la pestaña esté visible. No se usan WebSockets ni eventos del servidor: mantener una conexión abierta contra un servicio que se suspende no tiene sentido.
 
@@ -334,6 +350,9 @@ No aparece en el esquema público de OpenAPI.
 | `INVALID_TRANSITION` | 409 | Cambio de estado no permitido |
 | `SUBMISSION_REQUIRED` | 409 | Falta la entrega para pasar a revisión |
 | `SUBMISSION_ALREADY_PENDING` | 409 | Ya hay una entrega sin revisar |
+| `SUBMISSION_ALREADY_REVIEWED` | 409 | La entrega ya fue aprobada o devuelta |
+| `NOT_ASSIGNEE` | 403 | Quien entrega no es responsable de la tarea |
+| `REVIEW_COMMENT_REQUIRED` | 422 | Devolución sin comentario |
 | `CANNOT_REVIEW_OWN_SUBMISSION` | 403 | El revisor es responsable de la tarea |
 | `PROJECT_ARCHIVED` | 409 | Escritura sobre proyecto archivado |
 | `ROLE_NAME_TAKEN` | 409 | Nombre de rol repetido en el proyecto |

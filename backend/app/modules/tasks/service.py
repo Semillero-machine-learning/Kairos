@@ -10,6 +10,10 @@ Two things carry this module:
 * **A submission and the move to IN_REVIEW are one transaction.** Handing in work
   that leaves the task in IN_PROGRESS, or a task in review with nothing to
   review, are both states nobody could explain (RF-31).
+* **Notifications are sent after the commit, never inside it.** Assignment and
+  review both notify (RF-39, RF-42), and RN-30 says a mail failure may not undo
+  the operation that caused it. So every ``_notify_*`` helper runs once the
+  business change is already durable, and none of them can raise.
 
 This module talks to other modules only through their services, and only in
 primitives: it never imports another module's models or repository.
@@ -23,7 +27,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.clock import now_utc, today_in_bogota
-from app.core.enums import TaskPeriodicity, TaskStatus, UserStatus
+from app.core.enums import (
+    NotificationKind,
+    SubmissionReviewStatus,
+    TaskPeriodicity,
+    TaskStatus,
+    UserStatus,
+)
 from app.core.exceptions import (
     ConflictError,
     ForbiddenError,
@@ -31,9 +41,14 @@ from app.core.exceptions import (
     ValidationError,
 )
 from app.core.pagination import Pagination
+from app.modules.notifications.service import (
+    NotificationContent,
+    NotificationsService,
+    Recipient,
+)
 from app.modules.projects.service import ProjectContext, ProjectsService
 from app.modules.tasks import state_machine
-from app.modules.tasks.models import Task, TaskAssignee, TaskSubmission
+from app.modules.tasks.models import Task, TaskAssignee, TaskComment, TaskSubmission
 from app.modules.tasks.repository import TasksRepository
 from app.modules.users.service import UsersService
 
@@ -79,6 +94,28 @@ class SubmissionView:
 
 
 @dataclass(frozen=True)
+class ReminderTask:
+    """A task the scheduled job might have to remind somebody about.
+
+    Primitives only. ``jobs/reminders.py`` orchestrates three modules and should
+    not be holding any of their ORM rows, least of all one whose session it does
+    not own.
+    """
+
+    task_id: uuid.UUID
+    project_id: uuid.UUID
+    title: str
+    due_date: datetime.date
+    assignee_ids: set[uuid.UUID]
+
+
+@dataclass(frozen=True)
+class CommentView:
+    comment: TaskComment
+    author: UserSummary
+
+
+@dataclass(frozen=True)
 class TaskContext:
     """What a task-scoped request resolved: the task and the project standing of
     whoever asked. Built by ``require_task_permission``, mirroring the way
@@ -97,12 +134,34 @@ class TaskContext:
         return self.project.permissions
 
 
+@dataclass(frozen=True)
+class SubmissionContext:
+    """What a request against ``/submissions/{id}`` resolved.
+
+    Composition rather than three more copies of ``user_id`` and
+    ``permissions``: the task context underneath already answers those, and one
+    place to change is better than three that can drift.
+    """
+
+    submission: TaskSubmission
+    task_ctx: TaskContext
+
+
+@dataclass(frozen=True)
+class CommentContext:
+    """The same shape for ``/comments/{id}`` (RN-11)."""
+
+    comment: TaskComment
+    task_ctx: TaskContext
+
+
 class TasksService:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
         self.repo = TasksRepository(db)
         self.projects = ProjectsService(db)
         self.users = UsersService(db)
+        self.notifications = NotificationsService(db)
 
     # --- Reading ---
 
@@ -208,6 +267,37 @@ class TasksService:
             for view in views
         ], total
 
+    async def list_reminder_candidates(
+        self,
+        *,
+        due_on: datetime.date | None = None,
+        due_before: datetime.date | None = None,
+    ) -> list[ReminderTask]:
+        """Unfinished tasks with a deadline on, or before, a given day.
+
+        Only the two conditions this module owns are applied — not DONE, not
+        deleted (RN-28) — plus the date. Whether the project is archived and
+        whether each responsible is still active belong to the other two modules,
+        and the job asks them.
+        """
+        tasks = await self.repo.list_undone_by_due_date(
+            due_on=due_on, due_before=due_before
+        )
+        if not tasks:
+            return []
+        assignees = await self.repo.assignees_by_task([task.id for task in tasks])
+        return [
+            ReminderTask(
+                task_id=task.id,
+                project_id=task.project_id,
+                title=task.title,
+                # Non-null by construction: the query demands a deadline.
+                due_date=task.due_date,  # type: ignore[arg-type]
+                assignee_ids=set(assignees.get(task.id, [])),
+            )
+            for task in tasks
+        ]
+
     async def count_by_status(self, project_id: uuid.UUID) -> dict[TaskStatus, int]:
         return await self.repo.count_by_status(project_id)
 
@@ -250,6 +340,8 @@ class TasksService:
                 )
             )
         await self.db.commit()
+
+        await self._notify_assigned(task, ctx.project.name, assignee_ids)
         return await self.build_view(task)
 
     async def update_task(
@@ -280,6 +372,10 @@ class TasksService:
             )
         )
         await self.db.commit()
+
+        await self._notify_assigned(
+            tctx.task, tctx.project.project.name, [user_id]
+        )
         return await self.build_view(tctx.task)
 
     async def remove_assignee(self, tctx: TaskContext, *, user_id: uuid.UUID) -> TaskView:
@@ -413,6 +509,271 @@ class TasksService:
         return (
             SubmissionView(submission=submission, submitted_by=author, reviewed_by=None),
             await self.build_view(task),
+        )
+
+    async def get_submission_or_404(self, submission_id: uuid.UUID) -> TaskSubmission:
+        submission = await self.repo.get_submission(submission_id)
+        if submission is None:
+            raise NotFoundError("Entrega no encontrada.")
+        return submission
+
+    async def update_submission(
+        self, sctx: SubmissionContext, *, fields: dict[str, object]
+    ) -> SubmissionView:
+        """Correct your own submission while nobody has looked at it (RN-12).
+
+        Being the author is what authorizes this, not a permission of the
+        catalog: the guard only established that the person can see the task.
+        """
+        submission = sctx.submission
+        if sctx.task_ctx.user_id != submission.submitted_by:
+            raise ForbiddenError("Solo quien registró la entrega puede editarla.")
+        # The two conditions of RN-12. They coincide today — a pending submission
+        # only stops being pending through the review endpoint, which is also
+        # what moves the task out of IN_REVIEW — but the rule states both and a
+        # future path that separates them should fail here, not silently pass.
+        if (
+            submission.review_status != SubmissionReviewStatus.PENDING
+            or sctx.task_ctx.task.status != TaskStatus.IN_REVIEW
+        ):
+            raise ConflictError(
+                "La entrega ya fue revisada y no se puede editar.",
+                code="SUBMISSION_ALREADY_REVIEWED",
+            )
+
+        for key, value in fields.items():
+            setattr(submission, key, value)
+        await self.db.commit()
+
+        author = (await self._summaries([submission.submitted_by]))[
+            submission.submitted_by
+        ]
+        return SubmissionView(
+            submission=submission, submitted_by=author, reviewed_by=None
+        )
+
+    async def review_submission(
+        self, sctx: SubmissionContext, *, approved: bool, comment: str | None
+    ) -> tuple[SubmissionView, TaskView]:
+        """Approve or send back a submission (RF-33).
+
+        Two rules that no other path enforces:
+
+        * **RN-07, the second pair of eyes.** A reviewer who is also responsible
+          for the task is refused, even holding ``task.review``. The rule spells
+          out approval; sending back is refused just the same, because it is the
+          other way out of IN_REVIEW and letting a responsible take it would give
+          back with one hand what the rule took with the other.
+        * **RN-09, a rejection explains itself.** Refused here rather than by a
+          schema validator, so the answer carries REVIEW_COMMENT_REQUIRED and the
+          interface can point at the right field (api-contract.md 6).
+        """
+        submission = sctx.submission
+        task = sctx.task_ctx.task
+        reviewer_id = sctx.task_ctx.user_id
+
+        if reviewer_id in await self.repo.assignee_ids(task.id):
+            raise ForbiddenError(
+                "No puedes revisar una entrega de una tarea de la que eres "
+                "responsable. La revisión la hace otra persona.",
+                code="CANNOT_REVIEW_OWN_SUBMISSION",
+            )
+        if submission.review_status != SubmissionReviewStatus.PENDING:
+            raise ConflictError(
+                "Esta entrega ya fue revisada.", code="SUBMISSION_ALREADY_REVIEWED"
+            )
+        if not approved and not comment:
+            raise ValidationError(
+                "Para devolver una entrega hay que explicar qué falta.",
+                code="REVIEW_COMMENT_REQUIRED",
+            )
+
+        target = TaskStatus.DONE if approved else TaskStatus.IN_PROGRESS
+        transition = state_machine.find(task.status, target)
+        if transition is None:
+            raise ConflictError(
+                self._invalid_transition_message(task.status, target),
+                code="INVALID_TRANSITION",
+                details=self._transition_details(task.status),
+            )
+
+        submission.review_status = (
+            SubmissionReviewStatus.APPROVED if approved else SubmissionReviewStatus.REJECTED
+        )
+        submission.reviewed_by = reviewer_id
+        submission.reviewed_at = now_utc()
+        # Kept on an approval too: praise is history as much as a correction is.
+        submission.review_comment = comment
+        task.status = target
+        # RN-08: completed_at and the state move together, always.
+        task.completed_at = now_utc() if approved else None
+        await self.db.commit()
+
+        people = await self._summaries([submission.submitted_by, reviewer_id])
+        await self._notify_reviewed(
+            task,
+            sctx.task_ctx.project.project.name,
+            author=people[submission.submitted_by],
+            reviewer=people[reviewer_id],
+            approved=approved,
+            comment=comment,
+        )
+        return (
+            SubmissionView(
+                submission=submission,
+                submitted_by=people[submission.submitted_by],
+                reviewed_by=people[reviewer_id],
+            ),
+            await self.build_view(task),
+        )
+
+    # --- Comments ---
+
+    async def list_comments(self, tctx: TaskContext) -> list[CommentView]:
+        """The thread of a task (RF-35), oldest first."""
+        comments = await self.repo.list_comments(tctx.task.id)
+        people = await self._summaries([c.author_id for c in comments])
+        return [
+            CommentView(comment=comment, author=people[comment.author_id])
+            for comment in comments
+        ]
+
+    async def create_comment(self, tctx: TaskContext, *, body: str) -> CommentView:
+        """Add a message to the thread (`task.comment`)."""
+        comment = TaskComment(task_id=tctx.task.id, author_id=tctx.user_id, body=body)
+        self.repo.add(comment)
+        await self.db.commit()
+        author = (await self._summaries([tctx.user_id]))[tctx.user_id]
+        return CommentView(comment=comment, author=author)
+
+    async def get_comment_or_404(self, comment_id: uuid.UUID) -> TaskComment:
+        comment = await self.repo.get_comment(comment_id)
+        if comment is None:
+            raise NotFoundError("Comentario no encontrado.")
+        return comment
+
+    async def update_comment(self, cctx: CommentContext, *, body: str) -> CommentView:
+        """Only the author edits a comment (RN-11). Moderation can delete, never
+        rewrite: putting words in someone's mouth is worse than removing them."""
+        if cctx.task_ctx.user_id != cctx.comment.author_id:
+            raise ForbiddenError("Solo el autor puede editar su comentario.")
+        cctx.comment.body = body
+        await self.db.commit()
+        author = (await self._summaries([cctx.comment.author_id]))[
+            cctx.comment.author_id
+        ]
+        return CommentView(comment=cctx.comment, author=author)
+
+    async def delete_comment(self, cctx: CommentContext) -> None:
+        """The author, or a moderator holding ``task.delete`` (RN-11).
+
+        Soft delete, like everything else here (RN-17): the message leaves the
+        conversation, the row stays.
+        """
+        is_author = cctx.task_ctx.user_id == cctx.comment.author_id
+        if not is_author and "task.delete" not in cctx.task_ctx.permissions:
+            raise ForbiddenError(
+                "Solo el autor, o alguien con «task.delete» para moderar, puede "
+                "borrar este comentario."
+            )
+        cctx.comment.deleted_at = now_utc()
+        await self.db.commit()
+
+    # --- Notifications (RF-39, RF-42) ---
+
+    @staticmethod
+    def _board_path(project_id: uuid.UUID) -> str:
+        """Where the email's button lands.
+
+        The board of the project, not the task: the frontend has no route that
+        opens one card directly, and a link that half works is worse than one
+        that lands next to what it promised.
+        """
+        return f"/proyectos/{project_id}/tablero"
+
+    @staticmethod
+    def _deadline_line(due_date: datetime.date | None) -> str:
+        if due_date is None:
+            return "La tarea no tiene fecha límite."
+        return f"Fecha límite: {due_date.isoformat()}."
+
+    async def _notify_assigned(
+        self, task: Task, project_name: str, user_ids: list[uuid.UUID]
+    ) -> None:
+        """Tell the new responsibles (RF-39).
+
+        Called after the commit, and never able to break it: the delivery service
+        swallows every mail failure (RN-30). The people are looked up here rather
+        than passed in because ``_guard_assignable`` has already established they
+        exist and are active.
+        """
+        if not user_ids:
+            return
+        people = await self._summaries(user_ids)
+        content = NotificationContent(
+            kind=NotificationKind.TASK_ASSIGNED,
+            title="Te asignaron una tarea",
+            body=f"Ahora eres responsable de «{task.title}».",
+            detail=self._deadline_line(task.due_date),
+            task_id=task.id,
+            project_id=task.project_id,
+            project_name=project_name,
+            link_path=self._board_path(task.project_id),
+        )
+        for user_id in user_ids:
+            person = people.get(user_id)
+            if person is None:
+                continue
+            await self.notifications.deliver(
+                Recipient(
+                    user_id=person.id, email=person.email, full_name=person.full_name
+                ),
+                content,
+            )
+
+    async def _notify_reviewed(
+        self,
+        task: Task,
+        project_name: str,
+        *,
+        author: UserSummary,
+        reviewer: UserSummary,
+        approved: bool,
+        comment: str | None,
+    ) -> None:
+        """Tell whoever handed the work in how it went (RF-42, RN-25).
+
+        Only the author: the reviewer already knows, and everybody else finds out
+        from the board.
+        """
+        if approved:
+            kind = NotificationKind.SUBMISSION_APPROVED
+            title = "Aprobaron tu entrega"
+            body = (
+                f"{reviewer.full_name} aprobó tu entrega de «{task.title}». "
+                "La tarea quedó terminada."
+            )
+        else:
+            kind = NotificationKind.SUBMISSION_REJECTED
+            title = "Devolvieron tu entrega"
+            body = (
+                f"{reviewer.full_name} devolvió tu entrega de «{task.title}». "
+                "La tarea volvió a «en progreso»."
+            )
+        await self.notifications.deliver(
+            Recipient(
+                user_id=author.id, email=author.email, full_name=author.full_name
+            ),
+            NotificationContent(
+                kind=kind,
+                title=title,
+                body=body,
+                detail=comment,
+                task_id=task.id,
+                project_id=task.project_id,
+                project_name=project_name,
+                link_path=self._board_path(task.project_id),
+            ),
         )
 
     # --- Guards ---

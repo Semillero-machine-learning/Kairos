@@ -10,6 +10,7 @@ import asyncio
 import os
 from collections.abc import AsyncGenerator
 
+import pytest
 import pytest_asyncio
 from alembic import command
 from alembic.config import Config
@@ -17,6 +18,8 @@ from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
+
+from app.core.config import get_settings
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
@@ -31,6 +34,22 @@ def _run_migrations(url: str) -> None:
     cfg.set_main_option("sqlalchemy.url", url)
     command.downgrade(cfg, "base")
     command.upgrade(cfg, "head")
+
+
+@pytest.fixture(autouse=True)
+def no_real_emails(monkeypatch):
+    """Ninguna prueba manda un correo de verdad.
+
+    El `.env` de desarrollo puede traer una `RESEND_API_KEY` válida, y sin esto
+    la suite le mandaría correos a direcciones inventadas cada vez que corre:
+    lento, dependiente de la red, y con la cuota de un proveedor real de por
+    medio. Con la clave vacía el cliente registra el envío en el log y devuelve
+    éxito, que es el camino que las pruebas quieren ejercitar.
+
+    Las pruebas que necesitan un fallo del proveedor parchean `EmailClient`
+    directamente y este ajuste no les estorba.
+    """
+    monkeypatch.setattr(get_settings(), "resend_api_key", "", raising=False)
 
 
 @pytest_asyncio.fixture(scope="session")
