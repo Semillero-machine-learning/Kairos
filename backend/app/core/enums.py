@@ -56,3 +56,32 @@ class SubmissionReviewStatus(enum.StrEnum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+
+
+class NotificationKind(enum.StrEnum):
+    """What a notification is about (data-model.md 2).
+
+    The invitation and the password reset are not here: those emails go out
+    before the person has an account to read an in-app notification with, so
+    they have no row in ``notifications`` (RN-25 lists them as events, not as
+    inbox entries).
+    """
+
+    TASK_ASSIGNED = "TASK_ASSIGNED"
+    TASK_DUE_SOON = "TASK_DUE_SOON"
+    TASK_OVERDUE = "TASK_OVERDUE"
+    SUBMISSION_APPROVED = "SUBMISSION_APPROVED"
+    SUBMISSION_REJECTED = "SUBMISSION_REJECTED"
+
+
+class DispatchStatus(enum.StrEnum):
+    """How the email of a scheduled reminder ended up.
+
+    Two values, no PENDING: the row is written before the send as the idempotency
+    claim (RN-27), so it starts as SENT and is corrected to FAILED if the
+    provider refuses. A third state would suggest the job resumes half-finished
+    work, and it does not — RN-29 says it never rebuilds the past.
+    """
+
+    SENT = "SENT"
+    FAILED = "FAILED"

@@ -159,9 +159,35 @@ importa, porque el servicio nuevo necesita la base nueva.
 
 ## 6. Proceso programado (GitHub Actions)
 
-Los flujos de recordatorios y de mantenimiento (`keepalive`) se añaden en la
-Fase 5, cuando exista el endpoint `/internal/jobs/reminders`. Requieren los
-secretos `API_URL` y `JOB_TOKEN` en el repositorio.
+Los dos flujos viven en `.github/workflows/`:
+
+| Flujo | Cuándo | Qué hace |
+|---|---|---|
+| `reminders.yml` | `0 12 * * *` (07:00 en Colombia) | Despierta la API y llama a `POST /internal/jobs/reminders` |
+| `keep-alive.yml` | `*/10 0-4,11-23 * * *` (6:00–23:59 en Colombia) | Un `curl` a `/health`, que ejecuta un `SELECT 1` |
+
+Ambos necesitan dos secretos en **Settings → Secrets and variables → Actions**
+del repositorio:
+
+| Secreto | Valor |
+|---|---|
+| `API_URL` | `https://api.kairospartners.uk`, sin barra final |
+| `JOB_TOKEN` | El mismo valor que la variable `JOB_TOKEN` del servicio en Render |
+
+Si `JOB_TOKEN` no coincide con el de Render, el flujo falla con 401 y no se
+envía nada. Si la variable de Render está **vacía**, el endpoint queda cerrado a
+propósito: un secreto sin configurar nunca debe equivaler a uno correcto.
+
+**Al cambiar la hora de envío** desde `/admin/notificaciones` hay que cambiar
+también el `cron` de `reminders.yml`. La configuración de la base decide el
+contenido del aviso; el flujo decide el momento, y son dos sitios distintos.
+
+**Verificación:** dispara `reminders.yml` a mano con *Run workflow* y ejecútalo
+dos veces seguidas. La primera responde con los envíos del día; la segunda debe
+responder `due_soon_sent: 0`, `overdue_sent: 0` y los mismos números en
+`skipped_duplicates`. Si la segunda vuelve a enviar, la restricción
+`uq_notification_dispatches_once` no se aplicó: revisa que la migración 0008
+esté puesta.
 
 ---
 

@@ -12,7 +12,7 @@ from sqlalchemy import Select, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import SubmissionReviewStatus, TaskPeriodicity, TaskStatus
-from app.modules.tasks.models import Task, TaskAssignee, TaskSubmission
+from app.modules.tasks.models import Task, TaskAssignee, TaskComment, TaskSubmission
 
 
 class TasksRepository:
@@ -194,4 +194,49 @@ class TasksRepository:
             .where(TaskSubmission.task_id == task_id)
             .order_by(TaskSubmission.created_at.desc())
         )
+        return list(rows.scalars().all())
+
+    # --- Comments ---
+
+    async def get_comment(self, comment_id: uuid.UUID) -> TaskComment | None:
+        """A soft-deleted comment is gone as far as the API is concerned."""
+        result = await self.db.execute(
+            select(TaskComment).where(
+                TaskComment.id == comment_id, TaskComment.deleted_at.is_(None)
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def list_comments(self, task_id: uuid.UUID) -> list[TaskComment]:
+        """The live thread, oldest first: a conversation is read downwards."""
+        rows = await self.db.execute(
+            select(TaskComment)
+            .where(TaskComment.task_id == task_id, TaskComment.deleted_at.is_(None))
+            .order_by(TaskComment.created_at.asc())
+        )
+        return list(rows.scalars().all())
+
+    # --- Reminders (jobs/reminders.py) ---
+
+    async def list_undone_by_due_date(
+        self, *, due_on: datetime.date | None = None, due_before: datetime.date | None = None
+    ) -> list[Task]:
+        """Tasks with a deadline that is not finished yet, for the scheduled job.
+
+        Only the conditions that live in this module are applied here: having a
+        deadline, not being DONE and not being deleted. Whether the project is
+        archived belongs to ``projects`` and is decided by the caller, because a
+        repository does not reach into another module's tables (architecture.md
+        2, rule 4).
+        """
+        query = select(Task).where(
+            Task.deleted_at.is_(None),
+            Task.due_date.is_not(None),
+            Task.status != TaskStatus.DONE,
+        )
+        if due_on is not None:
+            query = query.where(Task.due_date == due_on)
+        if due_before is not None:
+            query = query.where(Task.due_date < due_before)
+        rows = await self.db.execute(self._ordered(query))
         return list(rows.scalars().all())

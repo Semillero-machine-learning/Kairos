@@ -168,6 +168,8 @@ Independientes del catálogo de permisos. Aplican a todo miembro del proyecto co
 
 **RN-27 (idempotencia).** Un mismo usuario no recibe dos veces el mismo tipo de recordatorio para la misma tarea el mismo día. Se garantiza con una restricción de unicidad sobre `(user_id, task_id, kind, target_date)` en la tabla de despachos.
 
+La regla habla de **recordatorios**, y solo esos escriben en `notification_dispatches`: `TASK_DUE_SOON` y `TASK_OVERDUE`. Las notificaciones inmediatas —asignación y revisión— no pasan por esa tabla. Si lo hicieran, quitar y volver a poner a alguien como responsable el mismo día quedaría silenciado por la restricción, y esa segunda asignación es un hecho nuevo que sí hay que avisar.
+
 **RN-28.** No se notifica sobre tareas en estado `DONE`, ni de proyectos archivados, ni a usuarios desactivados.
 
 **RN-29.** Si el proceso programado se salta un día, al reanudarse solo envía lo que corresponde al día en curso. No reconstruye avisos atrasados.

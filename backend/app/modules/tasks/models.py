@@ -21,7 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 from app.core.enums import SubmissionReviewStatus, TaskPeriodicity, TaskStatus
 
-__all__ = ["Task", "TaskAssignee", "TaskSubmission"]
+__all__ = ["Task", "TaskAssignee", "TaskComment", "TaskSubmission"]
 
 
 task_status_enum = PGEnum(
@@ -144,5 +144,35 @@ class TaskSubmission(Base):
     )
     review_comment: Mapped[str | None] = mapped_column(Text(), nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class TaskComment(Base):
+    """A message in the task's thread (RF-35).
+
+    Soft-deleted like everything else in this module (RN-17): moderating a
+    comment takes it out of the conversation without erasing that it was said.
+    """
+
+    __tablename__ = "task_comments"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    task_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False
+    )
+    author_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    body: Mapped[str] = mapped_column(Text(), nullable=False)
+    deleted_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

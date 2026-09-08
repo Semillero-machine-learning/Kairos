@@ -3,6 +3,8 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 
 import { BrandComponent } from '../../shared/ui/brand.component';
 import { SessionService } from '../auth/session.service';
+import { NotificationStore } from '../notifications/notification.store';
+import { NotificationBellComponent } from './notification-bell.component';
 
 interface NavItem {
   path: string;
@@ -23,7 +25,7 @@ interface NavItem {
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BrandComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BrandComponent, NotificationBellComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex min-h-dvh flex-col md:flex-row">
@@ -34,32 +36,35 @@ interface NavItem {
         <a routerLink="/inicio" class="flex min-h-11 items-center" (click)="menuOpen.set(false)">
           <ui-brand />
         </a>
-        <button
-          type="button"
-          class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-control)] text-ink-muted hover:bg-sunken hover:text-ink"
-          [attr.aria-expanded]="menuOpen()"
-          aria-controls="menu-principal"
-          (click)="menuOpen.set(!menuOpen())"
-        >
-          <span class="sr-only">{{ menuOpen() ? 'Cerrar menú' : 'Abrir menú' }}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            @if (menuOpen()) {
-              <path
-                d="M6 6l12 12M18 6L6 18"
-                stroke="currentColor"
-                stroke-width="1.75"
-                stroke-linecap="round"
-              />
-            } @else {
-              <path
-                d="M4 7h16M4 12h16M4 17h16"
-                stroke="currentColor"
-                stroke-width="1.75"
-                stroke-linecap="round"
-              />
-            }
-          </svg>
-        </button>
+        <div class="flex items-center gap-1">
+          <app-notification-bell />
+          <button
+            type="button"
+            class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-control)] text-ink-muted hover:bg-sunken hover:text-ink"
+            [attr.aria-expanded]="menuOpen()"
+            aria-controls="menu-principal"
+            (click)="menuOpen.set(!menuOpen())"
+          >
+            <span class="sr-only">{{ menuOpen() ? 'Cerrar menú' : 'Abrir menú' }}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              @if (menuOpen()) {
+                <path
+                  d="M6 6l12 12M18 6L6 18"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                />
+              } @else {
+                <path
+                  d="M4 7h16M4 12h16M4 17h16"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                />
+              }
+            </svg>
+          </button>
+        </div>
       </header>
 
       <!-- Navegación: desplegable en móvil, lateral fija desde 768 px -->
@@ -70,9 +75,12 @@ interface NavItem {
         [class.border-b]="menuOpen()"
       >
         <div class="flex h-full flex-col md:sticky md:top-0 md:h-dvh">
-          <a routerLink="/inicio" class="hidden items-center px-5 py-5 md:flex">
-            <ui-brand />
-          </a>
+          <div class="hidden items-center justify-between px-5 py-4 md:flex">
+            <a routerLink="/inicio" class="flex items-center">
+              <ui-brand />
+            </a>
+            <app-notification-bell />
+          </div>
 
           <ul class="flex flex-col gap-0.5 p-3 md:px-3 md:py-0">
             @for (item of visibleNav(); track item.path) {
@@ -119,14 +127,23 @@ interface NavItem {
 export class AppShellComponent {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationStore);
 
   protected readonly menuOpen = signal(false);
+
+  constructor() {
+    // Aquí y no en el arranque de la aplicación: este armazón es lo único que
+    // no se pinta sin sesión, así que nada consulta el contador desde la
+    // pantalla de ingreso.
+    this.notifications.start();
+  }
 
   private readonly nav: NavItem[] = [
     { path: '/inicio', label: 'Inicio', adminOnly: false },
     { path: '/proyectos', label: 'Proyectos', adminOnly: false },
     { path: '/admin/usuarios', label: 'Usuarios', adminOnly: true },
     { path: '/admin/invitaciones', label: 'Invitaciones', adminOnly: true },
+    { path: '/admin/notificaciones', label: 'Notificaciones', adminOnly: true },
   ];
 
   protected readonly visibleNav = computed(() =>
@@ -138,6 +155,8 @@ export class AppShellComponent {
 
   protected signOut(): void {
     this.menuOpen.set(false);
+    // Sin esto, quien entre después vería por un instante el número del anterior.
+    this.notifications.reset();
     this.session.logout().subscribe(() => {
       void this.router.navigate(['/ingresar']);
     });

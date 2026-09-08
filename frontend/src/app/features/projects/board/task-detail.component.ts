@@ -16,14 +16,16 @@ import {
   ProjectMember,
   Submission,
   Task,
+  TaskComment,
 } from '../../../core/api/models';
-import { SubmissionBody } from '../../../core/api/tasks.api';
+import { ReviewBody, SubmissionBody } from '../../../core/api/tasks.api';
 import { BogotaDatePipe } from '../../../shared/pipes/bogota-date.pipe';
 import { AlertComponent } from '../../../shared/ui/alert.component';
 import { BadgeComponent } from '../../../shared/ui/badge.component';
 import { ButtonComponent } from '../../../shared/ui/button.component';
 import { FieldComponent } from '../../../shared/ui/field.component';
 import { InputDirective } from '../../../shared/ui/input.directive';
+import { CommentEdit, TaskCommentsComponent } from './task-comments.component';
 
 /**
  * El detalle de una tarea: lo que la tarjeta no cabe.
@@ -43,6 +45,7 @@ import { InputDirective } from '../../../shared/ui/input.directive';
     ButtonComponent,
     FieldComponent,
     InputDirective,
+    TaskCommentsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -221,11 +224,67 @@ import { InputDirective } from '../../../shared/ui/input.directive';
                 @if (submission.review_comment; as comment) {
                   <p class="mt-2 text-sm text-ink-muted">Revisión: {{ comment }}</p>
                 }
+                @if (submission.reviewed_by; as reviewer) {
+                  <p class="mt-1 text-xs text-ink-faint">
+                    Revisó {{ reviewer.full_name }} ·
+                    {{ submission.reviewed_at | bogotaDate: 'datetime' }}
+                  </p>
+                }
+
+                @if (reviewable(submission)) {
+                  <div class="mt-3 border-t border-line pt-3">
+                    <label class="flex flex-col gap-1.5">
+                      <span class="text-sm text-ink-muted">
+                        Comentario de la revisión
+                        <span class="text-ink-faint">
+                          (obligatorio para devolver, opcional para aprobar)
+                        </span>
+                      </span>
+                      <textarea
+                        uiInput
+                        rows="2"
+                        class="min-h-20 py-2.5"
+                        maxlength="4000"
+                        placeholder="Qué falta, o qué quedó bien."
+                        [(ngModel)]="reviewComment"
+                      ></textarea>
+                    </label>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      <ui-button size="sm" [loading]="busy()" (pressed)="review(submission, true)">
+                        Aprobar
+                      </ui-button>
+                      <ui-button
+                        size="sm"
+                        variant="secondary"
+                        [disabled]="!reviewComment.trim()"
+                        [loading]="busy()"
+                        (pressed)="review(submission, false)"
+                      >
+                        Devolver
+                      </ui-button>
+                    </div>
+                  </div>
+                } @else if (submission.review_status === 'PENDING' && isAssignee()) {
+                  <p class="mt-3 border-t border-line pt-3 text-sm text-ink-muted">
+                    Esperando que la revise alguien que no sea responsable de la tarea.
+                  </p>
+                }
               </li>
             }
           </ul>
         }
       </section>
+
+      <app-task-comments
+        [comments]="comments()"
+        [currentUserId]="currentUserId()"
+        [canComment]="canComment()"
+        [canModerate]="canDelete()"
+        [busy]="busy()"
+        (added)="commentAdded.emit($event)"
+        (edited)="commentEdited.emit($event)"
+        (removed)="commentRemoved.emit($event)"
+      />
 
       <!-- Acciones -->
       @if (canEdit() || canDelete()) {
@@ -255,7 +314,11 @@ export class TaskDetailComponent {
   readonly canEdit = input(false);
   readonly canDelete = input(false);
   readonly canAssign = input(false);
+  readonly canReview = input(false);
+  readonly canComment = input(false);
   readonly isAssignee = input(false);
+  readonly comments = input<TaskComment[]>([]);
+  readonly currentUserId = input<string | null>(null);
   readonly busy = input(false);
   readonly error = input('');
 
@@ -264,12 +327,17 @@ export class TaskDetailComponent {
   readonly assigneeAdded = output<string>();
   readonly assigneeRemoved = output<string>();
   readonly submitted = output<SubmissionBody>();
+  readonly reviewed = output<{ submissionId: string; body: ReviewBody }>();
+  readonly commentAdded = output<string>();
+  readonly commentEdited = output<CommentEdit>();
+  readonly commentRemoved = output<string>();
 
   protected readonly inProgressLabel = TASK_STATUS_LABEL.IN_PROGRESS;
   protected readonly confirming = signal(false);
 
   protected description = '';
   protected commitUrl = '';
+  protected reviewComment = '';
 
   /** Un `computed` sobre el identificador y no la tarea entera: así el efecto de
    * abajo corre al cambiar de tarea, y no cada vez que la misma tarea vuelve del
@@ -283,6 +351,7 @@ export class TaskDetailComponent {
       this.taskId();
       this.description = '';
       this.commitUrl = '';
+      this.reviewComment = '';
       this.confirming.set(false);
     });
   }
@@ -296,6 +365,28 @@ export class TaskDetailComponent {
     const already = new Set(this.task()?.assignees.map((person) => person.id) ?? []);
     return this.members().filter((member) => !already.has(member.user.id));
   });
+
+  /**
+   * Si esta entrega admite revisión aquí y ahora (RF-33, RN-07).
+   *
+   * Ser responsable descarta a quien tiene el permiso: es el segundo par de
+   * ojos que exige RN-07. Ocultar los botones es cortesía —el backend responde
+   * 403 con `CANNOT_REVIEW_OWN_SUBMISSION` igual—, pero ofrecer un botón que se
+   * sabe que va a fallar es peor que no ofrecerlo.
+   */
+  protected reviewable(submission: Submission): boolean {
+    return submission.review_status === 'PENDING' && this.canReview() && !this.isAssignee();
+  }
+
+  protected review(submission: Submission, approved: boolean): void {
+    const comment = this.reviewComment.trim();
+    // RN-09: devolver sin explicar no es devolver, es dejar a alguien colgado.
+    if (!approved && !comment) return;
+    this.reviewed.emit({
+      submissionId: submission.id,
+      body: { approved, comment: comment || null },
+    });
+  }
 
   protected statusLabel(task: Task): string {
     return TASK_STATUS_LABEL[task.status];

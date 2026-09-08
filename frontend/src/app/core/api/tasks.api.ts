@@ -8,7 +8,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiClient } from './api-client.service';
-import { MyTask, Page, Submission, Task, TaskPeriodicity, TaskStatus } from './models';
+import { MyTask, Page, Submission, Task, TaskComment, TaskPeriodicity, TaskStatus } from './models';
 
 export interface TaskFilters {
   status?: TaskStatus | '';
@@ -44,6 +44,13 @@ export interface TaskUpdateBody {
 export interface SubmissionBody {
   description: string;
   commit_url: string | null;
+}
+
+/** Aprobar o devolver (RF-33). Al devolver, el comentario es obligatorio: el
+ * backend responde 422 con `REVIEW_COMMENT_REQUIRED` si falta (RN-09). */
+export interface ReviewBody {
+  approved: boolean;
+  comment: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -98,6 +105,32 @@ export class TasksApi {
 
   submit(taskId: string, body: SubmissionBody): Observable<Submission> {
     return this.api.post<Submission>(`/tasks/${taskId}/submissions`, body);
+  }
+
+  updateSubmission(submissionId: string, body: Partial<SubmissionBody>): Observable<Submission> {
+    return this.api.patch<Submission>(`/submissions/${submissionId}`, body);
+  }
+
+  review(submissionId: string, body: ReviewBody): Observable<Submission> {
+    return this.api.post<Submission>(`/submissions/${submissionId}/review`, body);
+  }
+
+  // --- Comentarios ---
+
+  comments(taskId: string): Observable<TaskComment[]> {
+    return this.api.get<TaskComment[]>(`/tasks/${taskId}/comments`);
+  }
+
+  comment(taskId: string, body: string): Observable<TaskComment> {
+    return this.api.post<TaskComment>(`/tasks/${taskId}/comments`, { body });
+  }
+
+  updateComment(commentId: string, body: string): Observable<TaskComment> {
+    return this.api.patch<TaskComment>(`/comments/${commentId}`, { body });
+  }
+
+  removeComment(commentId: string): Observable<void> {
+    return this.api.delete<void>(`/comments/${commentId}`);
   }
 
   // --- Entre proyectos ---

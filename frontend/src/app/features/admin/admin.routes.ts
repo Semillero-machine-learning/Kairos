@@ -13,4 +13,10 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Invitaciones · KAIROS',
     loadComponent: () => import('./invitations.page').then((m) => m.InvitationsPage),
   },
+  {
+    path: 'notificaciones',
+    title: 'Notificaciones · KAIROS',
+    loadComponent: () =>
+      import('./notification-settings.page').then((m) => m.NotificationSettingsPage),
+  },
 ];
