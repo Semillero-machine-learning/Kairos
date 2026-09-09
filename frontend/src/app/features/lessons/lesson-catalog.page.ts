@@ -15,6 +15,7 @@ import { LessonModule } from '../../core/api/models';
 import { SessionService } from '../../core/auth/session.service';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { BadgeComponent } from '../../shared/ui/badge.component';
+import { ButtonComponent } from '../../shared/ui/button.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { InputDirective } from '../../shared/ui/input.directive';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
@@ -39,6 +40,7 @@ const SEARCH_DEBOUNCE_MS = 300;
     RouterLink,
     AlertComponent,
     BadgeComponent,
+    ButtonComponent,
     EmptyStateComponent,
     InputDirective,
     PageHeaderComponent,
@@ -50,7 +52,13 @@ const SEARCH_DEBOUNCE_MS = 300;
       <ui-page-header
         title="Lecciones"
         description="El material del semillero, organizado en módulos. Todo vive en GitHub y otras fuentes; aquí están los enlaces."
-      />
+      >
+        @if (session.canEditLessons()) {
+          <ui-button variant="secondary" routerLink="/lecciones/editor">
+            Editar catálogo
+          </ui-button>
+        }
+      </ui-page-header>
 
       <div class="mt-6">
         <label class="sr-only" for="buscar">Buscar en el catálogo</label>
@@ -83,7 +91,11 @@ const SEARCH_DEBOUNCE_MS = 300;
               ? 'Ningún módulo ni lección coincide con lo que buscaste. Prueba con otra palabra.'
               : catalogHint()
           "
-        />
+        >
+          @if (session.canEditLessons() && !searching()) {
+            <ui-button routerLink="/lecciones/editor">Crear el primer módulo</ui-button>
+          }
+        </ui-empty-state>
       } @else {
         <div class="mt-8 flex flex-col gap-10">
           @for (module of modules(); track module.id) {
