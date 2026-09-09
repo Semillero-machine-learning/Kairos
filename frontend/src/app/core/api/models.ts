@@ -343,3 +343,75 @@ export interface NotificationSettings {
   updated_at: string;
   updated_by: string | null;
 }
+
+// --- Lecciones (api-contract.md §8) ---
+
+export type ResourceType = 'NOTEBOOK' | 'PDF' | 'VIDEO' | 'REPOSITORY' | 'ARTICLE';
+
+/** El orden en que se ofrecen al editor: de lo más frecuente a lo menos. */
+export const RESOURCE_TYPES: readonly ResourceType[] = [
+  'NOTEBOOK',
+  'REPOSITORY',
+  'PDF',
+  'VIDEO',
+  'ARTICLE',
+];
+
+export const RESOURCE_TYPE_LABEL: Record<ResourceType, string> = {
+  NOTEBOOK: 'Cuaderno',
+  REPOSITORY: 'Repositorio',
+  PDF: 'PDF',
+  VIDEO: 'Video',
+  ARTICLE: 'Artículo',
+};
+
+export interface LessonResource {
+  id: string;
+  type: ResourceType;
+  title: string;
+  url: string;
+  position: number;
+}
+
+/** La lección tal como viaja dentro del árbol: con el conteo de recursos, no
+ * con los recursos. La lista de enlaces es de su propia pantalla. */
+export interface Lesson {
+  id: string;
+  module_id: string;
+  title: string;
+  description: string | null;
+  position: number;
+  is_published: boolean;
+  resource_count: number;
+}
+
+export interface LessonDetail {
+  id: string;
+  module_id: string;
+  module_title: string;
+  title: string;
+  description: string | null;
+  position: number;
+  is_published: boolean;
+  resources: LessonResource[];
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Un módulo con las lecciones que este usuario puede ver.
+ *
+ * Quién ve qué lo decide el backend: los borradores son del `ADMIN` y del
+ * `LESSON_EDITOR` (RN-32), y una lección publicada dentro de un módulo en
+ * borrador no viaja siquiera (RN-33). Aquí no se filtra nada.
+ */
+export interface LessonModule {
+  id: string;
+  title: string;
+  description: string | null;
+  position: number;
+  is_published: boolean;
+  lessons: Lesson[];
+  created_at: string;
+  updated_at: string;
+}

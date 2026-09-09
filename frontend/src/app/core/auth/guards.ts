@@ -50,6 +50,23 @@ export const adminGuard: CanActivateFn = (route, state) => {
   );
 };
 
+/** Solo quien puede escribir el catálogo de lecciones (RN-31). Como el
+ * `adminGuard`, manda al catálogo y no a una pantalla de error: quien llega
+ * aquí sin permiso quería ver lecciones, y ahí las tiene. */
+export const lessonEditorGuard: CanActivateFn = (route, state) => {
+  const session = inject(SessionService);
+  const router = inject(Router);
+
+  return ensureSession(session).pipe(
+    map((ok) => {
+      if (!ok) {
+        return router.createUrlTree(['/ingresar'], { queryParams: { volverA: state.url } });
+      }
+      return session.canEditLessons() ? true : router.createUrlTree(['/lecciones']);
+    }),
+  );
+};
+
 /** Impide volver al ingreso con la sesión abierta. */
 export const guestGuard: CanActivateFn = () => {
   const session = inject(SessionService);
