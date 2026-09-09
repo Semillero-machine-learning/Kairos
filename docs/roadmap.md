@@ -124,19 +124,57 @@ Requisitos: RF-46 a RF-52.
 
 ---
 
-## Fase 7 — Archivado y pulido
+## Fase 7 — Auditoría y corrección
 
 Historias: HU-13, HU-14.
 Requisitos: RF-18, RNF-01, RNF-02, RNF-09.
 
-- Archivar y desarchivar, con la restricción de solo lectura verificada endpoint por endpoint
-- Repaso de la adaptación a dispositivos con `/impeccable adapt`
-- Estados vacíos y primer ingreso con `/impeccable onboard`
-- Errores y casos límite con `/impeccable harden`
-- Repaso de accesibilidad con `/impeccable audit`
-- Verificación del comportamiento ante el arranque en frío
+Última fase. No agrega funcionalidad: verifica lo construido y arregla lo que aparezca.
 
-**Cierre:** la aplicación es usable en un teléfono de 360 px y el arranque en frío no produce ni una pantalla en blanco.
+**El archivado ya está hecho.** Se adelantó durante la Fase 2: los endpoints
+`/archive` y `/unarchive` existen, la restricción de solo lectura vive
+centralizada en `require_project_permission` en vez de repetida endpoint por
+endpoint, y la interfaz tiene el control en el resumen del proyecto. De HU-13
+solo faltan sus pruebas Gherkin propias.
+
+### Deuda de auditoría
+
+`.impeccable/surfaces/frontend-src-app.md` lleva el registro de lo verificado.
+Hoy dice esto:
+
+| Pantallas | Estado |
+|---|---|
+| Fase 1 — ingreso, invitación, perfil, usuarios, invitaciones | Auditadas, con capturas en `.impeccable/review/` |
+| Fase 2 — lista, resumen, miembros, roles | Solo `detect`; sin `shape` antes ni `audit`/`polish` después |
+| Fases 3 y 4 — tablero, tarjeta, detalle, editor, comentarios, entregas | Sin auditar, ni registradas en la superficie |
+| Fase 5 — campana, configuración de notificaciones | Sin auditar |
+| Fase 6 — catálogo, detalle de lección, editor de módulos y lecciones | Sin auditar |
+
+De unas quince pantallas, seis están verificadas. **Auditar lo que falta es el
+grueso de esta fase**, y conviene hacerlo antes de corregir: la mitad de los
+errores de una interfaz se encuentran mirándola en serio, no esperando a que
+alguien los reporte.
+
+### Trabajo
+
+- `/impeccable audit` sobre todo lo pendiente, guardando las capturas
+- `/impeccable adapt` — repaso de 360 px en adelante, con el tablero como caso difícil
+- `/impeccable onboard` — estados vacíos y primer ingreso
+- `/impeccable harden` — errores y casos límite
+- `/impeccable polish` sobre lo que el audit señale
+- Verificación del arranque en frío de punta a punta (RNF-02): 3 segundos, aviso, reintento, 90 de espera
+- Pruebas Gherkin de HU-13 y HU-14, que no existen
+- Corrección de los errores que aparezcan, **uno por commit**, cada uno nombrando qué rompía
+
+### Errores conocidos
+
+| Error | Estado |
+|---|---|
+| El panel de la campana se desplegaba hacia la izquierda desde la barra lateral y se cortaba contra el borde de la ventana | Corregido en `feat/fase-3-tareas` |
+
+**Cierre:** cada pantalla tiene su auditoría y su captura, la aplicación es
+usable en un teléfono de 360 px, y el arranque en frío no produce ni una
+pantalla en blanco.
 
 ---
 
@@ -150,7 +188,7 @@ Requisitos: RF-18, RNF-01, RNF-02, RNF-09.
 | 3 y 6 | Dos personas en tareas, dos en lecciones, en paralelo |
 | 4 | Dos personas |
 | 5 | Dos personas, con una dedicada al trabajo programado |
-| 7 | Todos |
+| 7 | Todos: la auditoría se reparte por pantallas, y quien construyó una no debería ser quien la audita |
 
 La fase 2 no se paraleliza: el sistema de permisos es la base de todo lo demás y conviene que salga bien la primera vez.
 
@@ -166,3 +204,4 @@ La fase 2 no se paraleliza: el sistema de permisos es la base de todo lo demás 
 | Los correos caen en la carpeta de no deseados | Verificar el dominio, publicar DMARC, calentar el envío con volumen bajo |
 | El sistema de permisos se complica de más | El catálogo es cerrado: 14 permisos, ni uno más sin decisión explícita |
 | Se acaba el semestre sin terminar | Las fases 0 a 4 ya constituyen un producto útil. Las fases 5 a 7 son incrementos que se pueden postergar |
+| La deuda de auditoría crece más rápido de lo que se paga | Cada fase registra sus pantallas en `.impeccable/surfaces/`; la Fase 7 salda lo acumulado y no debería volver a acumularse |

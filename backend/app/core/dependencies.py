@@ -72,6 +72,18 @@ def require_global_role(
     return dependency
 
 
+def require_lesson_editor() -> Callable[[User], Awaitable[User]]:
+    """The single guard of the lesson catalog (RN-31).
+
+    Named instead of spelling out the two roles at each of the three routers:
+    RN-31 is one rule and it should have one place to change. A project leader
+    whose global role is MEMBER is refused here, and gets a 403 rather than the
+    404 that project-scoped routes return — there is no membership to hide, the
+    catalog is one and everybody knows it exists.
+    """
+    return require_global_role(GlobalRole.ADMIN, GlobalRole.LESSON_EDITOR)
+
+
 def _authorize(ctx: ProjectContext, permission: str, *, mutates: bool) -> None:
     """The single authorization decision, shared by both project-scoped guards.
 

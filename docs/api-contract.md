@@ -307,14 +307,27 @@ Una notificación ajena responde **404**, no 403: un 403 confirmaría que existe
 | POST | `/lesson-modules/reorder` | `ADMIN` o `LESSON_EDITOR` |
 | GET | `/lessons/{id}` | Autenticado, si está publicada |
 | POST | `/lesson-modules/{id}/lessons` | `ADMIN` o `LESSON_EDITOR` |
+| POST | `/lesson-modules/{id}/lessons/reorder` | `ADMIN` o `LESSON_EDITOR` |
 | PATCH | `/lessons/{id}` | `ADMIN` o `LESSON_EDITOR` |
 | DELETE | `/lessons/{id}` | `ADMIN` o `LESSON_EDITOR` |
+| POST | `/lessons/{id}/publish` | `ADMIN` o `LESSON_EDITOR` |
 | POST | `/lessons/{id}/resources` | `ADMIN` o `LESSON_EDITOR` |
+| POST | `/lessons/{id}/resources/reorder` | `ADMIN` o `LESSON_EDITOR` |
 | DELETE | `/resources/{id}` | `ADMIN` o `LESSON_EDITOR` |
 
-**GET `/lesson-modules`** devuelve el árbol completo (módulos con sus lecciones y el conteo de recursos) en una sola petición. Con la escala prevista, decenas de módulos como mucho, paginar sería complicar sin motivo.
+Las tres rutas de publicación y reordenamiento de lecciones y recursos se agregaron en la Fase 6: el RF-47 nombra despublicar **lecciones**, no solo módulos, y el RF-50 pide orden manual en los **tres** niveles. Tienen la misma forma que sus equivalentes de módulo, para que no haya dos convenciones.
 
-**DELETE `/lesson-modules/{id}`** exige `?confirm=true` y devuelve `409` sin ese parámetro, indicando cuántas lecciones se eliminarían (RN-36).
+**GET `/lesson-modules`** devuelve el árbol completo (módulos con sus lecciones y el conteo de recursos) en una sola petición. Con la escala prevista, decenas de módulos como mucho, paginar sería complicar sin motivo. Acepta `?q=` para buscar en el título y la descripción, de módulos y de lecciones (RF-51); la visibilidad se aplica antes que el texto, así que una búsqueda nunca delata la existencia de un borrador.
+
+**POST `/lesson-modules/{id}/publish`** recibe `{ "published": true | false }`. Un solo endpoint para las dos direcciones que nombra el RF-47: publicar y despublicar son la misma decisión con el valor contrario, y separarlas serían dos sitios donde olvidar una regla. El `PATCH` correspondiente **no** admite `is_published`, para que haya un único camino por operación.
+
+**POST `/lesson-modules/reorder`** recibe `{ "ids": [...] }` con el orden completo, no un movimiento suelto. El servidor exige que la lista nombre exactamente los módulos que existen y responde `422` si no coincide: una lista parcial obligaría a adivinar dónde va el resto, y la adivinanza fallaría justo cuando importa, cuando otro editor agregó algo mientras se arrastraba el orden.
+
+**GET `/lessons/{id}`** devuelve `404`, no `403`, cuando la lección está en borrador o su módulo lo está (RN-33). Aquí el 404 no oculta pertenencia como en los proyectos: impide recorrer identificadores para averiguar qué se está preparando.
+
+**DELETE `/lessons/{id}`** no exige confirmación: el RN-36 la pide cuando desaparecería un módulo entero, y una lección contiene enlaces, no lecciones.
+
+**DELETE `/lesson-modules/{id}`** exige `?confirm=true` y devuelve `409` con el código `CONFIRMATION_REQUIRED` sin ese parámetro, con el conteo exacto en `details`: `{ "lessons": 3 }` (RN-36).
 
 ---
 
@@ -363,3 +376,4 @@ No aparece en el esquema público de OpenAPI.
 | `EMAIL_ALREADY_REGISTERED` | 409 | Invitación a un correo con cuenta |
 | `INVITATION_EXPIRED` | 409 | Token de invitación vencido |
 | `INVITATION_ALREADY_USED` | 409 | Token ya utilizado |
+| `CONFIRMATION_REQUIRED` | 409 | Borrado en cascada sin `?confirm=true`; `details` trae el conteo |

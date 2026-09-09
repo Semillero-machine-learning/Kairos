@@ -42,6 +42,12 @@ export class SessionService {
   readonly restoring = this.restoringSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.userSignal() !== null);
   readonly isAdmin = computed(() => this.userSignal()?.global_role === 'ADMIN');
+  /** Quién puede escribir el catálogo de lecciones (RN-31). Sirve para mostrar
+   * el enlace al editor; la barrera real está en el backend. */
+  readonly canEditLessons = computed(() => {
+    const role = this.userSignal()?.global_role;
+    return role === 'ADMIN' || role === 'LESSON_EDITOR';
+  });
 
   accessToken(): string | null {
     return this.accessTokenSignal();
@@ -114,9 +120,7 @@ export class SessionService {
 
     const refreshToken = this.refreshTokenSignal();
     if (!refreshToken) {
-      return throwError(() =>
-        toApiError({ status: 401, error: null }),
-      );
+      return throwError(() => toApiError({ status: 401, error: null }));
     }
 
     this.refreshInFlight = this.http

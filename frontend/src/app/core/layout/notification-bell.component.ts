@@ -21,6 +21,11 @@ import { NotificationStore } from '../notifications/notification.store';
  *
  * Adaptación: en móvil el panel ocupa el ancho de la pantalla en vez de colgar
  * de un botón de 44 px, donde no cabría nada legible.
+ *
+ * Desde 768 px el panel se despliega hacia la derecha (`md:left-0`), no hacia
+ * la izquierda. La única campana visible a ese ancho es la de la barra lateral,
+ * que mide 240 px: anclada por su borde derecho, un panel de 352 px se salía de
+ * la barra, se salía de la ventana y se cortaba contra el borde izquierdo.
  */
 @Component({
   selector: 'app-notification-bell',
@@ -68,7 +73,7 @@ import { NotificationStore } from '../notifications/notification.store';
         id="panel-notificaciones"
         role="dialog"
         aria-label="Notificaciones"
-        class="fixed inset-x-2 top-16 z-40 max-h-[70dvh] overflow-y-auto rounded-[var(--radius-panel)] border border-line-strong bg-surface md:absolute md:inset-x-auto md:top-auto md:right-0 md:mt-1 md:w-88"
+        class="fixed inset-x-2 top-16 z-40 max-h-[70dvh] overflow-y-auto rounded-[var(--radius-panel)] border border-line-strong bg-surface md:absolute md:inset-x-auto md:top-auto md:left-0 md:mt-1 md:w-88"
       >
         <div class="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
           <h2 class="text-sm font-medium text-ink">Notificaciones</h2>

@@ -29,6 +29,7 @@ for _path in (
     "app.modules.projects.models",
     "app.modules.tasks.models",
     "app.modules.notifications.models",
+    "app.modules.lessons.models",
 ):
     try:
         __import__(_path)

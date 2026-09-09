@@ -8,6 +8,8 @@ from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.modules.auth import invitations_router
 from app.modules.auth import router as auth_router
+from app.modules.lessons import lessons_router, resources_router
+from app.modules.lessons import router as lesson_modules_router
 from app.modules.notifications import admin_router as notification_settings_router
 from app.modules.notifications import router as notifications_router
 from app.modules.projects import members_router, permissions_router, roles_router
@@ -53,6 +55,9 @@ def create_app() -> FastAPI:
     app.include_router(comments_router.router, prefix=API_V1_PREFIX)
     app.include_router(notifications_router.router, prefix=API_V1_PREFIX)
     app.include_router(notification_settings_router.router, prefix=API_V1_PREFIX)
+    app.include_router(lesson_modules_router.router, prefix=API_V1_PREFIX)
+    app.include_router(lessons_router.router, prefix=API_V1_PREFIX)
+    app.include_router(resources_router.router, prefix=API_V1_PREFIX)
 
     return app
 

@@ -37,8 +37,10 @@ export class ApiClient {
     return this.request(this.http.put<T>(this.url(path), body));
   }
 
-  delete<T>(path: string): Observable<T> {
-    return this.request(this.http.delete<T>(this.url(path)));
+  /** Con parámetros de consulta porque el borrado de un módulo de lecciones
+   * exige `?confirm=true` (api-contract.md §8). */
+  delete<T>(path: string, params?: QueryParams): Observable<T> {
+    return this.request(this.http.delete<T>(this.url(path), { params: toHttpParams(params) }));
   }
 
   /** `/health` cuelga de la raíz, no de `/api/v1` (api-contract.md §9). */

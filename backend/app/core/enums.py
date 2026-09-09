@@ -58,6 +58,21 @@ class SubmissionReviewStatus(enum.StrEnum):
     REJECTED = "REJECTED"
 
 
+class ResourceType(enum.StrEnum):
+    """What a lesson resource points at (RF-48).
+
+    The list is closed and describes the *material*, not where it is hosted: the
+    platform stores no files (RN-34), so every one of these is an external URL
+    and the type only tells the interface which icon and which wording to use.
+    """
+
+    NOTEBOOK = "NOTEBOOK"
+    PDF = "PDF"
+    VIDEO = "VIDEO"
+    REPOSITORY = "REPOSITORY"
+    ARTICLE = "ARTICLE"
+
+
 class NotificationKind(enum.StrEnum):
     """What a notification is about (data-model.md 2).
 

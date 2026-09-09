@@ -2,12 +2,22 @@
 version: 1
 slug: "frontend-src-app"
 primary_target: "frontend/src/app"
-related_targets: ["frontend/src/app/features/auth","frontend/src/app/features/admin","frontend/src/app/features/projects","frontend/src/app/core/layout"]
+related_targets: ["frontend/src/app/features/auth","frontend/src/app/features/admin","frontend/src/app/features/projects","frontend/src/app/features/lessons","frontend/src/app/core/layout"]
 ---
 
-Ámbito: superficie de acceso, administración y proyectos (Fases 1 y 2). Fase 1: ingreso, aceptar invitación, recuperar contraseña, perfil, usuarios, invitaciones, más el armazón autenticado. Fase 2: lista de proyectos con su formulario de creación, armazón del proyecto con tres pestañas, resumen, miembros y editor de roles. Modo: Operate.
+Ámbito: toda la aplicación autenticada (Fases 1 a 6). Fase 1: ingreso, aceptar invitación, recuperar contraseña, perfil, usuarios, invitaciones, más el armazón autenticado. Fase 2: lista de proyectos con su formulario de creación, armazón del proyecto con tres pestañas, resumen, miembros y editor de roles. Fases 3 y 4: tablero Kanban con su tarjeta, detalle de tarea, editor, comentarios y entregas, más «Mis tareas». Fase 5: campana de notificaciones y configuración global de recordatorios. Fase 6: catálogo de lecciones, detalle de lección, editor de módulos y editor de lecciones con sus recursos. Modo: Operate.
 
-**Pendiente de auditoría.** Las cuatro pantallas de la Fase 2 se construyeron dentro del contrato de dirección de abajo y `detect` las da limpias (0 anti-patrones), pero no pasaron por `shape` antes ni por `audit` y `polish` después. Las capturas de `review/` son solo de la Fase 1. Queda por correr `/impeccable audit` sobre `features/projects` y guardar sus capturas.
+**Pendiente de auditoría, y es deuda acumulada.** De las pantallas de arriba, solo las de la Fase 1 pasaron por `audit` y tienen capturas en `review/`. Todo lo demás se construyó dentro del contrato de dirección de abajo y `detect` lo da limpio (0 anti-patrones), pero ninguna pasó por `shape` antes ni por `audit` y `polish` después:
+
+| Pantallas | Estado |
+|---|---|
+| Fase 1 | Auditadas, con capturas |
+| Fase 2 — `features/projects` | Solo `detect` |
+| Fases 3 y 4 — `features/projects/board` | Solo `detect` |
+| Fase 5 — `core/layout/notification-bell`, `features/admin/notification-settings` | Solo `detect` |
+| Fase 6 — `features/lessons` | Solo `detect` |
+
+Saldarlo es el trabajo de la Fase 7 del roadmap, que existe para eso. Cada auditoría deja sus capturas en `review/` con el nombre de la pantalla y el tamaño.
 
 Audiencia: ~50 estudiantes de un semillero de ML y 1–2 coordinadores. Tarea: entrar, y saber qué se debe y para cuándo. Restricciones: español, AA, 360 px en adelante, áreas táctiles de 44 px, arranque en frío visible.
 
