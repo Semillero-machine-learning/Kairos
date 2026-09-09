@@ -73,6 +73,49 @@ class LessonDetail(BaseModel):
     updated_at: datetime.datetime
 
 
+class LessonCreate(BaseModel):
+    title: str = Field(min_length=3, max_length=150)
+    description: str | None = Field(default=None, max_length=2000)
+
+    _trim_title = field_validator("title", mode="before")(_strip)
+
+
+class LessonUpdate(BaseModel):
+    """Content only, like the module's PATCH and for the same reason."""
+
+    title: str | None = Field(default=None, min_length=3, max_length=150)
+    description: str | None = Field(default=None, max_length=2000)
+
+    _trim_title = field_validator("title", mode="before")(_strip)
+
+    @field_validator("title")
+    @classmethod
+    def _title_is_never_null(cls, title: str | None) -> str | None:
+        if title is None:
+            raise ValueError("El título de la lección no puede quedar vacío.")
+        return title
+
+
+class LessonResourceCreate(BaseModel):
+    """A link and what kind of material is on the other end (RF-48)."""
+
+    type: ResourceType
+    title: str = Field(min_length=1, max_length=200)
+    url: str = Field(min_length=1, max_length=2000)
+
+    _trim_title = field_validator("title", mode="before")(_strip)
+    _trim_url = field_validator("url", mode="before")(_strip)
+
+    @field_validator("url")
+    @classmethod
+    def _is_external(cls, url: str) -> str:
+        """RN-34: the platform hosts nothing, so a resource is always an address
+        somewhere else. The column repeats the check as a CHECK constraint."""
+        if not EXTERNAL_URL_PATTERN.match(url):
+            raise ValueError(EXTERNAL_URL_HELP)
+        return url
+
+
 # --- Modules ---
 
 

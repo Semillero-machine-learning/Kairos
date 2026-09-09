@@ -7,6 +7,7 @@ decisions.
 
 from app.modules.lessons.models import Lesson, LessonModule, LessonResource
 from app.modules.lessons.schemas import (
+    LessonDetail,
     LessonModuleRead,
     LessonRead,
     LessonResourceRead,
@@ -38,6 +39,26 @@ def lesson_read(lesson: Lesson) -> LessonRead:
         position=lesson.position,
         is_published=lesson.is_published,
         resource_count=len(lesson.resources),
+    )
+
+
+def lesson_detail(lesson: Lesson, module: LessonModule) -> LessonDetail:
+    """The lesson's own screen: every link, in the order the editor set.
+
+    ``module_title`` comes from the module the service already resolved, so a
+    direct link to a lesson can name where it belongs without a second request.
+    """
+    return LessonDetail(
+        id=lesson.id,
+        module_id=lesson.module_id,
+        module_title=module.title,
+        title=lesson.title,
+        description=lesson.description,
+        position=lesson.position,
+        is_published=lesson.is_published,
+        resources=[resource_read(resource) for resource in lesson.resources],
+        created_at=lesson.created_at,
+        updated_at=lesson.updated_at,
     )
 
 

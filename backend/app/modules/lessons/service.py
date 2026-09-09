@@ -26,9 +26,9 @@ from typing import Protocol
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.enums import GlobalRole
+from app.core.enums import GlobalRole, ResourceType
 from app.core.exceptions import ConflictError, NotFoundError, ValidationError
-from app.modules.lessons.models import Lesson, LessonModule
+from app.modules.lessons.models import Lesson, LessonModule, LessonResource
 from app.modules.lessons.repository import LessonsRepository
 
 #: Who may write the catalog (RN-31). A project leader is not here on purpose:
@@ -209,6 +209,133 @@ class LessonsService:
         self._apply_order(modules, ids, subject="módulos")
         await self.db.commit()
         return sorted(modules, key=lambda module: module.position)
+
+    # --- Lessons ---
+
+    async def get_lesson_or_404(self, lesson_id: uuid.UUID) -> Lesson:
+        lesson = await self.repo.get_lesson(lesson_id)
+        if lesson is None:
+            raise NotFoundError("Lección no encontrada.")
+        return lesson
+
+    async def get_visible_lesson(
+        self, lesson_id: uuid.UUID, *, can_edit: bool
+    ) -> tuple[Lesson, LessonModule]:
+        """A lesson and the module it belongs to, or 404 (RN-33).
+
+        The module wins: a published lesson inside a draft module is not
+        visible, and «no visible» has to read exactly like «no existe». Anything
+        else would let somebody enumerate identifiers to find out what is being
+        prepared.
+        """
+        lesson = await self.get_lesson_or_404(lesson_id)
+        module = await self.get_module_or_404(lesson.module_id)
+        if not can_edit and not (module.is_published and lesson.is_published):
+            raise NotFoundError("Lección no encontrada.")
+        return lesson, module
+
+    async def create_lesson(
+        self,
+        module_id: uuid.UUID,
+        *,
+        title: str,
+        description: str | None,
+        created_by: uuid.UUID,
+    ) -> Lesson:
+        """Born a draft, at the end of its module (RF-49, RF-50)."""
+        await self.get_module_or_404(module_id)
+        lesson = Lesson(
+            module_id=module_id,
+            title=title,
+            description=description,
+            position=await self.repo.next_lesson_position(module_id),
+            is_published=False,
+            created_by=created_by,
+        )
+        self.repo.add(lesson)
+        await self.db.commit()
+        await self.db.refresh(lesson)
+        return lesson
+
+    async def update_lesson(
+        self, lesson_id: uuid.UUID, *, fields: dict[str, object]
+    ) -> Lesson:
+        lesson = await self.get_lesson_or_404(lesson_id)
+        for key, value in fields.items():
+            setattr(lesson, key, value)
+        await self.db.commit()
+        await self.db.refresh(lesson)
+        return lesson
+
+    async def set_lesson_published(
+        self, lesson_id: uuid.UUID, *, published: bool
+    ) -> Lesson:
+        """Publish or withdraw one lesson (RF-47).
+
+        Publishing it does not publish its module, and that is the point of
+        RN-33: an editor gets to finish lesson by lesson and release the module
+        when the whole thing is ready.
+        """
+        lesson = await self.get_lesson_or_404(lesson_id)
+        lesson.is_published = published
+        await self.db.commit()
+        await self.db.refresh(lesson)
+        return lesson
+
+    async def delete_lesson(self, lesson_id: uuid.UUID) -> None:
+        """Takes its resources with it, by cascade on the foreign key.
+
+        No confirmation is demanded here: RN-36 asks for it when a whole module
+        would disappear, and a lesson holds links, not lessons. The interface
+        still asks before firing.
+        """
+        lesson = await self.get_lesson_or_404(lesson_id)
+        await self.repo.delete_lesson(lesson)
+        await self.db.commit()
+
+    async def reorder_lessons(
+        self, module_id: uuid.UUID, ids: list[uuid.UUID]
+    ) -> list[Lesson]:
+        module = await self.get_module_or_404(module_id)
+        lessons = list(module.lessons)
+        self._apply_order(lessons, ids, subject="lecciones del módulo")
+        await self.db.commit()
+        return sorted(lessons, key=lambda lesson: lesson.position)
+
+    # --- Resources ---
+
+    async def add_resource(
+        self, lesson_id: uuid.UUID, *, type: ResourceType, title: str, url: str
+    ) -> LessonResource:
+        """Link material, never store it (RN-34)."""
+        await self.get_lesson_or_404(lesson_id)
+        resource = LessonResource(
+            lesson_id=lesson_id,
+            type=type,
+            title=title,
+            url=url,
+            position=await self.repo.next_resource_position(lesson_id),
+        )
+        self.repo.add(resource)
+        await self.db.commit()
+        await self.db.refresh(resource)
+        return resource
+
+    async def delete_resource(self, resource_id: uuid.UUID) -> None:
+        resource = await self.repo.get_resource(resource_id)
+        if resource is None:
+            raise NotFoundError("Recurso no encontrado.")
+        await self.repo.delete_resource(resource_id)
+        await self.db.commit()
+
+    async def reorder_resources(
+        self, lesson_id: uuid.UUID, ids: list[uuid.UUID]
+    ) -> list[LessonResource]:
+        lesson = await self.get_lesson_or_404(lesson_id)
+        resources = list(lesson.resources)
+        self._apply_order(resources, ids, subject="recursos de la lección")
+        await self.db.commit()
+        return sorted(resources, key=lambda resource: resource.position)
 
     # --- Ordering ---
 

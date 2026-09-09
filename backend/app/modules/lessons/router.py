@@ -21,11 +21,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_lesson_editor
-from app.modules.lessons.presenters import catalog_read, module_read
+from app.modules.lessons.presenters import catalog_read, lesson_read, module_read
 from app.modules.lessons.schemas import (
+    LessonCreate,
     LessonModuleCreate,
     LessonModuleRead,
     LessonModuleUpdate,
+    LessonRead,
     PublishBody,
     ReorderBody,
 )
@@ -117,3 +119,34 @@ async def delete_lesson_module(
     """Without ``?confirm=true`` this answers 409 saying how many lessons would
     be lost (RN-36). The count is in the ``details`` of the error."""
     await LessonsService(db).delete_module(module_id, confirm=confirm)
+
+
+@router.post(
+    "/{module_id}/lessons",
+    response_model=LessonRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_lesson(
+    module_id: uuid.UUID,
+    body: LessonCreate,
+    editor: User = Depends(require_lesson_editor()),
+    db: AsyncSession = Depends(get_db),
+) -> LessonRead:
+    lesson = await LessonsService(db).create_lesson(
+        module_id, title=body.title, description=body.description, created_by=editor.id
+    )
+    return lesson_read(lesson)
+
+
+@router.post("/{module_id}/lessons/reorder", response_model=list[LessonRead])
+async def reorder_lessons(
+    module_id: uuid.UUID,
+    body: ReorderBody,
+    _editor: User = Depends(require_lesson_editor()),
+    db: AsyncSession = Depends(get_db),
+) -> list[LessonRead]:
+    """RF-50 names three levels of ordering, not one. This is the lessons inside
+    their module; modules hang off ``/lesson-modules/reorder`` and resources off
+    their lesson."""
+    lessons = await LessonsService(db).reorder_lessons(module_id, body.ids)
+    return [lesson_read(lesson) for lesson in lessons]
