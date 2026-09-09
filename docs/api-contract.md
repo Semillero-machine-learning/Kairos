@@ -312,9 +312,13 @@ Una notificación ajena responde **404**, no 403: un 403 confirmaría que existe
 | POST | `/lessons/{id}/resources` | `ADMIN` o `LESSON_EDITOR` |
 | DELETE | `/resources/{id}` | `ADMIN` o `LESSON_EDITOR` |
 
-**GET `/lesson-modules`** devuelve el árbol completo (módulos con sus lecciones y el conteo de recursos) en una sola petición. Con la escala prevista, decenas de módulos como mucho, paginar sería complicar sin motivo.
+**GET `/lesson-modules`** devuelve el árbol completo (módulos con sus lecciones y el conteo de recursos) en una sola petición. Con la escala prevista, decenas de módulos como mucho, paginar sería complicar sin motivo. Acepta `?q=` para buscar en el título y la descripción, de módulos y de lecciones (RF-51); la visibilidad se aplica antes que el texto, así que una búsqueda nunca delata la existencia de un borrador.
 
-**DELETE `/lesson-modules/{id}`** exige `?confirm=true` y devuelve `409` sin ese parámetro, indicando cuántas lecciones se eliminarían (RN-36).
+**POST `/lesson-modules/{id}/publish`** recibe `{ "published": true | false }`. Un solo endpoint para las dos direcciones que nombra el RF-47: publicar y despublicar son la misma decisión con el valor contrario, y separarlas serían dos sitios donde olvidar una regla. El `PATCH` correspondiente **no** admite `is_published`, para que haya un único camino por operación.
+
+**POST `/lesson-modules/reorder`** recibe `{ "ids": [...] }` con el orden completo, no un movimiento suelto. El servidor exige que la lista nombre exactamente los módulos que existen y responde `422` si no coincide: una lista parcial obligaría a adivinar dónde va el resto, y la adivinanza fallaría justo cuando importa, cuando otro editor agregó algo mientras se arrastraba el orden.
+
+**DELETE `/lesson-modules/{id}`** exige `?confirm=true` y devuelve `409` con el código `CONFIRMATION_REQUIRED` sin ese parámetro, con el conteo exacto en `details`: `{ "lessons": 3 }` (RN-36).
 
 ---
 
@@ -363,3 +367,4 @@ No aparece en el esquema público de OpenAPI.
 | `EMAIL_ALREADY_REGISTERED` | 409 | Invitación a un correo con cuenta |
 | `INVITATION_EXPIRED` | 409 | Token de invitación vencido |
 | `INVITATION_ALREADY_USED` | 409 | Token ya utilizado |
+| `CONFIRMATION_REQUIRED` | 409 | Borrado en cascada sin `?confirm=true`; `details` trae el conteo |
