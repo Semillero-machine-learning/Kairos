@@ -169,6 +169,17 @@ def upgrade() -> None:
         "ix_lesson_resources_lesson_position", "lesson_resources", ["lesson_id", "position"]
     )
 
+    # `lesson_resources` no lleva `updated_at`: un recurso no se edita, se borra
+    # y se vuelve a enlazar (api-contract.md §8 no expone un PATCH para él).
+    for table in ("lesson_modules", "lessons"):
+        op.execute(
+            f"""
+            CREATE TRIGGER {table}_set_updated_at
+            BEFORE UPDATE ON {table}
+            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            """
+        )
+
 
 def downgrade() -> None:
     op.drop_table("lesson_resources")
