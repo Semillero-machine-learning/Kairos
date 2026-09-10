@@ -9,6 +9,7 @@ import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonComponent } from '../../shared/ui/button.component';
 import { FieldComponent } from '../../shared/ui/field.component';
 import { InputDirective } from '../../shared/ui/input.directive';
+import { PasswordInputComponent } from '../../shared/ui/password-input.component';
 import { AuthLayoutComponent } from './auth-layout.component';
 
 /** Ingreso con correo y contraseña (RF-05, HU-01..HU-03). */
@@ -22,6 +23,7 @@ import { AuthLayoutComponent } from './auth-layout.component';
     ButtonComponent,
     FieldComponent,
     InputDirective,
+    PasswordInputComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -49,15 +51,18 @@ import { AuthLayoutComponent } from './auth-layout.component';
         </ui-field>
 
         <ui-field label="Contraseña" for="password" [error]="passwordError()">
-          <input
-            uiInput
-            id="password"
-            type="password"
-            formControlName="password"
-            autocomplete="current-password"
-            [invalid]="!!passwordError()"
-            [attr.aria-describedby]="passwordError() ? 'password-msg' : null"
-          />
+          <ui-password-input>
+            <input
+              uiInput
+              [trailingSlot]="true"
+              id="password"
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+              [invalid]="!!passwordError()"
+              [attr.aria-describedby]="passwordError() ? 'password-msg' : null"
+            />
+          </ui-password-input>
         </ui-field>
 
         <ui-button type="submit" [full]="true" [loading]="submitting()">Ingresar</ui-button>

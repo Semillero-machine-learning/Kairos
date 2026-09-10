@@ -194,7 +194,7 @@ td.pri, th.pri { width: 58px; }
 <table>
 <tr><th style="width:26%">Restricción</th><th>Implicación de diseño</th></tr>
 <tr><td>Costo cero</td><td>Todo opera en planes gratuitos: Supabase, Render, Cloudflare Pages, GitHub Actions y Resend. Ninguna pieza de pago entra al diseño.</td></tr>
-<tr><td>Servicio suspendible</td><td>Render suspende el backend tras ~15 min de inactividad y Supabase pausa el proyecto tras una semana. Ambos se mitigan con un ping programado y con manejo explícito del arranque en frío.</td></tr>
+<tr><td>Servicio suspendible</td><td>Render suspende el backend tras ~15 min de inactividad y Supabase pausa el proyecto tras una semana. Lo primero se asume y se explica en la interfaz; lo segundo lo evita el <code>SELECT 1</code> del cron diario de recordatorios.</td></tr>
 <tr><td>Sin trabajos programados</td><td>Render no ofrece cron en el plan gratuito: el disparador es externo (GitHub Actions) contra un endpoint interno.</td></tr>
 <tr><td>Escala pequeña</td><td>50 usuarios y ~1.000 tareas por semestre. No se justifica ninguna optimización más allá de índices correctos ni ninguna desnormalización.</td></tr>
 <tr><td>Idioma</td><td>Interfaz, documentación y mensajes de error visibles en español. Código, nombres de tablas, campos, endpoints y códigos de error en inglés.</td></tr>
@@ -303,12 +303,12 @@ td.pri, th.pri { width: 58px; }
 <table>
 <tr><th class="id">ID</th><th style="width:20%">Atributo</th><th>Requisito</th></tr>
 <tr><td class="id">RNF-01</td><td>Diseño adaptable</td><td>La interfaz funciona desde 360 px de ancho. El tablero Kanban cambia a vista de lista con selector de estado por debajo de 768 px. Las áreas táctiles miden al menos 44 × 44 px.</td></tr>
-<tr><td class="id">RNF-02</td><td>Arranque en frío</td><td>El backend se suspende tras ~15 min de inactividad y la primera petición puede tardar cerca de un minuto. El frontend muestra un estado de carga explícito («Despertando el servidor…») tras 3 s de espera, con reintento automático y tiempo de espera de 90 s. Un ping programado cada 10 min en horario hábil reduce la frecuencia del problema.</td></tr>
+<tr><td class="id">RNF-02</td><td>Arranque en frío</td><td>El backend se suspende tras ~15 min de inactividad y la primera petición puede tardar cerca de un minuto. El frontend muestra un estado de carga explícito («Despertando el servidor…») tras 3 s de espera, con reintento automático y tiempo de espera de 90 s. No hay ping de mantenimiento: se retiró porque fallaba por tiempo agotado y avisaba por correo de cada fallo. Que el servicio duerma se asume; el aviso explícito es la medida.</td></tr>
 <tr><td class="id">RNF-03</td><td>Costo</td><td>Todo el sistema opera dentro de los planes gratuitos de Supabase, Render, Cloudflare/Vercel, GitHub Actions y Resend. El único gasto autorizado es el dominio.</td></tr>
 <tr><td class="id">RNF-04</td><td>Escala</td><td>50 usuarios, 10 proyectos activos y ~1.000 tareas por semestre. No se requieren optimizaciones más allá de índices correctos.</td></tr>
 <tr><td class="id">RNF-05</td><td>Seguridad</td><td>Contraseñas con Argon2id. Tokens de acceso JWT de 15 minutos; tokens de refresco de 7 días, rotativos y almacenados solo como hash. Los tokens de invitación y de restablecimiento se guardan hasheados. Toda comprobación de permisos ocurre en el backend; el frontend solo oculta lo que el usuario no puede hacer, nunca es la barrera.</td></tr>
 <tr><td class="id">RNF-06</td><td>Base de datos</td><td>Modelo en tercera forma normal. Claves primarias UUID. Marcas de tiempo en <code>timestamptz</code> (UTC), presentadas al usuario en <code>America/Bogota</code>.</td></tr>
-<tr><td class="id">RNF-07</td><td>Suspensión de Supabase</td><td>El plan gratuito pausa proyectos tras una semana sin actividad. El ping programado del RNF-02 golpea también la base de datos para evitarlo.</td></tr>
+<tr><td class="id">RNF-07</td><td>Suspensión de Supabase</td><td>El plan gratuito pausa proyectos tras una semana sin actividad. El proceso diario de recordatorios despierta la API antes de disparar el trabajo, y ese <code>/health</code> ejecuta un <code>SELECT 1</code>: mientras ese cron corra, no puede haber una semana sin actividad.</td></tr>
 <tr><td class="id">RNF-08</td><td>Disponibilidad</td><td>No hay compromiso de disponibilidad. Es una herramienta interna; una caída temporal es aceptable.</td></tr>
 <tr><td class="id">RNF-09</td><td>Accesibilidad</td><td>Contraste mínimo AA, navegación por teclado en formularios y tablero, etiquetas ARIA en los controles del Kanban.</td></tr>
 <tr><td class="id">RNF-10</td><td>Idioma</td><td>Interfaz y documentación en español. Código, nombres de tablas, campos y endpoints en inglés.</td></tr>
@@ -603,7 +603,7 @@ td.pri, th.pri { width: 58px; }
 
     <rect x="610" y="140" width="170" height="64" fill="#dcdcdc" stroke="#777"/>
     <text x="695" y="166" font-size="11.5" font-weight="600" text-anchor="middle">GitHub Actions</text>
-    <text x="695" y="183" font-size="9" fill="#3d3d3d" text-anchor="middle">cron diario y ping</text>
+    <text x="695" y="183" font-size="9" fill="#3d3d3d" text-anchor="middle">cron diario</text>
 
     <rect x="610" y="270" width="170" height="64" fill="#dcdcdc" stroke="#777"/>
     <text x="695" y="296" font-size="11.5" font-weight="600" text-anchor="middle">Resend</text>
@@ -731,8 +731,7 @@ td.pri, th.pri { width: 58px; }
 ├── README.md
 ├── docs/                            PRD, reglas, modelo de datos, arquitectura, API, historias
 ├── .github/workflows/
-│   ├── reminders.yml                cron diario 12:00 UTC = 07:00 America/Bogota
-│   └── keepalive.yml                ping cada 10 min en horario hábil
+│   └── reminders.yml                cron diario 12:00 UTC = 07:00 America/Bogota
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                  aplicación, middlewares, routers, manejadores de excepción
@@ -835,7 +834,7 @@ notifications →  (ninguno; recibe los datos, no los busca)</pre>
 <p>La restricción de fondo es que <strong>Render no ofrece trabajos programados en el plan gratuito</strong>. La solución es un disparador externo contra un endpoint interno autenticado con un secreto comparado en tiempo constante y excluido del esquema público de OpenAPI.</p>
 <pre>POST /internal/jobs/reminders
 Header: X-Job-Token: &lt;secreto compartido&gt;</pre>
-<p>El flujo de GitHub Actions despierta primero la API con un <code>curl</code> a <code>/health</code> y solo después dispara el trabajo; si el disparo llegara directo, la primera petición se agotaría antes de que el servicio arrancara. Un segundo flujo golpea <code>/health</code> cada diez minutos entre las 6:00 y las 23:00 hora de Colombia, lo que evita a la vez la suspensión de Render (RNF-02) y la pausa por inactividad de Supabase (RNF-07).</p>
+<p>El flujo de GitHub Actions despierta primero la API con un <code>curl</code> a <code>/health</code> y solo después dispara el trabajo; si el disparo llegara directo, la primera petición se agotaría antes de que el servicio arrancara. Hubo un segundo flujo que golpeaba <code>/health</code> cada diez minutos en horario hábil; se retiró porque fallaba por tiempo agotado durante el propio arranque en frío y cada fallo generaba un aviso por correo. La suspensión de Render (RNF-02) se asume y la cubre el aviso de la interfaz; la pausa por inactividad de Supabase (RNF-07) la evita el <code>SELECT 1</code> diario del paso «Despertar la API».</p>
 <h3>Algoritmo</h3>
 <pre>config ← notification_settings
 hoy    ← fecha actual en America/Bogota
@@ -1223,7 +1222,7 @@ CREATE TYPE dispatch_status          AS ENUM ('SENT', 'FAILED');</pre>
 <h2>8.6 Endpoints internos y de sistema</h2>
 <table>
 <tr><th style="width:10%">Método</th><th style="width:34%">Ruta</th><th>Autenticación</th></tr>
-<tr><td>GET</td><td><code>/health</code></td><td>Pública. Ejecuta <code>SELECT 1</code>; sirve de sonda y de mecanismo para mantener despiertos el servicio y la base de datos.</td></tr>
+<tr><td>GET</td><td><code>/health</code></td><td>Pública. Ejecuta <code>SELECT 1</code>; sirve de sonda y despierta de paso el servicio y la base antes del proceso diario.</td></tr>
 <tr><td>POST</td><td><code>/internal/jobs/reminders</code></td><td>Cabecera <code>X-Job-Token</code> comparada en tiempo constante. No aparece en el esquema público de OpenAPI.</td></tr>
 </table>
 <pre>// POST /internal/jobs/reminders → resumen de la ejecución
@@ -1372,8 +1371,8 @@ ENVIRONMENT=production</pre>
 <h1>13. Riesgos y mitigaciones</h1>
 <table>
 <tr><th style="width:44%">Riesgo</th><th>Mitigación</th></tr>
-<tr><td>El arranque en frío de Render arruina la experiencia</td><td>Ping programado en horario hábil e indicador de carga honesto (RNF-02).</td></tr>
-<tr><td>Supabase pausa el proyecto por inactividad</td><td>El mismo ping golpea la base de datos (RNF-07).</td></tr>
+<tr><td>El arranque en frío de Render arruina la experiencia</td><td>Indicador de carga honesto (RNF-02). El ping programado se probó y se retiró: fallaba por tiempo agotado y avisaba por correo de cada fallo.</td></tr>
+<tr><td>Supabase pausa el proyecto por inactividad</td><td>El paso «Despertar la API» del cron diario ejecuta un <code>SELECT 1</code> (RNF-07).</td></tr>
 <tr><td>El cron de GitHub Actions se retrasa o se salta</td><td>Aceptable para avisos diarios; RN-29 lo contempla y el trabajo es idempotente.</td></tr>
 <tr><td>Los correos caen en la carpeta de no deseados</td><td>Verificar el dominio, publicar DMARC y calentar el envío con volumen bajo.</td></tr>
 <tr><td>El sistema de permisos se complica de más</td><td>El catálogo es cerrado: catorce permisos, ni uno más sin decisión explícita.</td></tr>

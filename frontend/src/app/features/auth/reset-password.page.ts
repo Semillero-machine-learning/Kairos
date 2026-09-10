@@ -9,6 +9,7 @@ import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonComponent } from '../../shared/ui/button.component';
 import { FieldComponent } from '../../shared/ui/field.component';
 import { InputDirective } from '../../shared/ui/input.directive';
+import { PasswordInputComponent } from '../../shared/ui/password-input.component';
 import { AuthLayoutComponent } from './auth-layout.component';
 
 /** Las dos contraseñas deben coincidir. Se valida en el grupo, no en el campo,
@@ -36,6 +37,7 @@ function passwordsMatch(group: AbstractControl): { mismatch: true } | null {
     ButtonComponent,
     FieldComponent,
     InputDirective,
+    PasswordInputComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -67,27 +69,33 @@ function passwordsMatch(group: AbstractControl): { mismatch: true } | null {
             [hint]="passwordHint"
             [error]="passwordError()"
           >
-            <input
-              uiInput
-              id="password"
-              type="password"
-              formControlName="password"
-              autocomplete="new-password"
-              [invalid]="!!passwordError()"
-              aria-describedby="password-msg"
-            />
+            <ui-password-input>
+              <input
+                uiInput
+                [trailingSlot]="true"
+                id="password"
+                type="password"
+                formControlName="password"
+                autocomplete="new-password"
+                [invalid]="!!passwordError()"
+                aria-describedby="password-msg"
+              />
+            </ui-password-input>
           </ui-field>
 
           <ui-field label="Repite la contraseña" for="confirmation" [error]="confirmationError()">
-            <input
-              uiInput
-              id="confirmation"
-              type="password"
-              formControlName="confirmation"
-              autocomplete="new-password"
-              [invalid]="!!confirmationError()"
-              [attr.aria-describedby]="confirmationError() ? 'confirmation-msg' : null"
-            />
+            <ui-password-input>
+              <input
+                uiInput
+                [trailingSlot]="true"
+                id="confirmation"
+                type="password"
+                formControlName="confirmation"
+                autocomplete="new-password"
+                [invalid]="!!confirmationError()"
+                [attr.aria-describedby]="confirmationError() ? 'confirmation-msg' : null"
+              />
+            </ui-password-input>
           </ui-field>
 
           <ui-button type="submit" [full]="true" [loading]="submitting()">

@@ -12,6 +12,7 @@ import { ButtonComponent } from '../../shared/ui/button.component';
 import { FieldComponent } from '../../shared/ui/field.component';
 import { InputDirective } from '../../shared/ui/input.directive';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
+import { PasswordInputComponent } from '../../shared/ui/password-input.component';
 
 /** Perfil propio: editar el nombre y cambiar la contraseña (RF-08, RN-42). */
 @Component({
@@ -24,6 +25,7 @@ import { PageHeaderComponent } from '../../shared/ui/page-header.component';
     ButtonComponent,
     FieldComponent,
     InputDirective,
+    PasswordInputComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -97,15 +99,18 @@ import { PageHeaderComponent } from '../../shared/ui/page-header.component';
           }
 
           <ui-field label="Contraseña actual" for="current" [error]="currentFieldError()">
-            <input
-              uiInput
-              id="current"
-              type="password"
-              formControlName="currentPassword"
-              autocomplete="current-password"
-              [invalid]="!!currentFieldError()"
-              [attr.aria-describedby]="currentFieldError() ? 'current-msg' : null"
-            />
+            <ui-password-input>
+              <input
+                uiInput
+                [trailingSlot]="true"
+                id="current"
+                type="password"
+                formControlName="currentPassword"
+                autocomplete="current-password"
+                [invalid]="!!currentFieldError()"
+                [attr.aria-describedby]="currentFieldError() ? 'current-msg' : null"
+              />
+            </ui-password-input>
           </ui-field>
 
           <ui-field
@@ -114,15 +119,18 @@ import { PageHeaderComponent } from '../../shared/ui/page-header.component';
             [hint]="passwordHint"
             [error]="newFieldError()"
           >
-            <input
-              uiInput
-              id="new"
-              type="password"
-              formControlName="newPassword"
-              autocomplete="new-password"
-              [invalid]="!!newFieldError()"
-              aria-describedby="new-msg"
-            />
+            <ui-password-input>
+              <input
+                uiInput
+                [trailingSlot]="true"
+                id="new"
+                type="password"
+                formControlName="newPassword"
+                autocomplete="new-password"
+                [invalid]="!!newFieldError()"
+                aria-describedby="new-msg"
+              />
+            </ui-password-input>
           </ui-field>
 
           <div>

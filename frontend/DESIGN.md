@@ -349,6 +349,7 @@ The component character is quiet and sturdy: correct hit areas, honest states, n
 - **Disabled:** `sunken` fill, muted ink, not-allowed cursor.
 - **Field wrapper:** Label 6px above the control; below it exactly one message line — the error replaces the hint when both exist, linked by `aria-describedby`. Optional fields say so beside the label rather than marking the required ones.
 - **Select:** The native element styled by the same directive, plus the drawn chevron.
+- **Password reveal:** Every password field is wrapped in `ui-password-input`, which projects the native input and lays a 44×44 icon-only toggle over its right edge; the field declares `trailingSlot` so the text never runs under it. The button carries the action as its accessible name — "Mostrar la contraseña" / "Ocultar la contraseña" — and a mouse press on it does not take focus off the field.
 
 ### Navigation
 - **Sidebar (768px and up):** 240px, panel white, right hairline, sticky at full height. Brand at the top, items in a 2px-gapped list, account block pinned to the bottom behind a top hairline.

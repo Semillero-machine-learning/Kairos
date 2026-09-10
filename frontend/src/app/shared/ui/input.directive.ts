@@ -33,12 +33,24 @@ export class InputDirective {
    */
   readonly compact = input(false);
 
+  /**
+   * Reserva sitio a la derecha para un control superpuesto: hoy solo el ojo de
+   * `ui-password-input`. Es un modo de la primitiva y no una clase suelta en
+   * el sitio de uso porque `pr-11` y el relleno horizontal de base compiten
+   * por la misma propiedad, y cuál gana lo decidiría el orden de la hoja
+   * compilada en vez del autor de la pantalla.
+   */
+  readonly trailingSlot = input(false);
+
   private readonly isSelect =
     inject(ElementRef<HTMLElement>).nativeElement.tagName === 'SELECT';
 
   protected readonly classes = computed(() =>
     [
-      'rounded-[var(--radius-control)] border bg-surface px-3',
+      'rounded-[var(--radius-control)] border bg-surface pl-3',
+      // El relleno derecho va aparte del izquierdo para poder abrirlo sin
+      // pelearse por especificidad con el de base.
+      this.trailingSlot() ? 'pr-11' : 'pr-3',
       'text-sm text-ink placeholder:text-ink-placeholder',
       'transition-colors duration-150',
       'disabled:bg-sunken disabled:text-ink-muted disabled:cursor-not-allowed',

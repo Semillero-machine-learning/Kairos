@@ -210,9 +210,13 @@ El primer paso existe porque el servicio puede estar suspendido: si el disparo l
 
 **Advertencia sobre el cron de GitHub Actions:** las ejecuciones programadas suelen retrasarse, a veces varios minutos, y en momentos de mucha carga pueden saltarse. Para recordatorios diarios es tolerable. Es la razón por la que RN-29 existe.
 
-**3. Segundo flujo para mantener despierto el servicio**
+**3. No hay flujo para mantener despierto el servicio**
 
-Cada 10 minutos entre las 6:00 y las 23:00 hora de Colombia, un `curl` a `/health`, que a su vez ejecuta un `SELECT 1` contra la base de datos. Mata dos pájaros: evita la suspensión de Render (RNF-02) y la pausa por inactividad de Supabase (RNF-07).
+Lo hubo: un `curl` a `/health` cada 10 minutos en horario hábil. Se retiró. Fallaba con frecuencia —el arranque en frío se pasaba del tiempo de espera y `curl` salía con error de tiempo agotado— y cada fallo mandaba un correo de GitHub, así que el mecanismo que existía para hacer invisible el arranque en frío acabó siendo más ruidoso que el arranque en frío.
+
+Que el servicio se suspenda es aceptable: RNF-02 lo cubre en la interfaz, con el aviso de «Despertando el servidor...» y 90 segundos de espera, que es lo que de verdad ve el usuario.
+
+La pausa por inactividad de Supabase (RNF-07) sigue cubierta: el flujo de recordatorios golpea `/health` todos los días antes de disparar el trabajo, y `/health` ejecuta un `SELECT 1`. Una semana sin actividad no puede darse mientras ese cron diario corra.
 
 ### Algoritmo
 
