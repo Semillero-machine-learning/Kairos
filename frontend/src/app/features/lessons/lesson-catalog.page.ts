@@ -113,7 +113,7 @@ const SEARCH_DEBOUNCE_MS = 300;
               }
 
               @if (module.lessons.length === 0) {
-                <p class="mt-4 text-sm text-ink-faint">Este módulo todavía no tiene lecciones.</p>
+                <p class="mt-4 text-sm text-ink-muted">Este módulo todavía no tiene lecciones.</p>
               } @else {
                 <ul class="mt-4 divide-y divide-line border-y border-line">
                   @for (lesson of module.lessons; track lesson.id) {
@@ -133,7 +133,7 @@ const SEARCH_DEBOUNCE_MS = 300;
                             {{ lesson.description }}
                           </span>
                         }
-                        <span class="text-xs text-ink-faint">{{
+                        <span class="text-xs text-ink-muted">{{
                           resourceLabel(lesson.resource_count)
                         }}</span>
                       </a>

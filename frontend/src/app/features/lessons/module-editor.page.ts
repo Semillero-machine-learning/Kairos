@@ -255,7 +255,7 @@ import { canMove, moveBy } from './ordering';
                                   [href]="resource.url"
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  class="truncate text-xs text-ink-faint hover:text-accent hover:underline"
+                                  class="truncate text-xs text-ink-muted hover:text-accent hover:underline"
                                 >
                                   {{ resource.url }}
                                 </a>

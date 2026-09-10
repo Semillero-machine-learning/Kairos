@@ -82,7 +82,7 @@ import { SpinnerComponent } from '../../shared/ui/spinner.component';
                         {{ resource.title }}
                       </span>
                     </span>
-                    <span class="truncate text-xs text-ink-faint">{{ resource.url }}</span>
+                    <span class="truncate text-xs text-ink-muted">{{ resource.url }}</span>
                   </span>
                   <span class="shrink-0 text-ink-muted" aria-hidden="true">↗</span>
                   <span class="sr-only">Se abre en una pestaña nueva.</span>

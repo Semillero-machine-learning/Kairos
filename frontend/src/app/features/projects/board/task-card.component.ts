@@ -72,7 +72,7 @@ import { STATUS_TARGETS } from './transitions';
             <span class="text-xs text-ink-muted">+{{ task().assignees.length - 3 }}</span>
           }
         } @else {
-          <span class="text-xs text-ink-faint">Sin responsable</span>
+          <span class="text-xs text-ink-muted">Sin responsable</span>
         }
       </div>
 

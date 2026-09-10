@@ -156,7 +156,7 @@ interface DeletionWarning {
                     {{ module.description }}
                   </p>
                 }
-                <p class="mt-1 text-xs text-ink-faint">{{ lessonLabel(module.lessons.length) }}</p>
+                <p class="mt-1 text-xs text-ink-muted">{{ lessonLabel(module.lessons.length) }}</p>
               </div>
 
               <div class="flex shrink-0 flex-wrap items-center gap-1">

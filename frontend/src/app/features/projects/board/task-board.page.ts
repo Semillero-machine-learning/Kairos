@@ -209,7 +209,7 @@ export const DRAG_QUERY = '(pointer: fine) and (min-width: 768px)';
                     />
                   </li>
                 } @empty {
-                  <li class="px-1 py-3 text-xs text-ink-faint">Nada por aquí.</li>
+                  <li class="px-1 py-3 text-xs text-ink-muted">Nada por aquí.</li>
                 }
               </ul>
             </section>
