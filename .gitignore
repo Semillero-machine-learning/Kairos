@@ -13,3 +13,7 @@
 
 .DS_Store
 Thumbs.db
+
+# Guia local con las cuentas de la base de ejemplo. Es personal y lleva
+# contrasenas: no se sube aunque solo sirvan en una base de esta maquina.
+GUIA-LOCAL.md
