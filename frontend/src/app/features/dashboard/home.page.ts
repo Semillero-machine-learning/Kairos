@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { ApiError } from '../../core/api/api-error';
 import { TASK_STATUS_LABEL, TASK_STATUS_ORDER, MyTask, TaskStatus } from '../../core/api/models';
+import { ProjectsApi } from '../../core/api/projects.api';
 import { TasksApi } from '../../core/api/tasks.api';
 import { SessionService } from '../../core/auth/session.service';
 import { BogotaDatePipe } from '../../shared/pipes/bogota-date.pipe';
@@ -77,11 +78,16 @@ import { SpinnerComponent } from '../../shared/ui/spinner.component';
                 : 'Cuando alguien te ponga como responsable de una tarea, aparecerá aquí con su proyecto y su fecha límite.'
             "
           >
+            <!--
+              A quien todavía no está en ningún proyecto, mandarlo a la lista
+              de proyectos lo lleva a otra pantalla vacía. El primer día lo
+              único que puede hacer es leer el material.
+            -->
             <a
-              routerLink="/proyectos"
+              [routerLink]="hasProjects() ? '/proyectos' : '/lecciones'"
               class="inline-flex min-h-11 items-center rounded-[var(--radius-control)] border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-sunken"
             >
-              Ver mis proyectos
+              {{ hasProjects() ? 'Ver mis proyectos' : 'Ver las lecciones' }}
             </a>
           </ui-empty-state>
         } @else {
@@ -148,10 +154,18 @@ import { SpinnerComponent } from '../../shared/ui/spinner.component';
 export class HomePage {
   protected readonly session = inject(SessionService);
   private readonly tasksApi = inject(TasksApi);
+  private readonly projectsApi = inject(ProjectsApi);
 
   protected readonly statuses = TASK_STATUS_ORDER;
 
   protected readonly tasks = signal<MyTask[]>([]);
+
+  /**
+   * Si la persona pertenece a algún proyecto. Solo decide a dónde apunta el
+   * botón del estado vacío, así que se pide una página de tamaño 1 y basta
+   * con el total; ante un fallo se supone que sí, que es el camino de siempre.
+   */
+  protected readonly hasProjects = signal(true);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
   protected readonly status = signal<TaskStatus | ''>('');
@@ -177,6 +191,9 @@ export class HomePage {
 
   constructor() {
     this.loadTasks();
+    this.projectsApi
+      .list({ size: 1 })
+      .subscribe({ next: (page) => this.hasProjects.set(page.total > 0) });
   }
 
   protected label(status: TaskStatus): string {
