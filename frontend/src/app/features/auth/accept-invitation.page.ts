@@ -10,6 +10,7 @@ import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonComponent } from '../../shared/ui/button.component';
 import { FieldComponent } from '../../shared/ui/field.component';
 import { InputDirective } from '../../shared/ui/input.directive';
+import { PasswordInputComponent } from '../../shared/ui/password-input.component';
 import { SpinnerComponent } from '../../shared/ui/spinner.component';
 import { AuthLayoutComponent } from './auth-layout.component';
 
@@ -30,6 +31,7 @@ import { AuthLayoutComponent } from './auth-layout.component';
     ButtonComponent,
     FieldComponent,
     InputDirective,
+    PasswordInputComponent,
     SpinnerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -81,15 +83,18 @@ import { AuthLayoutComponent } from './auth-layout.component';
             [hint]="passwordHint"
             [error]="passwordError()"
           >
-            <input
-              uiInput
-              id="password"
-              type="password"
-              formControlName="password"
-              autocomplete="new-password"
-              [invalid]="!!passwordError()"
-              aria-describedby="password-msg"
-            />
+            <ui-password-input>
+              <input
+                uiInput
+                [trailingSlot]="true"
+                id="password"
+                type="password"
+                formControlName="password"
+                autocomplete="new-password"
+                [invalid]="!!passwordError()"
+                aria-describedby="password-msg"
+              />
+            </ui-password-input>
           </ui-field>
 
           <ui-button type="submit" [full]="true" [loading]="submitting()">
