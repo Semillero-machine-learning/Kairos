@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { ApiClient } from '../../core/api/api-client.service';
 import { ApiError } from '../../core/api/api-error';
 import { TASK_STATUS_LABEL, TASK_STATUS_ORDER, MyTask, TaskStatus } from '../../core/api/models';
 import { TasksApi } from '../../core/api/tasks.api';
@@ -10,13 +9,10 @@ import { SessionService } from '../../core/auth/session.service';
 import { BogotaDatePipe } from '../../shared/pipes/bogota-date.pipe';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { BadgeComponent } from '../../shared/ui/badge.component';
-import { ButtonComponent } from '../../shared/ui/button.component';
 import { EmptyStateComponent } from '../../shared/ui/empty-state.component';
 import { InputDirective } from '../../shared/ui/input.directive';
 import { PageHeaderComponent } from '../../shared/ui/page-header.component';
 import { SpinnerComponent } from '../../shared/ui/spinner.component';
-
-type HealthState = 'checking' | 'up' | 'down';
 
 /**
  * Pantalla de inicio: «Mis tareas» entre todos los proyectos (RF-36).
@@ -33,7 +29,6 @@ type HealthState = 'checking' | 'up' | 'down';
     BogotaDatePipe,
     AlertComponent,
     BadgeComponent,
-    ButtonComponent,
     EmptyStateComponent,
     InputDirective,
     PageHeaderComponent,
@@ -124,43 +119,6 @@ type HealthState = 'checking' | 'up' | 'down';
         }
       </section>
 
-      <section class="mt-10 border-t border-line pt-8" aria-labelledby="estado-servidor">
-        <h2 id="estado-servidor" class="text-sm font-medium text-ink">Estado del servidor</h2>
-        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-          @switch (health()) {
-            @case ('checking') {
-              <ui-badge tone="neutral">Comprobando…</ui-badge>
-            }
-            @case ('up') {
-              <ui-badge tone="success">En línea</ui-badge>
-            }
-            @case ('down') {
-              <ui-badge tone="danger">Sin respuesta</ui-badge>
-            }
-          }
-          <p class="text-sm text-ink-muted">
-            @switch (health()) {
-              @case ('checking') {
-                Preguntándole al servidor. Si estaba dormido, puede tardar.
-              }
-              @case ('up') {
-                La base de datos responde a la sonda del servidor.
-              }
-              @case ('down') {
-                No respondió. Si acaba de despertar, vuelve a intentarlo en un momento.
-              }
-            }
-          </p>
-          <!-- El margen negativo compensa el relleno del botón, para que su
-               texto quede a plomo con el encabezado de la sección. -->
-          <div class="-ml-3">
-            <ui-button variant="ghost" size="sm" (pressed)="checkHealth()">
-              Volver a probar
-            </ui-button>
-          </div>
-        </div>
-      </section>
-
       @if (session.isAdmin()) {
         <section class="mt-10 border-t border-line pt-8" aria-labelledby="administracion">
           <h2 id="administracion" class="text-sm font-medium text-ink">Administración</h2>
@@ -189,12 +147,10 @@ type HealthState = 'checking' | 'up' | 'down';
 })
 export class HomePage {
   protected readonly session = inject(SessionService);
-  private readonly api = inject(ApiClient);
   private readonly tasksApi = inject(TasksApi);
 
   protected readonly statuses = TASK_STATUS_ORDER;
 
-  protected readonly health = signal<HealthState>('checking');
   protected readonly tasks = signal<MyTask[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
@@ -220,7 +176,6 @@ export class HomePage {
   });
 
   constructor() {
-    this.checkHealth();
     this.loadTasks();
   }
 
@@ -245,14 +200,6 @@ export class HomePage {
         this.error.set(err.message);
         this.loading.set(false);
       },
-    });
-  }
-
-  protected checkHealth(): void {
-    this.health.set('checking');
-    this.api.health().subscribe({
-      next: () => this.health.set('up'),
-      error: () => this.health.set('down'),
     });
   }
 }
