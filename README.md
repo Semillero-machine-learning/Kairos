@@ -8,7 +8,6 @@
 Recordatorios que llegan solos. El material de estudio, por fin en un solo sitio.**
 
 [![Aplicación](https://img.shields.io/badge/app-app.kairospartners.uk-4b34e0?style=for-the-badge)](https://app.kairospartners.uk)
-[![API](https://img.shields.io/badge/API-api.kairospartners.uk-1f7a4d?style=for-the-badge)](https://api.kairospartners.uk/health)
 [![Especificación](https://img.shields.io/badge/spec-PDF-c2255c?style=for-the-badge)](docs/especificacion-tecnica.pdf)
 
 ![Angular](https://img.shields.io/badge/Angular-21-dd0031?logo=angular&logoColor=white)
