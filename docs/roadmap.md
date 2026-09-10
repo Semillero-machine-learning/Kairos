@@ -137,40 +137,55 @@ centralizada en `require_project_permission` en vez de repetida endpoint por
 endpoint, y la interfaz tiene el control en el resumen del proyecto. De HU-13
 solo faltan sus pruebas Gherkin propias.
 
-### Deuda de auditoría
+### Deuda de auditoría — saldada
 
-`.impeccable/surfaces/frontend-src-app.md` lleva el registro de lo verificado.
-Hoy dice esto:
+`.impeccable/surfaces/frontend-src-app.md` lleva el registro. Las pantallas de
+las Fases 2 a 6 se auditaron a 1440 y a 360 px, con las capturas en
+`.impeccable/review/`.
 
-| Pantallas | Estado |
-|---|---|
-| Fase 1 — ingreso, invitación, perfil, usuarios, invitaciones | Auditadas, con capturas en `.impeccable/review/` |
-| Fase 2 — lista, resumen, miembros, roles | Solo `detect`; sin `shape` antes ni `audit`/`polish` después |
-| Fases 3 y 4 — tablero, tarjeta, detalle, editor, comentarios, entregas | Sin auditar, ni registradas en la superficie |
-| Fase 5 — campana, configuración de notificaciones | Sin auditar |
-| Fase 6 — catálogo, detalle de lección, editor de módulos y lecciones | Sin auditar |
+El alcance se recortó a propósito, y conviene saberlo para futuras fases:
+auditoría completa a lo que se usa a diario y es difícil (tablero, tarjeta,
+detalle, entregas, lista y resumen de proyectos, catálogo de lecciones), y
+pasada ligera —360 px y `detect`— a lo que tocan una o dos personas de vez en
+cuando (editor de roles, configuración de notificaciones, editores de
+lecciones).
 
-De unas quince pantallas, seis están verificadas. **Auditar lo que falta es el
-grueso de esta fase**, y conviene hacerlo antes de corregir: la mitad de los
-errores de una interfaz se encuentran mirándola en serio, no esperando a que
-alguien los reporte.
+### Trabajo hecho
 
-### Trabajo
+- Auditoría de las pantallas pendientes, con capturas
+- Repaso de 360 px en adelante: sin desbordes horizontales en ninguna ruta
+- Estados vacíos y primer ingreso
+- Errores y casos límite: 404, proyecto ajeno y tiempo de espera agotado
+- Verificación del arranque en frío de punta a punta (RNF-02): aviso a los 3 s
+  empujando el contenido, petición viva mientras tanto, mensaje honesto en
+  español a los 90 s, y en ningún momento una pantalla en blanco
+- Pruebas Gherkin de HU-13 (tres escenarios) y de HU-14 (tablero adaptable y
+  arranque en frío), que no existían
+- Siete correcciones, una por commit
 
-- `/impeccable audit` sobre todo lo pendiente, guardando las capturas
-- `/impeccable adapt` — repaso de 360 px en adelante, con el tablero como caso difícil
-- `/impeccable onboard` — estados vacíos y primer ingreso
-- `/impeccable harden` — errores y casos límite
-- `/impeccable polish` sobre lo que el audit señale
-- Verificación del arranque en frío de punta a punta (RNF-02): 3 segundos, aviso, reintento, 90 de espera
-- Pruebas Gherkin de HU-13 y HU-14, que no existen
-- Corrección de los errores que aparezcan, **uno por commit**, cada uno nombrando qué rompía
+Comprobado y correcto sin cambios: contraste AA (0 fallos en siete pantallas
+tras corregir el token), el diálogo de tarea como `<dialog>` modal nativo, la
+campana dentro de la ventana a 360 px, y los 44 px táctiles del resto del
+sistema, que ya venían resueltos con `any-pointer-coarse`.
 
 ### Errores conocidos
 
 | Error | Estado |
 |---|---|
 | El panel de la campana se desplegaba hacia la izquierda desde la barra lateral y se cortaba contra el borde de la ventana | Corregido en `feat/fase-3-tareas` |
+| Toda fecha límite se mostraba un día antes: una fecha sin hora se leía como medianoche UTC y en Bogotá caía en el día anterior | Corregido en la Fase 7 |
+| El tablero dejaba arrastrar por debajo de 768 px, donde las cinco columnas están apiladas y no hay a dónde soltar | Corregido en la Fase 7 |
+| `ink-faint` no alcanza el 4.5:1 de AA como color de texto | Corregido en la Fase 7: los usos de contenido pasan a `ink-muted` |
+| El título de la tarjeta se quedaba en 20 px de alto con el dedo | Corregido en la Fase 7 |
+| `create_admin` aceptaba un correo que el login después rechaza, dejando un despliegue nuevo sin puerta de entrada | Corregido en la Fase 7 |
+
+### Decisiones tomadas durante la auditoría
+
+- La sonda «Estado del servidor» sale del inicio de los miembros. Cumplió el
+  criterio de cierre de la Fase 0 y se quedó ahí; la honestidad sobre el
+  servidor que pide RNF-02 la cubre el aviso de arranque en frío, que es global.
+- El estado vacío del primer día apunta al catálogo de lecciones cuando la
+  persona no pertenece a ningún proyecto, en vez de a otra pantalla vacía.
 
 **Cierre:** cada pantalla tiene su auditoría y su captura, la aplicación es
 usable en un teléfono de 360 px, y el arranque en frío no produce ni una

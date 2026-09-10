@@ -7,17 +7,45 @@ related_targets: ["frontend/src/app/features/auth","frontend/src/app/features/ad
 
 Ámbito: toda la aplicación autenticada (Fases 1 a 6). Fase 1: ingreso, aceptar invitación, recuperar contraseña, perfil, usuarios, invitaciones, más el armazón autenticado. Fase 2: lista de proyectos con su formulario de creación, armazón del proyecto con tres pestañas, resumen, miembros y editor de roles. Fases 3 y 4: tablero Kanban con su tarjeta, detalle de tarea, editor, comentarios y entregas, más «Mis tareas». Fase 5: campana de notificaciones y configuración global de recordatorios. Fase 6: catálogo de lecciones, detalle de lección, editor de módulos y editor de lecciones con sus recursos. Modo: Operate.
 
-**Pendiente de auditoría, y es deuda acumulada.** De las pantallas de arriba, solo las de la Fase 1 pasaron por `audit` y tienen capturas en `review/`. Todo lo demás se construyó dentro del contrato de dirección de abajo y `detect` lo da limpio (0 anti-patrones), pero ninguna pasó por `shape` antes ni por `audit` y `polish` después:
+**Auditada en la Fase 7.** Las pantallas de la Fase 1 ya venían auditadas
+desde su fase. El resto se revisó en la auditoría de la Fase 7, a 1440 y a
+360 px, con las capturas en `review/`. `detect` sigue dando 0 anti-patrones.
 
 | Pantallas | Estado |
 |---|---|
-| Fase 1 | Auditadas, con capturas |
-| Fase 2 — `features/projects` | Solo `detect` |
-| Fases 3 y 4 — `features/projects/board` | Solo `detect` |
-| Fase 5 — `core/layout/notification-bell`, `features/admin/notification-settings` | Solo `detect` |
-| Fase 6 — `features/lessons` | Solo `detect` |
+| Fase 1 | Auditadas en su fase, con capturas |
+| Fase 2 — `features/projects` | Auditadas: lista, resumen, miembros y roles |
+| Fases 3 y 4 — `features/projects/board` | Auditadas: tablero, tarjeta, detalle, entregas |
+| Fase 5 — `core/layout/notification-bell`, `features/admin/notification-settings` | Campana auditada (geometría a 360 comprobada); configuración, pasada ligera |
+| Fase 6 — `features/lessons` | Catálogo y detalle auditados; los dos editores, pasada ligera |
 
-Saldarlo es el trabajo de la Fase 7 del roadmap, que existe para eso. Cada auditoría deja sus capturas en `review/` con el nombre de la pantalla y el tamaño.
+El alcance se recortó a propósito: auditoría completa a lo que se usa a diario
+y es difícil, y pasada ligera —360 px y `detect`— a lo que tocan una o dos
+personas de vez en cuando (editor de roles, configuración de notificaciones,
+editores de lecciones).
+
+### Lo que encontró y cómo quedó
+
+| Hallazgo | Estado |
+|---|---|
+| Toda fecha límite se mostraba un día antes: `new Date('2026-07-31')` es medianoche UTC y en Bogotá (−5) cae en el 30 | Corregido en `bogota-date.pipe.ts`, con su prueba |
+| El tablero ofrecía arrastrar por debajo de 768 px, donde las columnas están apiladas | Corregido: puntero preciso **y** ancho, en una media query reactiva |
+| `ink-faint` no llega a AA como color de texto (3.09:1 en el catálogo) | Corregido: los diez usos de contenido pasan a `ink-muted`; el token se queda en los deshabilitados |
+| El título de la tarjeta, único interactivo sin variante táctil (20 px) | Corregido con relleno y margen negativo, sin cambiar el alto de la tarjeta |
+| `create_admin` creaba administradores con un correo que el login rechaza | Corregido en el servicio, con el mismo validador de los esquemas |
+| La sonda del servidor vivía en el inicio de todos los miembros | Quitada, por decisión del equipo |
+| El estado vacío del primer día llevaba a otro estado vacío | El botón apunta al catálogo cuando no hay proyectos |
+
+Comprobado y correcto, sin cambios: contraste AA en siete pantallas (0 fallos
+tras la corrección), ausencia de desbordes horizontales a 360 px, el diálogo de
+tarea como `<dialog>` modal nativo (foco atrapado y Escape), la campana dentro
+de la ventana a 360, los 44 px táctiles del resto del sistema —que ya venían
+resueltos con `any-pointer-coarse`—, el arranque en frío de punta a punta (aviso
+a los 3 s, mensaje honesto a los 90) y las dos pantallas de error, que además no
+delatan si un proyecto ajeno existe.
+
+Descartado tras verificar: el aviso «Tu sesión terminó» en una visita limpia era
+una sesión vieja del perfil de Chrome caducando correctamente.
 
 Audiencia: ~50 estudiantes de un semillero de ML y 1–2 coordinadores. Tarea: entrar, y saber qué se debe y para cuándo. Restricciones: español, AA, 360 px en adelante, áreas táctiles de 44 px, arranque en frío visible.
 
