@@ -21,6 +21,7 @@ from app.modules.users.service import PASSWORD_MIN_LENGTH, UsersService
 async def _create_admin(full_name: str, email: str, password: str) -> None:
     async with SessionLocal() as db:
         service = UsersService(db)
+        service.validate_email(email)
         service.validate_password_strength(password)
         user = await service.create_user(
             full_name=full_name,

@@ -9,6 +9,8 @@ call chain commit explicitly.
 import uuid
 from datetime import datetime
 
+from pydantic import EmailStr, TypeAdapter
+from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -94,6 +96,21 @@ class UsersService:
             raise ValidationError(
                 f"La contraseña debe tener al menos {PASSWORD_MIN_LENGTH} caracteres."
             )
+
+    @staticmethod
+    def validate_email(email: str) -> None:
+        """Reject an address that the login endpoint would later refuse.
+
+        Every HTTP path already validates through ``EmailStr`` in its schema,
+        but the CLI does not go through a schema, and it is the path that
+        creates the *first* administrator. An address the validator rejects
+        used to produce an account that could never sign in, on a deployment
+        with no other way in. Same validator, so both edges agree.
+        """
+        try:
+            TypeAdapter(EmailStr).validate_python(email)
+        except PydanticValidationError as exc:
+            raise ValidationError(f"«{email}» no es un correo válido.") from exc
 
     # --- Administration ---
 

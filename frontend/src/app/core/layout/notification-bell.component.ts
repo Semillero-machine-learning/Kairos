@@ -122,7 +122,7 @@ import { NotificationStore } from '../notifications/notification.store';
                     }
                   </span>
                   <span class="pl-3.5 text-sm text-ink-muted">{{ item.body }}</span>
-                  <span class="pl-3.5 text-xs text-ink-faint">
+                  <span class="pl-3.5 text-xs text-ink-muted">
                     {{ item.created_at | bogotaDate: 'datetime' }}
                   </span>
                 </button>

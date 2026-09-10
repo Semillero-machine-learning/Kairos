@@ -32,9 +32,14 @@ import { STATUS_TARGETS } from './transitions';
       (dragstart)="dragStarted.emit()"
       (dragend)="dragEnded.emit()"
     >
+      <!--
+        Con el dedo, el título crece a 44 px de alto por dentro y recupera el
+        espacio con el margen negativo: el área de toque cumple RNF-01 sin que
+        las tarjetas cambien de alto ni el tablero se estire en el teléfono.
+      -->
       <button
         type="button"
-        class="block w-full text-left text-sm font-medium text-balance text-ink hover:text-accent"
+        class="block w-full text-left text-sm font-medium text-balance text-ink hover:text-accent any-pointer-coarse:-my-3 any-pointer-coarse:py-3"
         (click)="opened.emit()"
       >
         {{ task().title }}
@@ -72,7 +77,7 @@ import { STATUS_TARGETS } from './transitions';
             <span class="text-xs text-ink-muted">+{{ task().assignees.length - 3 }}</span>
           }
         } @else {
-          <span class="text-xs text-ink-faint">Sin responsable</span>
+          <span class="text-xs text-ink-muted">Sin responsable</span>
         }
       </div>
 

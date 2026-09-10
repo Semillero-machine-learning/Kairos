@@ -225,7 +225,7 @@ import { CommentEdit, TaskCommentsComponent } from './task-comments.component';
                   <p class="mt-2 text-sm text-ink-muted">Revisión: {{ comment }}</p>
                 }
                 @if (submission.reviewed_by; as reviewer) {
-                  <p class="mt-1 text-xs text-ink-faint">
+                  <p class="mt-1 text-xs text-ink-muted">
                     Revisó {{ reviewer.full_name }} ·
                     {{ submission.reviewed_at | bogotaDate: 'datetime' }}
                   </p>
@@ -236,7 +236,7 @@ import { CommentEdit, TaskCommentsComponent } from './task-comments.component';
                     <label class="flex flex-col gap-1.5">
                       <span class="text-sm text-ink-muted">
                         Comentario de la revisión
-                        <span class="text-ink-faint">
+                        <span class="text-ink-muted">
                           (obligatorio para devolver, opcional para aprobar)
                         </span>
                       </span>
