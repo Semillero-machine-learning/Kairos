@@ -123,6 +123,21 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+
+    /*
+     * El indicador de espera es la excepción. Su giro no es adorno: es la única
+     * señal de que la petición sigue viva, y con el arranque en frío eso puede
+     * durar noventa segundos. Apagarlo con la regla de arriba lo deja quieto, y
+     * un usuario que pidió menos movimiento acaba mirando un icono congelado
+     * sin saber si el servidor está despertando o si la aplicación se colgó.
+     *
+     * Se conserva el giro, más lento: es un elemento pequeño y de área fija,
+     * que no es lo que la preferencia busca evitar.
+     */
+    .animate-spin {
+      animation-duration: 1.6s !important;
+      animation-iteration-count: infinite !important;
+    }
   }
 }
 
