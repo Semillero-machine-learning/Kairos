@@ -17,6 +17,7 @@ import {
 import { ProjectsApi } from '../../../core/api/projects.api';
 import { ReviewBody, SubmissionBody, TasksApi } from '../../../core/api/tasks.api';
 import { SessionService } from '../../../core/auth/session.service';
+import { mediaQuery } from '../../../shared/media-query';
 import { AlertComponent } from '../../../shared/ui/alert.component';
 import { ButtonComponent } from '../../../shared/ui/button.component';
 import { DialogComponent } from '../../../shared/ui/dialog.component';
@@ -34,6 +35,13 @@ import { canMoveTo } from './transitions';
 type DialogMode = 'closed' | 'create' | 'edit' | 'detail';
 
 const PERIODICITIES: TaskPeriodicity[] = ['ONE_TIME', 'WEEKLY', 'MONTHLY', 'SEMESTER'];
+
+/**
+ * Cuándo se ofrece arrastrar y soltar: puntero preciso **y** el ancho a partir
+ * del cual las columnas dejan de estar apiladas. Se exporta para que la prueba
+ * de HU-14 use la misma consulta y no una copia que pueda quedar desfasada.
+ */
+export const DRAG_QUERY = '(pointer: fine) and (min-width: 768px)';
 
 /**
  * El tablero Kanban del proyecto (RF-29).
@@ -193,7 +201,7 @@ const PERIODICITIES: TaskPeriodicity[] = ['ONE_TIME', 'WEEKLY', 'MONTHLY', 'SEME
                     <app-task-card
                       [task]="task"
                       [canMove]="canMove(task)"
-                      [canDrag]="pointerIsFine() && canMove(task)"
+                      [canDrag]="dragEnabled() && canMove(task)"
                       (opened)="openDetail(task)"
                       (statusPicked)="board.move(task, $event)"
                       (dragStarted)="dragged.set(task)"
@@ -280,13 +288,16 @@ export class TaskBoardPage {
   protected readonly dropTarget = signal<TaskStatus | null>(null);
 
   /**
-   * Si el dispositivo apunta con precisión. Arrastrar y soltar se ofrece solo
-   * ahí: se consulta el puntero y no el ancho, porque una tableta de 1024 px
-   * con dedo tiene el mismo problema que un teléfono.
+   * Si se ofrece arrastrar y soltar. Piden las dos cosas a la vez:
+   *
+   * - **Puntero preciso**, porque una tableta de 1024 px con dedo tiene el
+   *   mismo problema que un teléfono.
+   * - **768 px de ancho como mínimo**, porque por debajo de ahí las cinco
+   *   columnas están apiladas como listas y no hay a dónde arrastrar. La tabla
+   *   de puntos de quiebre y el escenario «Tablero en móvil» de HU-14 lo piden
+   *   explícitamente (RNF-01).
    */
-  protected readonly pointerIsFine = signal(
-    typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches,
-  );
+  protected readonly dragEnabled = mediaQuery(DRAG_QUERY);
 
   protected readonly currentUserId = computed(() => this.session.user()?.id ?? null);
 
