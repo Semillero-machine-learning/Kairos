@@ -335,7 +335,7 @@ Las tres rutas de publicación y reordenamiento de lecciones y recursos se agreg
 
 | Método | Ruta | Autenticación |
 |---|---|---|
-| GET | `/health` | Pública. Ejecuta `SELECT 1`; sirve de sonda y de mantener despierto el servicio |
+| GET | `/health` | Pública. Ejecuta `SELECT 1`; sirve de sonda y despierta de paso la API y la base antes del proceso diario |
 | POST | `/internal/jobs/reminders` | `X-Job-Token` |
 
 **POST `/internal/jobs/reminders`** responde con el resumen de la ejecución:

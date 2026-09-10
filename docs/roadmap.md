@@ -214,8 +214,8 @@ La fase 2 no se paraleliza: el sistema de permisos es la base de todo lo demás 
 
 | Riesgo | Mitigación |
 |---|---|
-| El arranque en frío de Render arruina la experiencia | Ping programado en horario hábil e indicador de carga honesto (RNF-02) |
-| Supabase pausa el proyecto por inactividad | El mismo ping golpea la base de datos (RNF-07) |
+| El arranque en frío de Render arruina la experiencia | Indicador de carga honesto (RNF-02). El ping programado se probó y se retiró: fallaba por tiempo agotado y avisaba por correo de cada fallo |
+| Supabase pausa el proyecto por inactividad | El paso «Despertar la API» del cron diario de recordatorios ejecuta un `SELECT 1` (RNF-07) |
 | El cron de GitHub Actions se retrasa o se salta | Aceptable para avisos diarios; RN-29 lo contempla |
 | Los correos caen en la carpeta de no deseados | Verificar el dominio, publicar DMARC, calentar el envío con volumen bajo |
 | El sistema de permisos se complica de más | El catálogo es cerrado: 14 permisos, ni uno más sin decisión explícita |

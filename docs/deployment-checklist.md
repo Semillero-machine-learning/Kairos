@@ -159,14 +159,21 @@ importa, porque el servicio nuevo necesita la base nueva.
 
 ## 6. Proceso programado (GitHub Actions)
 
-Los dos flujos viven en `.github/workflows/`:
+El flujo vive en `.github/workflows/`:
 
 | Flujo | Cuándo | Qué hace |
 |---|---|---|
 | `reminders.yml` | `0 12 * * *` (07:00 en Colombia) | Despierta la API y llama a `POST /internal/jobs/reminders` |
-| `keep-alive.yml` | `*/10 0-4,11-23 * * *` (6:00–23:59 en Colombia) | Un `curl` a `/health`, que ejecuta un `SELECT 1` |
 
-Ambos necesitan dos secretos en **Settings → Secrets and variables → Actions**
+Hubo un segundo flujo, `keep-alive.yml`, que golpeaba `/health` cada 10 minutos
+en horario hábil. Se retiró: fallaba a menudo por tiempo agotado durante el
+arranque en frío y llenaba el correo de avisos de GitHub. El servicio se
+suspende y no pasa nada — el aviso de «Despertando el servidor...» de RNF-02 es
+lo que ve el usuario. La pausa por inactividad de Supabase (RNF-07) queda
+cubierta por el paso «Despertar la API» de `reminders.yml`, que ejecuta un
+`SELECT 1` todos los días.
+
+Necesita dos secretos en **Settings → Secrets and variables → Actions**
 del repositorio:
 
 | Secreto | Valor |

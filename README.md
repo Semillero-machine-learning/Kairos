@@ -96,7 +96,7 @@ C4Container
     }
 
     System_Ext(resend, "Resend", "Correo saliente")
-    System_Ext(cron, "GitHub Actions", "cron diario y ping de mantenimiento")
+    System_Ext(cron, "GitHub Actions", "cron diario de recordatorios")
 
     Rel(user, spa, "Usa", "HTTPS")
     Rel(spa, api, "Consume", "JSON sobre HTTPS con JWT")
@@ -164,8 +164,7 @@ KAIROS/
 ├── README.md
 ├── docs/                            Requisitos, reglas, modelo de datos, arquitectura, API
 ├── .github/workflows/
-│   ├── reminders.yml                cron diario 12:00 UTC = 07:00 America/Bogota
-│   └── keepalive.yml                ping cada 10 min en horario hábil
+│   └── reminders.yml                cron diario 12:00 UTC = 07:00 America/Bogota
 ├── backend/
 │   ├── app/
 │   │   ├── main.py
