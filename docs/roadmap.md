@@ -161,7 +161,7 @@ lecciones).
   español a los 90 s, y en ningún momento una pantalla en blanco
 - Pruebas Gherkin de HU-13 (tres escenarios) y de HU-14 (tablero adaptable y
   arranque en frío), que no existían
-- Siete correcciones, una por commit
+- Ocho correcciones, una por commit
 
 Comprobado y correcto sin cambios: contraste AA (0 fallos en siete pantallas
 tras corregir el token), el diálogo de tarea como `<dialog>` modal nativo, la
@@ -178,6 +178,7 @@ sistema, que ya venían resueltos con `any-pointer-coarse`.
 | `ink-faint` no alcanza el 4.5:1 de AA como color de texto | Corregido en la Fase 7: los usos de contenido pasan a `ink-muted` |
 | El título de la tarjeta se quedaba en 20 px de alto con el dedo | Corregido en la Fase 7 |
 | `create_admin` aceptaba un correo que el login después rechaza, dejando un despliegue nuevo sin puerta de entrada | Corregido en la Fase 7 |
+| El indicador de espera se congelaba con `prefers-reduced-motion`, dejando el arranque en frío sin señal de vida | Corregido en la Fase 7 |
 
 ### Decisiones tomadas durante la auditoría
 

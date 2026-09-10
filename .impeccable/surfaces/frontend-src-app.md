@@ -35,6 +35,7 @@ editores de lecciones).
 | `create_admin` creaba administradores con un correo que el login rechaza | Corregido en el servicio, con el mismo validador de los esquemas |
 | La sonda del servidor vivía en el inicio de todos los miembros | Quitada, por decisión del equipo |
 | El estado vacío del primer día llevaba a otro estado vacío | El botón apunta al catálogo cuando no hay proyectos |
+| El indicador de espera se congelaba con `prefers-reduced-motion` | Corregido: el giro se conserva más lento; el resto se sigue apagando |
 
 Comprobado y correcto, sin cambios: contraste AA en siete pantallas (0 fallos
 tras la corrección), ausencia de desbordes horizontales a 360 px, el diálogo de
@@ -46,6 +47,30 @@ delatan si un proyecto ajeno existe.
 
 Descartado tras verificar: el aviso «Tu sesión terminó» en una visita limpia era
 una sesión vieja del perfil de Chrome caducando correctamente.
+
+### Segunda pasada
+
+La primera pasada dejó fuera varias pantallas. Se revisaron después:
+
+- **Editor de tarea.** Todos los campos con etiqueta, título obligatorio, y la
+  nota «Es una etiqueta: no crea tareas nuevas» junto a la periodicidad (RF-26).
+  Crear una tarea con fecha y verla en la tarjeta confirma que la fecha viaja
+  intacta: el lado de escritura nunca estuvo roto.
+- **Diálogos a 360 px** (detalle y editor): 309 px de ancho, centrados, cero
+  elementos desbordando y desplazamiento interno correcto.
+- **Recorrido por teclado del tablero** (RNF-09): orden correcto por columnas,
+  cada tarjeta y cada selector alcanzables, y anillo de foco visible en todos.
+  El selector de estado lleva etiqueta descriptiva («Estado de «…»: mover a…»),
+  que es el camino sin ratón que sustituye al arrastre.
+- **«Mis tareas» con contenido** y **campana con notificaciones**: ambas
+  correctas; la campana se abre dentro de la ventana y las dos instancias
+  (cabecera móvil y barra lateral) comparten un store único, sin duplicar
+  peticiones.
+
+Queda anotado, sin cambiar: en «Mis tareas» una tarea **Hecha** puede aparecer
+por encima de una vencida, porque el orden es por fecha límite y no mira el
+estado. Ni el PRD ni el contrato de la API fijan otra cosa, y existe el filtro
+por estado, así que es decisión de producto y no un defecto.
 
 Audiencia: ~50 estudiantes de un semillero de ML y 1–2 coordinadores. Tarea: entrar, y saber qué se debe y para cuándo. Restricciones: español, AA, 360 px en adelante, áreas táctiles de 44 px, arranque en frío visible.
 
